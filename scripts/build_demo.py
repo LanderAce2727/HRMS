@@ -1,0 +1,115 @@
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[1]
+def link(path, text):
+    return f'<a class="demo-button" href="../{path}.html">{text}</a>'
+def button(text, action='Preview action completed. No data was stored.'):
+    return f'<button class="demo-button" type="button" data-notify="{action}">{text}</button>'
+def panel(title, content):
+    return f'<section class="demo-panel"><h2>{title}</h2>{content}</section>'
+def field(label, kind='text', value=''):
+    if kind == 'textarea': control=f'<textarea placeholder="{value}"></textarea>'
+    elif kind.startswith('select:'): control='<select>'+''.join(f'<option>{x}</option>' for x in kind[7:].split('|'))+'</select>'
+    else: control=f'<input type="{kind}" placeholder="{value}"'+(' accept=".pdf"' if kind=='file' else '')+'>'
+    return f'<label>{label}{control}</label>'
+def form(fields, nextpage=None, submit='Continue'):
+    attr=f'data-next="{nextpage}.html"' if nextpage else 'data-demo-form'
+    return f'<form class="demo-form" {attr} novalidate>{fields}<div><button class="demo-button primary" type="submit">{submit}</button></div></form>'
+def table(headers, rows, search=True):
+    searchbox='<label>Search records<input class="demo-search" data-search placeholder="Search by name, status, or department"></label><p data-search-status aria-live="polite"></p>' if search else ''
+    return searchbox+'<div class="demo-table-wrap"><table><thead><tr>'+''.join(f'<th scope="col">{h}</th>' for h in headers)+'</tr></thead><tbody>'+''.join('<tr data-row>'+''.join(f'<td>{c}</td>' for c in r)+'</tr>' for r in rows)+'</tbody></table></div>'
+def badge(text): return f'<span class="demo-badge" data-status>{text}</span>'
+def decisions(): return '<button class="demo-button" data-decision="Approved">Approve</button> <button class="demo-button" data-decision="Rejected">Reject</button>'
+def stats(items):return '<div class="demo-grid">'+''.join(f'<div class="demo-panel demo-stat"><span class="demo-muted">{k}</span><strong>{v}</strong><span class="demo-muted">Sample data</span></div>' for k,v in items)+'</div>'
+PAGES={}
+def add(folder,name,title,description,body):
+    if name=='Employee_Attendance_Check-In': return  # Supplied Attendance.html is created by customize_system.py.
+    PAGES[f'{folder}/{name}.html']=(title,description,body)
+registration=field('Full name','text','Your full name')+field('Email address','email','name@example.com')+field('Password','password','Demo only — do not use a real password')
+add('authentication','Authentication_Applicant_Registration','Create an applicant account','Join the DNSC applicant portal. All fields are optional in this demo.',panel('Applicant information',form(registration+field('Contact number','tel')+field('Resume (optional PDF)','file'),'authentication/Authentication_Account_Verification','Preview registration')))
+studentfields=field('Student number','text','2026-00123')+field('Full name','text','Student name')+field('School email','email','student@dnsc.edu.ph')+field('Program','select:BS Information Technology|BS Education|BS Business Administration')+field('Year level','select:1st year|2nd year|3rd year|4th year')
+add('authentication','Authentication_Student_Registration','Student registration','Access the faculty evaluation demo.',panel('Student details',form(studentfields,'student/Student_Verification_Status','Continue to verification')))
+add('authentication','Authentication_Account_Verification','Account verification','Preview the verification step without an email or code requirement.',panel('Verify your account',form(field('Email address','email')+field('Verification code','text','Optional demo code'),'applicant/Applicant_Job_Listings','Continue to applicant portal')+'<div class="demo-actions">'+link('student/Student_Verification_Status','Student verification')+link('authentication/Authentication_Login','Back to login')+'</div>'))
+jobs=[('Instructor I','Information Technology','Full-time','₱31,320 / month'),('Part-time Lecturer','Education','Part-time','₱350 / hour'),('Administrative Assistant','Human Resources','Contractual','₱20,000 / month')]
+jobcards='<div class="demo-grid">'+''.join(panel(t,badge(dept)+f'<p>{mode} · {pay}</p><p>Support learning and public service at Davao del Norte State College.</p>'+link('applicant/Applicant_Job_Details','View job details')) for t,dept,mode,pay in jobs)+'</div>'
+add('applicant','Applicant_Job_Listings','Find your next opportunity','Explore sample opportunities at DNSC.',jobcards)
+add('applicant','Applicant_Job_Details','Instructor I','Information Technology · Full-time · Sample vacancy',panel('About this position','<p>Teach undergraduate courses, develop learning materials, mentor students, and contribute to departmental activities.</p><h3>Qualifications</h3><ul><li>Relevant bachelor’s degree; graduate studies preferred.</li><li>Strong communication and classroom facilitation skills.</li><li>Commitment to inclusive student learning.</li></ul><h3>Application requirements</h3><p>Curriculum vitae, letter of intent, and relevant credentials. Demo deadline: November 30, 2026.</p><div class="demo-actions">'+link('applicant/Applicant_Application_Form','Apply now')+link('applicant/Applicant_Job_Listings','Back to vacancies')+'</div>'))
+add('applicant','Applicant_Application_Form','Apply for a position','Try the application flow. Nothing is uploaded or saved.',panel('Application details',form(field('Position','select:Instructor I|Part-time Lecturer|Administrative Assistant')+field('Full name')+field('Email','email')+field('Education')+field('Experience','textarea')+field('Resume','file')+field('Letter of intent','textarea'),'applicant/Applicant_Application_Status','Preview submission')))
+add('applicant','Applicant_My_Applications','My applications','Sample applications and their latest progress.',panel('Application history',table(['Reference','Position','Submitted','Status','Action'],[['APP-2026-001','Instructor I','October 21, 2026',badge('Under review'),link('applicant/Applicant_Application_Status','View status')],['APP-2026-002','Part-time Lecturer','October 18, 2026',badge('Interview scheduled'),link('applicant/Applicant_Application_Status','View status')]])))
+add('applicant','Applicant_Application_Status','Application status','APP-2026-001 · Instructor I · Sample record',panel('Under review','<ol><li><strong>Application received</strong><p>Your demo application preview is complete.</p></li><li><strong>HR review</strong><p>Sample status: the HR office is reviewing credentials.</p></li><li><strong>Interview and decision</strong><p>Next steps appear here once available.</p></li></ol>'+link('applicant/Applicant_My_Applications','My applications')))
+people=[['Ana Mendoza','EMP-1001','Information Technology','Regular'],['Mark Dela Cruz','EMP-1002','Education','Contractual'],['Jessa Ramos','EMP-1003','Business','Regular']]
+add('hr-admin','HR_Admin_Job_Vacancies','Job vacancies','Manage sample recruitment opportunities.',stats([('Open positions','3'),('Applications','24'),('Departments','3')])+panel('Published vacancies',table(['Position','Department','Type','Action'],[[t,d,m,link('applicant/Applicant_Job_Details','Preview') ] for t,d,m,p in jobs]))+panel('Draft a vacancy',form(field('Position title')+field('Department')+field('Employment type','select:Full-time|Part-time|Contractual')+field('Description','textarea'),submit='Preview vacancy')))
+add('hr-admin','HR_Admin_Applicant_Management','Applicant management','Review sample applications. Decisions reset when the page reloads.',panel('Applications',table(['Applicant','Position','Submitted','Status','Decision'],[[n,'Instructor I','October 21, 2026',badge('Pending'),decisions()] for n in ['Maria Santos','John Reyes','Angela Cruz']])))
+add('hr-admin','HR_Admin_Employee_Records','Employee records','View sample faculty and staff records.',panel('Employee directory',table(['Name','Employee ID','Department','Employment','Action'],[p+[link('employee/Employee_Employee_Profile','View profile')] for p in people]))+panel('Employee details',form(field('Employee name')+field('Employee ID')+field('Department')+field('Email','email'),submit='Preview employee record')))
+add('hr-admin','HR_Admin_Employee_Status','Employee status','Review appointment and employment status.',panel('Employment records',table(['Employee','Department','Appointment','Status'],[[p[0],p[2],p[3],badge('Active')] for p in people]))+panel('Update status',form(field('Employee','select:Ana Mendoza|Mark Dela Cruz|Jessa Ramos')+field('Status','select:Active|On leave|Inactive')+field('Remarks','textarea'),submit='Apply demo status')))
+attendance=[['Ana Mendoza','RFID-1001','07:45','16:35','Present'],['Mark Dela Cruz','RFID-1002','08:24','16:45','Late'],['Jessa Ramos','RFID-1003','07:52','16:30','Present']]
+editrows=[[n,rf,f'<span data-time="Time in">{ti}</span>',f'<span data-time="Time out">{to}</span>',badge(st),'<button class="demo-button" data-edit-attendance>Correct record</button>'] for n,rf,ti,to,st in attendance]
+add('hr-admin','HR_Admin_Attendance_Management','Attendance management','HR correction controls are open for demo access. Changes reset on reload.',stats([('Present','2'),('Late','1'),('Total sample logs','3')])+panel('October 24, 2026 · Sample logs',table(['Faculty','RFID','Time in','Time out','Status','Action'],editrows)+'<div class="demo-actions"><button class="demo-button" data-export data-demo-export>Export CSV</button>'+link('Attendance','Open RFID scanner')+'</div>'))
+add('hr-admin','HR_Admin_Student_Verification','Student verification','Review sample enrollment details for faculty evaluation.',panel('Verification queue',table(['Student','Student number','Program','Status','Action'],[[n,id,'BS Information Technology',badge('Pending'),decisions()] for n,id in [('Alex Rivera','2026-00123'),('Bea Cruz','2026-00124')]])))
+payrows=[[p[0],'October 1–15, 2026','₱15,660.00','₱1,250.00','₱14,410.00',badge('Processed')] for p in people]
+add('hr-admin','HR_Admin_Payroll','Payroll','Sample payroll figures for demonstration only.',stats([('Gross payroll','₱46,980'),('Deductions','₱3,750'),('Net payroll','₱43,230')])+panel('Payroll register',table(['Employee','Period','Gross','Deductions','Net pay','Status'],payrows)+'<div class="demo-actions"><button class="demo-button" data-export data-demo-export>Export payroll CSV</button>'+link('employee/Employee_My_Payslips','Preview payslip')+button('Process demo payroll','Sample payroll processed for preview. No payment was made.')+'</div>'))
+add('hr-admin','HR_Admin_Evaluation_Reports','Evaluation reports','Sample faculty evaluation results.',stats([('Responses','128'),('Average rating','4.6 / 5'),('Completion','84%')])+panel('Faculty summary',table(['Faculty','Department','Responses','Average'],[[p[0],p[2],str(40+i*2),'4.6 / 5'] for i,p in enumerate(people)])+'<div class="demo-actions"><button class="demo-button" data-export data-demo-export>Export results</button><button class="demo-button" data-print>Print report</button></div>')+panel('Teaching effectiveness','<p>Clarity of instruction · 92%</p><div class="demo-progress"><span style="width:92%"></span></div><p>Student engagement · 88%</p><div class="demo-progress"><span style="width:88%"></span></div>'))
+add('employee','Employee_Employee_Profile','My employee profile','Ana Mendoza · EMP-1001 · Sample employee',panel('Personal and employment details',form(field('Full name','text','Ana Mendoza')+field('Work email','email','ana@dnsc.edu.ph')+field('Department','text','Information Technology')+field('Contact number','tel')+field('Address','textarea'),submit='Preview profile update')))
+clock='<div class="demo-clock"><span class="demo-badge">Philippine Standard Time · UTC+08:00</span><div><time id="demoClock"></time></div><p id="demoDate"></p></div>'
+scanner='<div class="demo-scanner"><h2>Tap your RFID card</h2><p>Use a USB reader or type any demo card number, then press Enter.</p><form id="scanForm" class="demo-form" style="margin:auto"><label>RFID card number<input autocomplete="off" placeholder="RFID-1001" aria-label="RFID card number"></label><button class="demo-button primary">Simulate scan</button></form><p id="scanStatus" role="status">Ready to scan · demonstration only</p></div>'
+add('employee','Employee_Attendance_Check-In','RFID attendance','Scan your card and view your attendance history.',panel('Live clock',clock)+scanner+'<div class="demo-actions">'+link('employee/Employee_Attendance_History','View attendance history')+'</div>')
+add('employee','Employee_Attendance_History','My attendance history','Ana Mendoza · Sample attendance records',stats([('Days present','18'),('Late arrivals','1'),('Absences','0')])+panel('Attendance log',table(['Date','Time in','Time out','Status'],[[f'October {d}, 2026','07:45 AM','04:35 PM',badge('Present')] for d in [24,23,22,21,20]])+link('Attendance','Scan RFID')))
+add('employee','Employee_Employee_Status','My employment status','Review your sample appointment details.',panel('Current appointment',badge('Active')+'<dl><dt>Employee</dt><dd>Ana Mendoza</dd><dt>Position</dt><dd>Instructor I</dd><dt>Department</dt><dd>Information Technology</dd><dt>Appointment</dt><dd>Regular</dd><dt>Start date</dt><dd>August 1, 2024</dd></dl>')+panel('Status history',table(['Effective date','Event','Status'],[['August 1, 2024','Appointment issued',badge('Regular')],['June 1, 2026','Annual review',badge('Active')]])))
+add('employee','Employee_My_Payslips','My payslips','Sample figures only. This is not an official payslip.',panel('October 1–15, 2026 · Ana Mendoza',table(['Description','Amount'],[['Basic pay','₱15,660.00'],['Total deductions','₱1,250.00'],['Net pay','₱14,410.00']],False)+'<div class="demo-actions"><button class="demo-button" data-print>Print / save as PDF</button><button class="demo-button" data-export data-demo-export>Download CSV</button></div>'))
+add('student','Student_Student_Registration','Student information','Enter optional student details to preview the evaluation flow.',panel('Enrollment information',form(studentfields,'student/Student_Verification_Status','Continue')))
+add('student','Student_Verification_Status','Verification status','Review a sample student verification result.',panel('Student enrollment',badge('Verified · sample')+'<p>Alex Rivera · 2026-00123<br>BS Information Technology · 3rd year</p><p>The demo is open: continue directly to faculty selection.</p>'+link('student/Student_Faculty_Selection','Choose faculty')))
+add('student','Student_Faculty_Selection','Select a faculty member','Choose a faculty member to preview the evaluation form. The form uses sample course details.','<div class="demo-grid">'+''.join(panel(p[0],badge(p[2])+'<p>Faculty evaluation · First semester 2026–2027</p>'+link('student/Student_Evaluation_Form','Evaluate faculty')) for p in people)+'</div>')
+ratings=''.join(field(q,'select:Choose rating (optional)|5 — Excellent|4 — Very good|3 — Good|2 — Fair|1 — Needs improvement') for q in ['Explains lessons clearly','Prepares and organizes lessons','Encourages participation','Provides helpful feedback','Treats students fairly'])
+add('student','Student_Evaluation_Form','Faculty evaluation','Sample evaluation form · First semester 2026–2027',panel('Your feedback',form(field('Faculty','select:Ana Mendoza|Mark Dela Cruz|Jessa Ramos')+ratings+field('Comments and suggestions','textarea'),'student/Student_Submission_Confirmation','Preview submission')))
+add('student','Student_Submission_Confirmation','Thank you for your feedback','The evaluation demo flow is complete.',panel('Submission preview complete',badge('Demo confirmation')+'<p>No evaluation was sent or stored. You can explore another evaluation or return to the page directory.</p><div class="demo-actions">'+link('student/Student_Faculty_Selection','Evaluate another faculty member')+link('index','All pages')+'</div>'))
+
+for path,(title,desc,body) in PAGES.items():
+    folder=path.split('/')[0]
+    html=f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} | DNSC Smart HRMS</title><link rel="stylesheet" href="../assets/demo.css"></head><body><div class="demo-layout"><aside class="demo-sidebar"><div class="demo-brand"><div class="demo-logo" aria-label="Blank school logo placeholder"></div><div>DNSC<small>SMART HRMS</small></div></div><button class="demo-button demo-menu" data-menu aria-expanded="false">Toggle menu</button><nav data-demo-sidebar="{folder}" aria-label="Section pages"></nav><p>Frontend demonstration<br>Sample data · Open access</p></aside><main class="demo-main"><header class="demo-heading"><h1>{title}</h1><p>{desc}</p></header>{body}</main></div><script src="../assets/demo.js"></script></body></html>'''
+    (ROOT/path).write_text(html,encoding='utf-8')
+
+# Preserve the supplied designs and all original root files; enhance organized copies only.
+for path in ['authentication/Authentication_Login.html','authentication/Authentication_Login_Single_Card.html','hr-admin/HR_Admin_Dashboard.html']:
+    file=ROOT/path;html=file.read_text(encoding='utf-8')
+    if '../assets/demo.css' not in html:html=html.replace('</head>','<link rel="stylesheet" href="../assets/demo.css"></head>',1)
+    if '../assets/demo.js' not in html:html=html.replace('</body>','<script src="../assets/demo.js"></script></body>',1)
+    # Avoid dashboard rerenders looking for a badge removed with the old navigation.
+    if 'HR_Admin_Dashboard' in path:
+        html=html.replace("$('pendingNav').textContent=pending;","if($('pendingNav'))$('pendingNav').textContent=pending;")
+    file.write_text(html,encoding='utf-8')
+allpages={'authentication/Authentication_Login.html':('Login',''),'hr-admin/HR_Admin_Dashboard.html':('HR dashboard','')}
+allpages.update({p:(data[0],data[1]) for p,data in PAGES.items()})
+sections=''
+for folder in ['authentication','hr-admin','applicant','employee','student']:
+    items=''.join(f'<li style="margin-bottom:12px"><a href="{p}">{t}</a></li>' for p,(t,d) in allpages.items() if p.startswith(folder+'/'))
+    if folder=='employee':items+='<li><a href="Attendance.html">Attendance</a></li>'
+    if folder=='authentication':items+='<li><a href="authentication/Authentication_Login_Single_Card.html">Single-card login alternative</a></li>'
+    sections+=panel(folder.replace('-',' ').title(),'<ul>'+items+'</ul>')
+(ROOT/'index.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNSC Smart HRMS | All pages</title><link rel="stylesheet" href="assets/demo.css"></head><body><main class="demo-main" style="margin:auto"><div class="demo-brand"><div class="demo-logo" aria-label="Blank school logo placeholder"></div><div>DNSC<small>SMART HRMS</small></div></div><header class="demo-heading"><h1>Explore Smart HRMS</h1><p>All 28 pages are ready, plus an alternative login. Choose any page to explore the frontend demo — no sign-in required.</p></header><div class="demo-grid">'+sections+'</div></main><script src="assets/demo.js"></script></body></html>',encoding='utf-8')
+(ROOT/'INTEGRATION_NOTES.md').write_text('''# DNSC Smart HRMS frontend demo
+
+Open `index.html` directly or use VS Code Live Server. No build, server, or dependencies are required.
+
+All 28 requested pages now exist, plus the single-card login alternative. The page directory and shared page selector connect every page; each section has its own navigation. New forms allow skipping fields and continuing the demo without authentication.
+
+## Files
+
+- Created 26 missing HTML pages in authentication, hr-admin, applicant, employee, and student.
+- Updated the three organized copies to use shared navigation and styling while keeping their original layouts.
+- Updated index.html and this integration report.
+- Added assets/demo.css and assets/demo.js for consistent colors, typography, dark/light mode, responsive layouts, navigation, and demo interactions.
+- Added scripts/build_demo.py as the frontend page generator. Running it regenerates new pages and index.html; edit that script when maintaining generated content.
+- The three original root HTML files are unchanged; use the organized copies to see the connected demo.
+
+## Behavior
+
+Theme preference is the only new localStorage value. Forms, decisions, RFID scans, and attendance corrections are not stored or sent anywhere. Demo record changes reset on reload. Static sample records do not synchronize between pages. CSV exports and browser printing work locally. External Google Fonts uses system fallbacks when offline.
+
+RFID check-in shows a live clock with seconds, weekday, and full date in Asia/Manila. A USB keyboard-style RFID reader or typed sample can trigger the scan preview. Faculty attendance history has no editing controls; the openly accessible HR attendance page has correction controls. There are no authentication or authorization guards.
+
+Original dashboard leave-request controls remain available as an internal sample section. Authentication forms only navigate through previews; they do not authenticate anyone or send email. All payroll and evaluation values are illustrative.
+''',encoding='utf-8')
+print(f'Created {len(PAGES)} page implementations; connected 28 requested pages plus alternate login.')
+import runpy
+runpy.run_path(str(ROOT/'scripts/customize_system.py'))
