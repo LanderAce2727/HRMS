@@ -1,0 +1,24 @@
+/* DNSC: forest green and white, with a muted mint surface system. */
+:root{--bg:#f3f7f4;--surface:#fff;--panel:#fff;--fg:#17372c;--ink:#17372c;--muted:#5b7066;--line:#d9e5de;--border:#d9e5de;--accent:#17613f;--blue:#17613f;--cyan:#3b9467;--accent-2:#3b9467;--accent-ink:#fff;--glow:#17613f22;--slot-bg:#e8f2eb;--slot-line:#8ab79c;--shadow:0 8px 28px #174b2e09;--link:#17613f;--page:var(--bg);--sub:var(--muted);--soft:var(--slot-bg)}
+:root[data-theme=dark]{--bg:#0e1914;--surface:#16271e;--panel:#16271e;--fg:#edf5ef;--ink:#edf5ef;--muted:#aec4b6;--line:#30493a;--border:#30493a;--accent:#8dd3a7;--blue:#8dd3a7;--cyan:#9cd3b2;--accent-2:#9cd3b2;--accent-ink:#102b1b;--glow:#8dd3a722;--slot-bg:#203b2b;--slot-line:#537b60;--shadow:0 8px 28px #0002;--link:#a2e0b7}
+
+/* Colors only: geometry comes from the original shared/saved designs. */
+body{background:var(--bg);color:var(--ink)}
+.demo-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.demo-button:disabled{opacity:.6;cursor:wait}
+.hrms-brand strong{color:var(--blue)}
+.hrms-header .icon-button{width:44px;height:44px;padding:0;display:grid;place-items:center;flex:none}
+.icon-button svg{pointer-events:none}
+.public-layout{max-width:1600px;margin:0 auto}
+.preserve-lines{white-space:pre-wrap;overflow-wrap:anywhere}
+.job-excerpt{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.empty-state{padding:18px 0;color:var(--muted)}
+.system-notice{margin:16px clamp(16px,3vw,36px);padding:14px 18px;border:1px solid var(--slot-line);border-radius:12px;background:var(--slot-bg);color:var(--ink)}
+.system-notice.error{border-color:#be7575;background:#fff0ef;color:#8b2828}
+:root[data-theme=dark] .system-notice.error{background:#422323;color:#ffd5d5}
+.export-button{margin:0 12px 18px 0}.table-search{max-width:360px;margin-bottom:16px}
+.account-name{font-size:12px;overflow-wrap:anywhere}
+.demo-table-wrap td{vertical-align:top;max-width:360px;white-space:normal;overflow-wrap:anywhere}
+td form{min-width:210px}.demo-form input[type=file]{max-width:100%}
+.skip-link{position:fixed;left:16px;top:-100px;padding:12px;background:var(--panel);z-index:100;color:var(--blue);border:2px solid var(--blue)}.skip-link:focus{top:12px}
+@media print{.hrms-header,.hrms-sidebar,.system-notice,form,.demo-button,.skip-link,.table-search{display:none!important}.hrms-layout{display:block!important}.demo-main{padding:0}.demo-table-wrap{overflow:visible}body{color:#000;background:#fff}}
