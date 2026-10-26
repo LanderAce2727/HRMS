@@ -25,7 +25,7 @@ try {
 } catch (PDOException $e) {
     error_log('HRMS database connection failed: ' . $e->getMessage());
     http_response_code(500);
-    if (basename($_SERVER['SCRIPT_NAME'] ?? '') === 'login.php') {
+    if (in_array(basename($_SERVER['SCRIPT_NAME'] ?? ''), ['login.php', 'apply.php'], true)) {
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['success' => false, 'message' => 'Database connection failed. Check api/db.php and make sure MySQL is running.']);
         exit;

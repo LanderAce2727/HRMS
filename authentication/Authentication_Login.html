@@ -1463,11 +1463,9 @@
             </div>
 
             <!-- instructor/admin: email + password -->
-            <!-- CHANGED: removed "novalidate" so the browser enforces required fields -->
             <form id="signinForm" hidden>
               <div class="field">
                 <label for="si-email" id="si-email-label">Work email</label>
-                <!-- CHANGED: added "required" -->
                 <input
                   class="input"
                   id="si-email"
@@ -1480,7 +1478,6 @@
               <div class="field">
                 <label for="si-pass">Password</label>
                 <div class="input-wrap">
-                  <!-- CHANGED: added "required" -->
                   <input
                     class="input"
                     id="si-pass"
@@ -1966,8 +1963,6 @@
         });
 
         // ---------- real sign-in (instructor / HR admin) ----------
-        // CHANGED: this replaces the old stub that redirected without checking anything.
-        // It sends the credentials to api/login.php and only redirects on success.
         async function handleSignIn(e) {
           e.preventDefault();
 
@@ -2173,7 +2168,11 @@
             })
             .join("");
         }
-        $("submitApp").addEventListener("click", function () {
+
+        // ---------- real application submit ----------
+        // CHANGED: sends the form + PDF to api/apply.php, which saves the
+        // applicant account and application in the database.
+        $("submitApp").addEventListener("click", async function () {
           if (!resume) {
             msg("msg3", "Upload your resume as a PDF to continue.");
             return;
@@ -2182,9 +2181,56 @@
             msg("msg3", "Tick the consent box to submit.");
             return;
           }
+
+          var btn = $("submitApp");
+          btn.disabled = true;
+          btn.textContent = "Submitting...";
           $("msg3").textContent = "";
-          $("doneEmail").textContent = $("su-email").value.trim();
-          show("done");
+
+          var fd = new FormData();
+          fd.append("email", $("su-email").value.trim());
+          fd.append("password", $("su-pass").value);
+          fd.append("full_name", $("su-name").value.trim());
+          fd.append("age", $("su-age").value);
+          fd.append("phone", $("su-phone").value.trim());
+          fd.append("position", $("su-pos").value);
+          fd.append("education", $("su-edu").value);
+          fd.append("years", $("su-exp-y").value);
+          fd.append("experience", $("su-exp").value.trim());
+          fd.append("consent", "1");
+          fd.append("resume", resume);
+
+          try {
+            var response = await fetch("../api/apply.php", {
+              method: "POST",
+              credentials: "same-origin",
+              body: fd,
+            });
+            var result = await response.json();
+
+            if (!response.ok || !result.success) {
+              var text = result.message || "Unable to submit your application.";
+              if (result.step === 1 || result.step === 2) {
+                gotoStep(result.step);
+                msg(result.step === 1 ? "msg1" : "msg2", text);
+                nudge();
+              } else {
+                msg("msg3", text);
+              }
+              return;
+            }
+
+            $("doneEmail").textContent = $("su-email").value.trim();
+            show("done");
+          } catch (err) {
+            msg(
+              "msg3",
+              "Could not reach the server. Open this page through http://localhost/HRMS/ (Apache), not Live Server.",
+            );
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Submit application";
+          }
         });
 
         // initial state
@@ -2193,6 +2239,5 @@
         show("signin");
       })();
     </script>
-
   </body>
 </html>
