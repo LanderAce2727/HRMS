@@ -1,5 +1,7 @@
-venv/
 .env
 vendor/
 .vscode/
-__pycache__/
+
+/storage/*
+!/storage/.gitkeep
+/uploads/resumes/*.pdf

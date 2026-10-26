@@ -1,3 +1,5 @@
+# Archived frontend generator: live pages are maintained directly.
+raise SystemExit("This generator is retired. Edit the live HTML, assets/hrms.js, and API modules directly.")
 from pathlib import Path
 import re
 
@@ -87,29 +89,7 @@ for folder in ['authentication','hr-admin','applicant','employee','student']:
     if folder=='authentication':items+='<li><a href="authentication/Authentication_Login_Single_Card.html">Single-card login alternative</a></li>'
     sections+=panel(folder.replace('-',' ').title(),'<ul>'+items+'</ul>')
 (ROOT/'index.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNSC Smart HRMS | All pages</title><link rel="stylesheet" href="assets/demo.css"></head><body><main class="demo-main" style="margin:auto"><div class="demo-brand"><div class="demo-logo" aria-label="Blank school logo placeholder"></div><div>DNSC<small>SMART HRMS</small></div></div><header class="demo-heading"><h1>Explore Smart HRMS</h1><p>All 28 pages are ready, plus an alternative login. Choose any page to explore the frontend demo — no sign-in required.</p></header><div class="demo-grid">'+sections+'</div></main><script src="assets/demo.js"></script></body></html>',encoding='utf-8')
-(ROOT/'INTEGRATION_NOTES.md').write_text('''# DNSC Smart HRMS frontend demo
-
-Open `index.html` directly or use VS Code Live Server. No build, server, or dependencies are required.
-
-All 28 requested pages now exist, plus the single-card login alternative. The page directory and shared page selector connect every page; each section has its own navigation. New forms allow skipping fields and continuing the demo without authentication.
-
-## Files
-
-- Created 26 missing HTML pages in authentication, hr-admin, applicant, employee, and student.
-- Updated the three organized copies to use shared navigation and styling while keeping their original layouts.
-- Updated index.html and this integration report.
-- Added assets/demo.css and assets/demo.js for consistent colors, typography, dark/light mode, responsive layouts, navigation, and demo interactions.
-- Added scripts/build_demo.py as the frontend page generator. Running it regenerates new pages and index.html; edit that script when maintaining generated content.
-- The three original root HTML files are unchanged; use the organized copies to see the connected demo.
-
-## Behavior
-
-Theme preference is the only new localStorage value. Forms, decisions, RFID scans, and attendance corrections are not stored or sent anywhere. Demo record changes reset on reload. Static sample records do not synchronize between pages. CSV exports and browser printing work locally. External Google Fonts uses system fallbacks when offline.
-
-RFID check-in shows a live clock with seconds, weekday, and full date in Asia/Manila. A USB keyboard-style RFID reader or typed sample can trigger the scan preview. Faculty attendance history has no editing controls; the openly accessible HR attendance page has correction controls. There are no authentication or authorization guards.
-
-Original dashboard leave-request controls remain available as an internal sample section. Authentication forms only navigate through previews; they do not authenticate anyone or send email. All payroll and evaluation values are illustrative.
-''',encoding='utf-8')
+# Preserve the maintained integration notes when regenerating pages.
 print(f'Created {len(PAGES)} page implementations; connected 28 requested pages plus alternate login.')
 import runpy
 runpy.run_path(str(ROOT/'scripts/customize_system.py'))
