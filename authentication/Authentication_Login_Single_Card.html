@@ -1,703 +1,2148 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="../assets/demo.css"></head><body>
-<title>Sign in | DNSC Smart HRMS</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap">
-<style>
-/* Single centered account access card. */
-:root {
-  --bg: #f6f9ff;
-  --surface: #ffffff;
-  --fg: #0e1b3d;
-  --muted: #5b6785;
-  --line: #dce4f5;
-  --accent: #2f6bff;
-  --accent-2: #19c3e6;
-  --accent-ink: #ffffff;
-  --glow: rgba(47, 107, 255, 0.16);
-  --ok: #12a06b;
-  --err: #d9363e;
-  --shadow: 0 24px 60px -20px rgba(31, 70, 170, 0.28);
-  --slot-bg: #eaf1ff;
-  --slot-line: #7ea2ff;
-  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
-  --font-body: "DM Sans", "Segoe UI", system-ui, sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0a1226; --surface: #111b36; --fg: #eaf0ff; --muted: #9aa8cc; --line: #25325a;
-    --accent: #5b8cff; --accent-2: #2dd4f0; --accent-ink: #07112b; --glow: rgba(91,140,255,0.2);
-    --ok: #3ddc9c; --err: #ff7b82;
-    --shadow: 0 24px 60px -20px rgba(0,0,0,0.6); --slot-bg: #16244a; --slot-line: #5b8cff;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0a1226; --surface: #111b36; --fg: #eaf0ff; --muted: #9aa8cc; --line: #25325a;
-  --accent: #5b8cff; --accent-2: #2dd4f0; --accent-ink: #07112b; --glow: rgba(91,140,255,0.2);
-  --ok: #3ddc9c; --err: #ff7b82;
-  --shadow: 0 24px 60px -20px rgba(0,0,0,0.6); --slot-bg: #16244a; --slot-line: #5b8cff;
-  color-scheme: dark;
-}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font:
+          14px -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: #fff;
+        color: #000;
+      }
+      img {
+        max-width: 100%;
+      }
+      [hidden]:not([hidden="until-found" i]) {
+        display: none !important;
+      }
+    </style>
+    <link rel="stylesheet" href="../assets/demo.css" />
+  </head>
+  <body>
+    <title>Sign in | DNSC Smart HRMS</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+    />
+    <style>
+      /* Single centered account access card. */
+      :root {
+        --bg: #f6f9ff;
+        --surface: #ffffff;
+        --fg: #0e1b3d;
+        --muted: #5b6785;
+        --line: #dce4f5;
+        --accent: #2f6bff;
+        --accent-2: #19c3e6;
+        --accent-ink: #ffffff;
+        --glow: rgba(47, 107, 255, 0.16);
+        --ok: #12a06b;
+        --err: #d9363e;
+        --shadow: 0 24px 60px -20px rgba(31, 70, 170, 0.28);
+        --slot-bg: #eaf1ff;
+        --slot-line: #7ea2ff;
+        --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
+        --font-body: "DM Sans", "Segoe UI", system-ui, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0a1226;
+          --surface: #111b36;
+          --fg: #eaf0ff;
+          --muted: #9aa8cc;
+          --line: #25325a;
+          --accent: #5b8cff;
+          --accent-2: #2dd4f0;
+          --accent-ink: #07112b;
+          --glow: rgba(91, 140, 255, 0.2);
+          --ok: #3ddc9c;
+          --err: #ff7b82;
+          --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+          --slot-bg: #16244a;
+          --slot-line: #5b8cff;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0a1226;
+        --surface: #111b36;
+        --fg: #eaf0ff;
+        --muted: #9aa8cc;
+        --line: #25325a;
+        --accent: #5b8cff;
+        --accent-2: #2dd4f0;
+        --accent-ink: #07112b;
+        --glow: rgba(91, 140, 255, 0.2);
+        --ok: #3ddc9c;
+        --err: #ff7b82;
+        --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+        --slot-bg: #16244a;
+        --slot-line: #5b8cff;
+        color-scheme: dark;
+      }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0; background: var(--bg); color: var(--fg);
-  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 16px;
-}
-button, input, select, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
-[hidden] { display: none !important; }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.5;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 16px;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 10px;
+      }
+      [hidden] {
+        display: none !important;
+      }
 
-.shell {
-  min-height: 100%; max-width: 650px; margin: 0 auto;
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 0;
-}
+      .shell {
+        min-height: 100%;
+        max-width: 650px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+      }
 
-/* ---------- left ---------- */
-.left {
-  position: relative; overflow: hidden; border-radius: 28px;
-  background: var(--surface); border: 1px solid var(--line);
-  display: flex; flex-direction: column; gap: 28px;
-  padding: clamp(22px, 4vw, 44px);
-}
-.left::before {
-  content: ""; position: absolute; inset: -30% auto auto -25%; width: 80%; aspect-ratio: 1;
-  background: radial-gradient(closest-side, var(--glow), transparent); pointer-events: none;
-}
-.left::after {
-  content: ""; position: absolute; inset: auto -20% -25% auto; width: 60%; aspect-ratio: 1;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent); pointer-events: none;
-}
-.left > * { position: relative; z-index: 1; }
+      /* ---------- left ---------- */
+      .left {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        padding: clamp(22px, 4vw, 44px);
+      }
+      .left::before {
+        content: "";
+        position: absolute;
+        inset: -30% auto auto -25%;
+        width: 80%;
+        aspect-ratio: 1;
+        background: radial-gradient(closest-side, var(--glow), transparent);
+        pointer-events: none;
+      }
+      .left::after {
+        content: "";
+        position: absolute;
+        inset: auto -20% -25% auto;
+        width: 60%;
+        aspect-ratio: 1;
+        background: radial-gradient(
+          closest-side,
+          color-mix(in srgb, var(--accent-2) 16%, transparent),
+          transparent
+        );
+        pointer-events: none;
+      }
+      .left > * {
+        position: relative;
+        z-index: 1;
+      }
 
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.logo-slot {
-  flex: none; width: 52px; height: 52px; border-radius: 16px;
-  background: var(--slot-bg); border: 2px dashed var(--slot-line);
-  display: grid; place-items: center; text-align: center;
-  font: 600 9px/1.1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--accent);
-}
-.brand-name { font: 700 18px/1.1 var(--font-display); letter-spacing: -.01em; }
-.brand-sub { display: block; margin-top: 2px; font: 500 11px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.theme-btn {
-  flex: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
-  background: transparent; border: 1px solid var(--line); color: var(--muted); display: grid; place-items: center;
-}
-.theme-btn:hover { color: var(--accent); border-color: var(--accent); }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+      .logo-slot {
+        flex: none;
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: var(--slot-bg);
+        border: 2px dashed var(--slot-line);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font: 600 9px/1.1 var(--font-body);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .brand-name {
+        font: 700 18px/1.1 var(--font-display);
+        letter-spacing: -0.01em;
+      }
+      .brand-sub {
+        display: block;
+        margin-top: 2px;
+        font: 500 11px/1 var(--font-body);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .theme-btn {
+        flex: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        cursor: pointer;
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+      }
+      .theme-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
 
-.card { width: 100%; max-width: 460px; margin: auto; display: grid; gap: 20px; align-content: start; }
+      .card {
+        width: 100%;
+        max-width: 460px;
+        margin: auto;
+        display: grid;
+        gap: 20px;
+        align-content: start;
+      }
 
-/* mode tabs */
-.tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); }
-.tabs { position: relative; }
-.tabs::before { /* sliding pill */
-  content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 6px); border-radius: 10px;
-  background: var(--surface); box-shadow: 0 2px 10px -3px var(--glow), 0 0 0 1px var(--line);
-  transition: transform .35s cubic-bezier(.2,.8,.2,1);
-}
-.tabs[data-active="signup"]::before { transform: translateX(calc(100% + 4px)); }
-.tab { position: relative; z-index: 1; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; transition: color .25s; }
-.tab[aria-selected="true"] { color: var(--fg); }
+      /* mode tabs */
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 4px;
+        gap: 4px;
+        border-radius: 14px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+      }
+      .tabs {
+        position: relative;
+      }
+      .tabs::before {
+        /* sliding pill */
+        content: "";
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        width: calc(50% - 6px);
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow:
+          0 2px 10px -3px var(--glow),
+          0 0 0 1px var(--line);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .tabs[data-active="signup"]::before {
+        transform: translateX(calc(100% + 4px));
+      }
+      .tab {
+        position: relative;
+        z-index: 1;
+        height: 44px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 600;
+        cursor: pointer;
+        transition: color 0.25s;
+      }
+      .tab[aria-selected="true"] {
+        color: var(--fg);
+      }
 
-h1 { margin: 0; font: 700 clamp(28px, 4vw, 38px)/1.05 var(--font-display); letter-spacing: -.025em; text-wrap: balance; }
-h1 span { background: linear-gradient(100deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.lede { margin: 8px 0 0; color: var(--muted); }
+      h1 {
+        margin: 0;
+        font: 700 clamp(28px, 4vw, 38px)/1.05 var(--font-display);
+        letter-spacing: -0.025em;
+        text-wrap: balance;
+      }
+      h1 span {
+        background: linear-gradient(100deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .lede {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
 
-/* role picker */
-.roles-label { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.role {
-  min-width: 0; padding: 10px 8px; border-radius: 14px; cursor: pointer; text-align: center;
-  background: var(--surface); border: 1px solid var(--line); display: grid; gap: 4px; justify-items: center;
-  transition: border-color .15s, box-shadow .15s, background .15s;
-}
-.role svg { color: var(--muted); }
-.role b { font-size: 13px; line-height: 1.1; }
-.role small { font-size: 11px; color: var(--muted); line-height: 1.2; }
-.role:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
-.role[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); box-shadow: 0 0 0 3px var(--glow); }
-.role[aria-checked="true"] svg { color: var(--accent); }
+      /* role picker */
+      .roles-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .roles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .role {
+        min-width: 0;
+        padding: 10px 8px;
+        border-radius: 14px;
+        cursor: pointer;
+        text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        display: grid;
+        gap: 4px;
+        justify-items: center;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      .role svg {
+        color: var(--muted);
+      }
+      .role b {
+        font-size: 13px;
+        line-height: 1.1;
+      }
+      .role small {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.2;
+      }
+      .role:hover {
+        border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+      }
+      .role[aria-checked="true"] {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+        box-shadow: 0 0 0 3px var(--glow);
+      }
+      .role[aria-checked="true"] svg {
+        color: var(--accent);
+      }
 
-/* buttons */
-.btn {
-  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
-  min-height: 48px; padding: 0 16px; border-radius: 14px; cursor: pointer;
-  background: var(--surface); border: 1px solid var(--line); font-weight: 600; font-size: 14.5px;
-  transition: border-color .15s, box-shadow .15s, transform .15s, filter .15s;
-}
-.btn:hover { border-color: var(--accent); box-shadow: 0 6px 18px -8px var(--glow); }
-.btn:active { transform: translateY(1px); }
-.btn.primary { border: 0; color: var(--accent-ink); font-size: 15px; background: linear-gradient(100deg, var(--accent), var(--accent-2)); box-shadow: 0 12px 26px -10px var(--accent); }
-.btn.primary:hover { filter: brightness(1.06); }
-.btn.ghost { width: auto; min-height: 44px; padding: 0 18px; }
-.btn-row { display: flex; gap: 10px; }
-.btn-row .primary { flex: 1; }
+      /* buttons */
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 48px;
+        padding: 0 16px;
+        border-radius: 14px;
+        cursor: pointer;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-weight: 600;
+        font-size: 14.5px;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          transform 0.15s,
+          filter 0.15s;
+      }
+      .btn:hover {
+        border-color: var(--accent);
+        box-shadow: 0 6px 18px -8px var(--glow);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn.primary {
+        border: 0;
+        color: var(--accent-ink);
+        font-size: 15px;
+        background: linear-gradient(100deg, var(--accent), var(--accent-2));
+        box-shadow: 0 12px 26px -10px var(--accent);
+      }
+      .btn.primary:hover {
+        filter: brightness(1.06);
+      }
+      .btn.ghost {
+        width: auto;
+        min-height: 44px;
+        padding: 0 18px;
+      }
+      .btn-row {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-row .primary {
+        flex: 1;
+      }
 
-.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
-.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
 
-/* forms */
-form { display: grid; gap: 14px; }
-.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.field { display: grid; gap: 6px; min-width: 0; }
-.field label { font-size: 13px; font-weight: 600; }
-.field .hint { font-size: 12px; color: var(--muted); }
-.input-wrap { position: relative; }
-.input, select.input, textarea.input {
-  width: 100%; height: 48px; padding: 0 14px; border-radius: 14px;
-  background: var(--bg); border: 1px solid var(--line); transition: border-color .15s, box-shadow .15s, background .15s;
-}
-textarea.input { height: auto; min-height: 96px; padding: 12px 14px; resize: vertical; }
-.input::placeholder { color: var(--muted); opacity: .8; }
-.input:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
-.input:focus { outline: none; background: var(--surface); border-color: var(--accent); box-shadow: 0 0 0 4px var(--glow); }
-.input[aria-invalid="true"] { border-color: var(--err); }
-.input-wrap .input { padding-right: 64px; }
-.reveal { position: absolute; right: 6px; top: 6px; height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; }
-.reveal:hover { background: var(--glow); }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
-.check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
-.check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
-a { color: var(--accent); font-weight: 600; text-decoration: none; }
-a:hover { text-decoration: underline; }
-.msg { margin: 0; min-height: 18px; font-size: 13px; color: var(--err); }
-.note { padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; gap: 10px; }
-.note svg { flex: none; color: var(--accent); margin-top: 1px; }
+      /* forms */
+      form {
+        display: grid;
+        gap: 14px;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .field label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .field .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .input-wrap {
+        position: relative;
+      }
+      .input,
+      select.input,
+      textarea.input {
+        width: 100%;
+        height: 48px;
+        padding: 0 14px;
+        border-radius: 14px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      textarea.input {
+        height: auto;
+        min-height: 96px;
+        padding: 12px 14px;
+        resize: vertical;
+      }
+      .input::placeholder {
+        color: var(--muted);
+        opacity: 0.8;
+      }
+      .input:hover {
+        border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      }
+      .input:focus {
+        outline: none;
+        background: var(--surface);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px var(--glow);
+      }
+      .input[aria-invalid="true"] {
+        border-color: var(--err);
+      }
+      .input-wrap .input {
+        padding-right: 64px;
+      }
+      .reveal {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        height: 36px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .reveal:hover {
+        background: var(--glow);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 13.5px;
+      }
+      .check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .check input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+        flex: none;
+      }
+      a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .msg {
+        margin: 0;
+        min-height: 18px;
+        font-size: 13px;
+        color: var(--err);
+      }
+      .note {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+        border: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        gap: 10px;
+      }
+      .note svg {
+        flex: none;
+        color: var(--accent);
+        margin-top: 1px;
+      }
 
-/* stepper */
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
-.steps li { display: grid; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
-.steps li::before { content: ""; height: 5px; border-radius: 99px; background: var(--line); }
-.steps li.done::before, .steps li.on::before { background: linear-gradient(100deg, var(--accent), var(--accent-2)); }
-.steps li.on, .steps li.done { color: var(--fg); }
+      /* stepper */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .steps li {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .steps li::before {
+        content: "";
+        height: 5px;
+        border-radius: 99px;
+        background: var(--line);
+      }
+      .steps li.done::before,
+      .steps li.on::before {
+        background: linear-gradient(100deg, var(--accent), var(--accent-2));
+      }
+      .steps li.on,
+      .steps li.done {
+        color: var(--fg);
+      }
 
-/* upload */
-.drop {
-  display: grid; justify-items: center; gap: 6px; text-align: center; padding: 26px 16px; cursor: pointer;
-  border: 2px dashed var(--slot-line); border-radius: 18px; background: var(--slot-bg); transition: background .15s, border-color .15s;
-}
-.drop:hover, .drop.over { background: color-mix(in srgb, var(--accent) 14%, var(--slot-bg)); border-color: var(--accent); }
-.drop svg { color: var(--accent); }
-.drop b { font-size: 15px; }
-.drop span { font-size: 12.5px; color: var(--muted); }
-.file {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg);
-}
-.file .ico { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--glow); color: var(--accent); font: 700 11px var(--font-body); }
-.file .meta { min-width: 0; flex: 1; }
-.file .meta b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-.file .meta span { font-size: 12px; color: var(--muted); }
-.file button { border: 0; background: transparent; color: var(--err); font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+      /* upload */
+      .drop {
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        text-align: center;
+        padding: 26px 16px;
+        cursor: pointer;
+        border: 2px dashed var(--slot-line);
+        border-radius: 18px;
+        background: var(--slot-bg);
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .drop:hover,
+      .drop.over {
+        background: color-mix(in srgb, var(--accent) 14%, var(--slot-bg));
+        border-color: var(--accent);
+      }
+      .drop svg {
+        color: var(--accent);
+      }
+      .drop b {
+        font-size: 15px;
+      }
+      .drop span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .file {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .file .ico {
+        flex: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: var(--glow);
+        color: var(--accent);
+        font: 700 11px var(--font-body);
+      }
+      .file .meta {
+        min-width: 0;
+        flex: 1;
+      }
+      .file .meta b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+      }
+      .file .meta span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .file button {
+        border: 0;
+        background: transparent;
+        color: var(--err);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 8px;
+      }
 
-/* review */
-.review { margin: 0; display: grid; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
-.review div { display: flex; justify-content: space-between; gap: 16px; padding: 11px 14px; font-size: 14px; }
-.review div + div { border-top: 1px solid var(--line); }
-.review dt { color: var(--muted); flex: none; }
-.review dd { margin: 0; text-align: right; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+      /* review */
+      .review {
+        margin: 0;
+        display: grid;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .review div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 11px 14px;
+        font-size: 14px;
+      }
+      .review div + div {
+        border-top: 1px solid var(--line);
+      }
+      .review dt {
+        color: var(--muted);
+        flex: none;
+      }
+      .review dd {
+        margin: 0;
+        text-align: right;
+        font-weight: 600;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
 
-/* pending */
-.done-badge { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; color: var(--accent-ink); background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 14px 30px -12px var(--accent); }
-.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
-.timeline li { position: relative; display: grid; grid-template-columns: 24px 1fr; gap: 12px; padding-bottom: 18px; }
-.timeline li:last-child { padding-bottom: 0; }
-.timeline li::before { content: ""; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--line); }
-.timeline li:last-child::before { display: none; }
-.timeline .dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; }
-.timeline .ok .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
-.timeline .now .dot { border-color: var(--accent); box-shadow: 0 0 0 4px var(--glow); }
-.timeline .now .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.timeline b { display: block; font-size: 14px; }
-.timeline span { font-size: 12.5px; color: var(--muted); }
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); }
+      /* pending */
+      .done-badge {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        display: grid;
+        place-items: center;
+        color: var(--accent-ink);
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 14px 30px -12px var(--accent);
+      }
+      .timeline {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0;
+      }
+      .timeline li {
+        position: relative;
+        display: grid;
+        grid-template-columns: 24px 1fr;
+        gap: 12px;
+        padding-bottom: 18px;
+      }
+      .timeline li:last-child {
+        padding-bottom: 0;
+      }
+      .timeline li::before {
+        content: "";
+        position: absolute;
+        left: 11px;
+        top: 24px;
+        bottom: 0;
+        width: 2px;
+        background: var(--line);
+      }
+      .timeline li:last-child::before {
+        display: none;
+      }
+      .timeline .dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+      }
+      .timeline .ok .dot {
+        background: var(--ok);
+        border-color: var(--ok);
+        color: #fff;
+      }
+      .timeline .now .dot {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px var(--glow);
+      }
+      .timeline .now .dot::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .timeline b {
+        display: block;
+        font-size: 14px;
+      }
+      .timeline span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 700;
+        background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+        color: var(--accent);
+      }
 
-.foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+      .foot {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
 
-/* ---------- right: photo panel ---------- */
-.right {
-  position: relative; overflow: hidden; border-radius: 28px; min-height: 420px;
-  background:
-    radial-gradient(120% 90% at 85% 0%, #5aa2ff 0%, transparent 55%),
-    radial-gradient(100% 90% at 0% 100%, #19c3e6 0%, transparent 60%),
-    linear-gradient(160deg, #2f6bff, #1b3fc4);
-  background-size: cover; background-position: center;
-  box-shadow: var(--shadow); isolation: isolate; display: flex; flex-direction: column;
-}
-.right.has-photo .slot { display: none; }
-.right::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to top, rgba(8, 22, 78, .74), transparent 48%); }
-.slot {
-  position: absolute; z-index: 2; inset: 10% 9% 34% 9%;
-  display: grid; place-items: center; text-align: center; cursor: pointer;
-  border: 2px dashed rgba(255,255,255,.85); border-radius: 22px;
-  background: rgba(255,255,255,.12); backdrop-filter: blur(6px); color: #fff; padding: 20px; transition: background .2s;
-}
-.slot:hover { background: rgba(255,255,255,.2); }
-.slot .corner { position: absolute; width: 22px; height: 22px; border: 3px solid #fff; }
-.corner.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; border-top-left-radius: 22px; }
-.corner.tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; border-top-right-radius: 22px; }
-.corner.bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; border-bottom-left-radius: 22px; }
-.corner.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-bottom-right-radius: 22px; }
-.slot-inner { display: grid; gap: 8px; justify-items: center; }
-.slot-title { font: 700 20px/1.1 var(--font-display); letter-spacing: -.01em; }
-.slot-meta { font-size: 12.5px; opacity: .92; }
-.slot-hint { margin-top: 4px; padding: 6px 12px; border-radius: 999px; background: #fff; color: #1b3fc4; font-size: 12px; font-weight: 700; }
-.caption { position: relative; z-index: 2; margin-top: auto; padding: clamp(22px, 3vw, 36px); color: #fff; display: grid; gap: 10px; }
-.caption .chip { justify-self: start; padding: 5px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: rgba(255,255,255,.18); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.35); }
-.caption h2 { margin: 0; font: 600 clamp(22px, 2.6vw, 30px)/1.1 var(--font-display); letter-spacing: -.02em; text-wrap: balance; max-width: 20ch; }
-.caption p { margin: 0; max-width: 44ch; opacity: .92; font-size: 14px; }
-.change-photo { position: absolute; z-index: 3; top: 16px; right: 16px; display: none; height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer; background: rgba(255,255,255,.92); color: #1b3fc4; border: 0; font-weight: 700; font-size: 12.5px; }
-.right.has-photo .change-photo { display: inline-flex; align-items: center; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      /* ---------- right: photo panel ---------- */
+      .right {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        min-height: 420px;
+        background:
+          radial-gradient(120% 90% at 85% 0%, #5aa2ff 0%, transparent 55%),
+          radial-gradient(100% 90% at 0% 100%, #19c3e6 0%, transparent 60%),
+          linear-gradient(160deg, #2f6bff, #1b3fc4);
+        background-size: cover;
+        background-position: center;
+        box-shadow: var(--shadow);
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+      }
+      .right.has-photo .slot {
+        display: none;
+      }
+      .right::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(8, 22, 78, 0.74),
+          transparent 48%
+        );
+      }
+      .slot {
+        position: absolute;
+        z-index: 2;
+        inset: 10% 9% 34% 9%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        cursor: pointer;
+        border: 2px dashed rgba(255, 255, 255, 0.85);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(6px);
+        color: #fff;
+        padding: 20px;
+        transition: background 0.2s;
+      }
+      .slot:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .slot .corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border: 3px solid #fff;
+      }
+      .corner.tl {
+        top: -2px;
+        left: -2px;
+        border-right: 0;
+        border-bottom: 0;
+        border-top-left-radius: 22px;
+      }
+      .corner.tr {
+        top: -2px;
+        right: -2px;
+        border-left: 0;
+        border-bottom: 0;
+        border-top-right-radius: 22px;
+      }
+      .corner.bl {
+        bottom: -2px;
+        left: -2px;
+        border-right: 0;
+        border-top: 0;
+        border-bottom-left-radius: 22px;
+      }
+      .corner.br {
+        bottom: -2px;
+        right: -2px;
+        border-left: 0;
+        border-top: 0;
+        border-bottom-right-radius: 22px;
+      }
+      .slot-inner {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+      .slot-title {
+        font: 700 20px/1.1 var(--font-display);
+        letter-spacing: -0.01em;
+      }
+      .slot-meta {
+        font-size: 12.5px;
+        opacity: 0.92;
+      }
+      .slot-hint {
+        margin-top: 4px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #fff;
+        color: #1b3fc4;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .caption {
+        position: relative;
+        z-index: 2;
+        margin-top: auto;
+        padding: clamp(22px, 3vw, 36px);
+        color: #fff;
+        display: grid;
+        gap: 10px;
+      }
+      .caption .chip {
+        justify-self: start;
+        padding: 5px 12px;
+        border-radius: 99px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+      }
+      .caption h2 {
+        margin: 0;
+        font: 600 clamp(22px, 2.6vw, 30px)/1.1 var(--font-display);
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+        max-width: 20ch;
+      }
+      .caption p {
+        margin: 0;
+        max-width: 44ch;
+        opacity: 0.92;
+        font-size: 14px;
+      }
+      .change-photo {
+        position: absolute;
+        z-index: 3;
+        top: 16px;
+        right: 16px;
+        display: none;
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.92);
+        color: #1b3fc4;
+        border: 0;
+        font-weight: 700;
+        font-size: 12.5px;
+      }
+      .right.has-photo .change-photo {
+        display: inline-flex;
+        align-items: center;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
 
-/* ---------- motion ---------- */
-* { -webkit-tap-highlight-color: transparent; }
-button, label, select, .role, .drop { touch-action: manipulation; }
-.input, select.input, textarea.input { font-size: 16px; } /* stops iOS zoom on focus */
-body { transition: background-color .35s ease, color .35s ease; }
-.left, .right, .input, .btn, .role, .file, .note, .review, .tabs { transition-property: background-color, border-color, color, box-shadow, transform, filter; transition-duration: .3s; }
+      /* ---------- motion ---------- */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button,
+      label,
+      select,
+      .role,
+      .drop {
+        touch-action: manipulation;
+      }
+      .input,
+      select.input,
+      textarea.input {
+        font-size: 16px;
+      } /* stops iOS zoom on focus */
+      body {
+        transition:
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .left,
+      .right,
+      .input,
+      .btn,
+      .role,
+      .file,
+      .note,
+      .review,
+      .tabs {
+        transition-property:
+          background-color, border-color, color, box-shadow, transform, filter;
+        transition-duration: 0.3s;
+      }
 
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes pop { 0% { opacity: 0; transform: scale(.4) rotate(-12deg); } 60% { transform: scale(1.12) rotate(2deg); } 100% { opacity: 1; transform: none; } }
-@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
-@keyframes swap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes ping { 0% { box-shadow: 0 0 0 0 var(--glow); } 100% { box-shadow: 0 0 0 10px transparent; } }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.4) rotate(-12deg);
+        }
+        60% {
+          transform: scale(1.12) rotate(2deg);
+        }
+        100% {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes grow {
+        from {
+          transform: scaleX(0);
+        }
+        to {
+          transform: scaleX(1);
+        }
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: none;
+        }
+        20% {
+          transform: translateX(-6px);
+        }
+        40% {
+          transform: translateX(5px);
+        }
+        60% {
+          transform: translateX(-3px);
+        }
+        80% {
+          transform: translateX(2px);
+        }
+      }
+      @keyframes swap {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes ping {
+        0% {
+          box-shadow: 0 0 0 0 var(--glow);
+        }
+        100% {
+          box-shadow: 0 0 0 10px transparent;
+        }
+      }
 
-#view-signin, #view-signup, #view-done, .panel, #applicantAuth, #signinForm { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
-.steps li.on::before, .steps li.done::before { transform-origin: left; animation: grow .5s cubic-bezier(.2,.8,.2,1) both; }
-.caption.swap > * { animation: swap .45s cubic-bezier(.2,.8,.2,1) both; }
-.caption.swap > :nth-child(2) { animation-delay: .05s; }
-.caption.swap > :nth-child(3) { animation-delay: .1s; }
-.done-badge { animation: pop .6s cubic-bezier(.2,.9,.3,1.2) both; }
-#view-done .timeline li { animation: rise .5s cubic-bezier(.2,.8,.2,1) both; }
-#view-done .timeline li:nth-child(1) { animation-delay: .15s; }
-#view-done .timeline li:nth-child(2) { animation-delay: .25s; }
-#view-done .timeline li:nth-child(3) { animation-delay: .35s; }
-#view-done .timeline li:nth-child(4) { animation-delay: .45s; }
-#view-done .timeline .now .dot { animation: ping 1.6s ease-out infinite; }
-.input[aria-invalid="true"] { animation: shake .4s; }
-.role[aria-checked="true"] svg { animation: pop .4s cubic-bezier(.2,.9,.3,1.2); }
-.role:active, .btn:active, .tab:active, .drop:active, .theme-btn:active { transform: scale(.97); }
-.btn.primary { background-size: 160% 100%; background-position: 0 0; transition: background-position .5s ease, filter .2s, box-shadow .2s, transform .15s; }
-.btn.primary:hover { background-position: 100% 0; }
-.theme-btn svg { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
-.theme-btn:hover svg { transform: rotate(60deg); }
-.right { transition: background-image .4s; }
-.slot { animation: rise .6s .1s cubic-bezier(.2,.8,.2,1) both; }
+      #view-signin,
+      #view-signup,
+      #view-done,
+      .panel,
+      #applicantAuth,
+      #signinForm {
+        animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .steps li.on::before,
+      .steps li.done::before {
+        transform-origin: left;
+        animation: grow 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .caption.swap > * {
+        animation: swap 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .caption.swap > :nth-child(2) {
+        animation-delay: 0.05s;
+      }
+      .caption.swap > :nth-child(3) {
+        animation-delay: 0.1s;
+      }
+      .done-badge {
+        animation: pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+      }
+      #view-done .timeline li {
+        animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      #view-done .timeline li:nth-child(1) {
+        animation-delay: 0.15s;
+      }
+      #view-done .timeline li:nth-child(2) {
+        animation-delay: 0.25s;
+      }
+      #view-done .timeline li:nth-child(3) {
+        animation-delay: 0.35s;
+      }
+      #view-done .timeline li:nth-child(4) {
+        animation-delay: 0.45s;
+      }
+      #view-done .timeline .now .dot {
+        animation: ping 1.6s ease-out infinite;
+      }
+      .input[aria-invalid="true"] {
+        animation: shake 0.4s;
+      }
+      .role[aria-checked="true"] svg {
+        animation: pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+      }
+      .role:active,
+      .btn:active,
+      .tab:active,
+      .drop:active,
+      .theme-btn:active {
+        transform: scale(0.97);
+      }
+      .btn.primary {
+        background-size: 160% 100%;
+        background-position: 0 0;
+        transition:
+          background-position 0.5s ease,
+          filter 0.2s,
+          box-shadow 0.2s,
+          transform 0.15s;
+      }
+      .btn.primary:hover {
+        background-position: 100% 0;
+      }
+      .theme-btn svg {
+        transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .theme-btn:hover svg {
+        transform: rotate(60deg);
+      }
+      .right {
+        transition: background-image 0.4s;
+      }
+      .slot {
+        animation: rise 0.6s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
 
-/* ---------- tablet and phone ---------- */
-@media (max-width: 860px) {
-  body { padding-block: 12px; }
-  .shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .right { order: -1; min-height: 210px; border-radius: 22px; }
-  .left { border-radius: 22px; padding: 20px 18px 24px; gap: 22px; }
-  .slot { inset: 14px 14px 78px 14px; padding: 10px; border-radius: 16px; }
-  .slot-inner { gap: 4px; }
-  .slot-inner svg { width: 28px; height: 28px; }
-  .slot-title { font-size: 16px; }
-  .slot-meta { display: block; font-size: 11px; }
-  .slot-hint { display: none; }
-  .caption { padding: 14px 18px 18px; gap: 6px; }
-  .caption .chip { display: none; }
-  .caption h2 { font-size: 20px; }
-  .caption p { display: none; }
-  .change-photo { top: 12px; right: 12px; }
-  .card { max-width: none; }
-  .btn, .input, .reveal { min-height: 48px; }
-  .reveal { height: 36px; min-height: 0; }
-  .foot { justify-content: center; text-align: center; padding-bottom: env(safe-area-inset-bottom, 0px); }
-}
-@media (max-width: 380px) {
-  .left { padding: 18px 14px 22px; }
-  .brand-name { font-size: 16px; }
-  .roles { gap: 6px; }
-  .role { padding: 10px 4px; }
-  .slot-meta { display: none; }
-  .btn-row { flex-direction: column-reverse; }
-  .btn.ghost { width: 100%; }
-}
-@media (max-width: 460px) {
-  .grid2 { grid-template-columns: minmax(0, 1fr); }
-  .role small { display: none; }
-}
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto; } }
-</style>
+      /* ---------- tablet and phone ---------- */
+      @media (max-width: 860px) {
+        body {
+          padding-block: 12px;
+        }
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 12px;
+        }
+        .right {
+          order: -1;
+          min-height: 210px;
+          border-radius: 22px;
+        }
+        .left {
+          border-radius: 22px;
+          padding: 20px 18px 24px;
+          gap: 22px;
+        }
+        .slot {
+          inset: 14px 14px 78px 14px;
+          padding: 10px;
+          border-radius: 16px;
+        }
+        .slot-inner {
+          gap: 4px;
+        }
+        .slot-inner svg {
+          width: 28px;
+          height: 28px;
+        }
+        .slot-title {
+          font-size: 16px;
+        }
+        .slot-meta {
+          display: block;
+          font-size: 11px;
+        }
+        .slot-hint {
+          display: none;
+        }
+        .caption {
+          padding: 14px 18px 18px;
+          gap: 6px;
+        }
+        .caption .chip {
+          display: none;
+        }
+        .caption h2 {
+          font-size: 20px;
+        }
+        .caption p {
+          display: none;
+        }
+        .change-photo {
+          top: 12px;
+          right: 12px;
+        }
+        .card {
+          max-width: none;
+        }
+        .btn,
+        .input,
+        .reveal {
+          min-height: 48px;
+        }
+        .reveal {
+          height: 36px;
+          min-height: 0;
+        }
+        .foot {
+          justify-content: center;
+          text-align: center;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+      }
+      @media (max-width: 380px) {
+        .left {
+          padding: 18px 14px 22px;
+        }
+        .brand-name {
+          font-size: 16px;
+        }
+        .roles {
+          gap: 6px;
+        }
+        .role {
+          padding: 10px 4px;
+        }
+        .slot-meta {
+          display: none;
+        }
+        .btn-row {
+          flex-direction: column-reverse;
+        }
+        .btn.ghost {
+          width: 100%;
+        }
+      }
+      @media (max-width: 460px) {
+        .grid2 {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .role small {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+          animation: none !important;
+          scroll-behavior: auto;
+        }
+      }
+    </style>
 
-<main class="shell">
-  <section class="left" aria-label="Account access">
-    <div class="top">
-      <div class="brand">
-        <div class="logo-slot" aria-label="School logo placeholder"></div>
-        <div>
-          <div class="brand-name">DNSC</div>
-          <span class="brand-sub">Faculty &amp; HR Portal</span>
-        </div>
-      </div>
-      <a class="login-attendance" href="../Attendance.html">Attendance</a><button class="theme-btn" id="themeBtn" type="button" aria-label="Switch light or dark theme">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="tabs" role="tablist" aria-label="Sign in or apply" id="tabs">
-        <button class="tab" role="tab" id="tab-in" aria-selected="true" data-view="signin" type="button">Sign in</button>
-        <button class="tab" role="tab" id="tab-up" aria-selected="false" data-view="signup" type="button">Apply as instructor</button>
-      </div>
-
-      <!-- ===== SIGN IN ===== -->
-      <div id="view-signin" class="card" style="padding:0;max-width:none;margin:0">
-        <div>
-          <h1>Welcome <span>back</span></h1>
-          <p class="lede" id="signinLede">Browse vacancies and manage your applications.</p>
-        </div>
-
-        <div>
-          <div class="roles-label" id="rolesLabel">Sign in As</div>
-          <div class="roles" role="radiogroup" aria-labelledby="rolesLabel" id="roles">
-            <button class="role" type="button" role="radio" aria-checked="true" data-role="applicant">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
-              <b>Applicant</b><small>Track application</small>
-            </button>
-            <button class="role" type="button" role="radio" aria-checked="false" data-role="instructor">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-              <b>Instructor</b><small>Attendance &amp; leave</small>
-            </button>
-            <button class="role" type="button" role="radio" aria-checked="false" data-role="admin">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
-              <b>HR Admin</b><small>Review &amp; payroll</small>
-            </button>
+    <main class="shell">
+      <section class="left" aria-label="Account access">
+        <div class="top">
+          <div class="brand">
+            <div class="logo-slot" aria-label="School logo placeholder"></div>
+            <div>
+              <div class="brand-name">DNSC</div>
+              <span class="brand-sub">Faculty &amp; HR Portal</span>
+            </div>
           </div>
-        </div>
-
-        <!-- applicant: Google -->
-        <div id="applicantAuth" style="display:grid;gap:12px">
-          <button class="btn" type="button" id="googleIn">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h5.9a5.05 5.05 0 0 1-2.19 3.31v2.75h3.54c2.07-1.91 3.25-4.72 3.25-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.54-2.75c-.98.66-2.24 1.05-3.74 1.05-2.87 0-5.3-1.94-6.17-4.55H2.17v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.83 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.17a11 11 0 0 0 0 9.86l3.66-2.84z"/><path fill="#EA4335" d="M12 5.36c1.62 0 3.07.56 4.21 1.65l3.15-3.15C17.46 2.09 14.97 1 12 1A11 11 0 0 0 2.17 7.07l3.66 2.84C6.7 7.3 9.13 5.36 12 5.36z"/></svg>
-            Continue as applicant
+          <a class="login-attendance" href="../Attendance.html">Attendance</a
+          ><button
+            class="theme-btn"
+            id="themeBtn"
+            type="button"
+            aria-label="Switch light or dark theme"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4.5" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
           </button>
-          <p class="msg" id="googleMsg" style="color:var(--muted)">Browse vacancies and manage your applications.</p>
         </div>
 
-        <!-- instructor/admin: email + password -->
-        <form id="signinForm" novalidate hidden>
-          <div class="field">
-            <label for="si-email" id="si-email-label">Work email</label>
-            <input class="input" id="si-email" type="email" autocomplete="username" placeholder="name@yourschool.edu">
+        <div class="card">
+          <div
+            class="tabs"
+            role="tablist"
+            aria-label="Sign in or apply"
+            id="tabs"
+          >
+            <button
+              class="tab"
+              role="tab"
+              id="tab-in"
+              aria-selected="true"
+              data-view="signin"
+              type="button"
+            >
+              Sign in
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-up"
+              aria-selected="false"
+              data-view="signup"
+              type="button"
+            >
+              Apply as instructor
+            </button>
           </div>
-          <div class="field">
-            <label for="si-pass">Password</label>
-            <div class="input-wrap">
-              <input class="input" id="si-pass" type="password" autocomplete="current-password" placeholder="Enter your password">
-              <button class="reveal" type="button" data-reveal="si-pass" aria-pressed="false">Show</button>
+
+          <!-- ===== SIGN IN ===== -->
+          <div
+            id="view-signin"
+            class="card"
+            style="padding: 0; max-width: none; margin: 0"
+          >
+            <div>
+              <h1>Welcome <span>back</span></h1>
+              <p class="lede" id="signinLede">
+                Browse vacancies and manage your applications.
+              </p>
+            </div>
+
+            <div>
+              <div class="roles-label" id="rolesLabel">Sign in As</div>
+              <div
+                class="roles"
+                role="radiogroup"
+                aria-labelledby="rolesLabel"
+                id="roles"
+              >
+                <button
+                  class="role"
+                  type="button"
+                  role="radio"
+                  aria-checked="true"
+                  data-role="applicant"
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"
+                    />
+                    <path d="M14 3v5h5M9 13h6M9 17h4" />
+                  </svg>
+                  <b>Applicant</b><small>Track application</small>
+                </button>
+                <button
+                  class="role"
+                  type="button"
+                  role="radio"
+                  aria-checked="false"
+                  data-role="instructor"
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21a8 8 0 0 1 16 0" />
+                  </svg>
+                  <b>Instructor</b><small>Attendance &amp; leave</small>
+                </button>
+                <button
+                  class="role"
+                  type="button"
+                  role="radio"
+                  aria-checked="false"
+                  data-role="admin"
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />
+                    <path d="M9 12l2 2 4-4" />
+                  </svg>
+                  <b>HR Admin</b><small>Review &amp; payroll</small>
+                </button>
+              </div>
+            </div>
+
+            <!-- applicant: Google -->
+            <div id="applicantAuth" style="display: grid; gap: 12px">
+              <button class="btn" type="button" id="googleIn">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="#4285F4"
+                    d="M22.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h5.9a5.05 5.05 0 0 1-2.19 3.31v2.75h3.54c2.07-1.91 3.25-4.72 3.25-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.54-2.75c-.98.66-2.24 1.05-3.74 1.05-2.87 0-5.3-1.94-6.17-4.55H2.17v2.84A11 11 0 0 0 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.83 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.17a11 11 0 0 0 0 9.86l3.66-2.84z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.36c1.62 0 3.07.56 4.21 1.65l3.15-3.15C17.46 2.09 14.97 1 12 1A11 11 0 0 0 2.17 7.07l3.66 2.84C6.7 7.3 9.13 5.36 12 5.36z"
+                  />
+                </svg>
+                Continue as applicant
+              </button>
+              <p class="msg" id="googleMsg" style="color: var(--muted)">
+                Browse vacancies and manage your applications.
+              </p>
+            </div>
+
+            <!-- instructor/admin: email + password -->
+            <form id="signinForm" novalidate hidden>
+              <div class="field">
+                <label for="si-email" id="si-email-label">Work email</label>
+                <input
+                  class="input"
+                  id="si-email"
+                  type="email"
+                  autocomplete="username"
+                  placeholder="name@yourschool.edu"
+                />
+              </div>
+              <div class="field">
+                <label for="si-pass">Password</label>
+                <div class="input-wrap">
+                  <input
+                    class="input"
+                    id="si-pass"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    class="reveal"
+                    type="button"
+                    data-reveal="si-pass"
+                    aria-pressed="false"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+              <div class="row">
+                <label class="check"
+                  ><input type="checkbox" id="remember" /> Keep me signed
+                  in</label
+                >
+                <a href="#forgot">Forgot password?</a>
+              </div>
+              <p class="msg" id="siMsg" role="alert"></p>
+              <button class="btn primary" type="submit">Sign in</button>
+              <div class="note">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v5M12 16.5v.01" />
+                </svg>
+                <span id="siNote">Welcome to the DNSC Faculty Portal.</span>
+              </div>
+            </form>
+          </div>
+
+          <!-- ===== SIGN UP (applicants only) ===== -->
+          <div id="view-signup" hidden style="display: grid; gap: 20px">
+            <div>
+              <h1>Apply to <span>teach</span></h1>
+              <p class="lede">
+                Create an applicant account. HR reviews your details and emails
+                you the decision.
+              </p>
+            </div>
+            <ol class="steps" id="steps" aria-label="Application progress">
+              <li class="on">Account</li>
+              <li>Your details</li>
+              <li>Resume</li>
+            </ol>
+
+            <!-- step 1 -->
+            <div class="panel" data-step="1" style="display: grid; gap: 14px">
+              <button class="btn" type="button" id="googleUp">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="#4285F4"
+                    d="M22.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h5.9a5.05 5.05 0 0 1-2.19 3.31v2.75h3.54c2.07-1.91 3.25-4.72 3.25-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.54-2.75c-.98.66-2.24 1.05-3.74 1.05-2.87 0-5.3-1.94-6.17-4.55H2.17v2.84A11 11 0 0 0 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.83 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.17a11 11 0 0 0 0 9.86l3.66-2.84z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.36c1.62 0 3.07.56 4.21 1.65l3.15-3.15C17.46 2.09 14.97 1 12 1A11 11 0 0 0 2.17 7.07l3.66 2.84C6.7 7.3 9.13 5.36 12 5.36z"
+                  />
+                </svg>
+                Sign up with Gmail
+              </button>
+              <div class="divider"><span>or enter your Gmail</span></div>
+              <div class="field">
+                <label for="su-email">Gmail address</label>
+                <input
+                  class="input"
+                  id="su-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="yourname@gmail.com"
+                />
+              </div>
+              <div class="field">
+                <label for="su-pass">Create a password</label>
+                <div class="input-wrap">
+                  <input
+                    class="input"
+                    id="su-pass"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="At least 8 characters"
+                  />
+                  <button
+                    class="reveal"
+                    type="button"
+                    data-reveal="su-pass"
+                    aria-pressed="false"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+              <p class="msg" id="msg1" role="alert"></p>
+              <button class="btn primary" type="button" data-next>
+                Continue
+              </button>
+            </div>
+
+            <!-- step 2 -->
+            <div
+              class="panel"
+              data-step="2"
+              hidden
+              style="display: grid; gap: 14px"
+            >
+              <div class="field">
+                <label for="su-name">Full name</label>
+                <input
+                  class="input"
+                  id="su-name"
+                  autocomplete="name"
+                  placeholder="First name, Last name"
+                />
+              </div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="su-age">Age</label>
+                  <input
+                    class="input"
+                    id="su-age"
+                    type="number"
+                    inputmode="numeric"
+                    min="18"
+                    max="70"
+                    placeholder="e.g. 28"
+                  />
+                </div>
+                <div class="field">
+                  <label for="su-phone">Mobile number</label>
+                  <input
+                    class="input"
+                    id="su-phone"
+                    type="tel"
+                    autocomplete="tel"
+                    placeholder="09XX XXX XXXX"
+                  />
+                </div>
+              </div>
+              <div class="grid2">
+                <div class="field">
+                  <label for="su-pos">Position</label>
+                  <select class="input" id="su-pos">
+                    <option value="">Select one</option>
+                    <option>Instructor (full-time)</option>
+                    <option>Instructor (part-time)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="su-edu">Highest education</label>
+                  <select class="input" id="su-edu">
+                    <option value="">Select one</option>
+                    <option>Bachelor's degree</option>
+                    <option>Master's degree</option>
+                    <option>Doctorate</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="su-exp-y">Years of experience</label>
+                <input
+                  class="input"
+                  id="su-exp-y"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  max="50"
+                  placeholder="e.g. 3"
+                />
+              </div>
+              <div class="field">
+                <label for="su-exp">Teaching or work experience</label>
+                <textarea
+                  class="input"
+                  id="su-exp"
+                  placeholder="Where you taught or worked, subjects handled, certifications."
+                ></textarea>
+              </div>
+              <p class="msg" id="msg2" role="alert"></p>
+              <div class="btn-row">
+                <button class="btn ghost" type="button" data-back>Back</button>
+                <button class="btn primary" type="button" data-next>
+                  Continue
+                </button>
+              </div>
+            </div>
+
+            <!-- step 3 -->
+            <div
+              class="panel"
+              data-step="3"
+              hidden
+              style="display: grid; gap: 14px"
+            >
+              <label class="drop" id="drop" for="resume">
+                <svg
+                  width="34"
+                  height="34"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 16V4M7 9l5-5 5 5" />
+                  <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                <b>Upload your resume</b>
+                <span
+                  >Drag a PDF here or click to browse &middot; PDF only, up to 5
+                  MB</span
+                >
+              </label>
+              <input
+                class="visually-hidden"
+                id="resume"
+                type="file"
+                accept="application/pdf,.pdf"
+              />
+              <div class="file" id="fileRow" hidden>
+                <div class="ico">PDF</div>
+                <div class="meta">
+                  <b id="fileName"></b><span id="fileSize"></span>
+                </div>
+                <button type="button" id="fileRemove">Remove</button>
+              </div>
+              <div id="reviewBox" hidden>
+                <div class="roles-label">Review before you submit</div>
+                <dl class="review" id="review"></dl>
+              </div>
+              <label class="check"
+                ><input type="checkbox" id="consent" /> I agree to the Data
+                Privacy Consent and confirm my details are correct.</label
+              >
+              <p class="msg" id="msg3" role="alert"></p>
+              <div class="btn-row">
+                <button class="btn ghost" type="button" data-back>Back</button>
+                <button class="btn primary" type="button" id="submitApp">
+                  Submit application
+                </button>
+              </div>
             </div>
           </div>
-          <div class="row">
-            <label class="check"><input type="checkbox" id="remember"> Keep me signed in</label>
-            <a href="#forgot">Forgot password?</a>
-          </div>
-          <p class="msg" id="siMsg" role="alert"></p>
-          <button class="btn primary" type="submit">Sign in</button>
-          <div class="note">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
-            <span id="siNote">Welcome to the DNSC Faculty Portal.</span>
-          </div>
-        </form>
-      </div>
 
-      <!-- ===== SIGN UP (applicants only) ===== -->
-      <div id="view-signup" hidden style="display:grid;gap:20px">
-        <div>
-          <h1>Apply to <span>teach</span></h1>
-          <p class="lede">Create an applicant account. HR reviews your details and emails you the decision.</p>
+          <!-- ===== SUBMITTED ===== -->
+          <div id="view-done" hidden style="display: grid; gap: 20px">
+            <div class="done-badge">
+              <svg
+                width="30"
+                height="30"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </div>
+            <div>
+              <h1>Application <span>received</span></h1>
+              <p class="lede">
+                We sent a confirmation to <b id="doneEmail">your Gmail</b>. HR
+                will email you once they decide.
+              </p>
+            </div>
+            <div class="pill" style="justify-self: start">
+              Status: Pending review
+            </div>
+            <ul class="timeline">
+              <li class="ok">
+                <span class="dot"
+                  ><svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12.5l4.5 4.5L19 7.5" /></svg
+                ></span>
+                <div>
+                  <b>Application submitted</b
+                  ><span>Details and resume are with HR.</span>
+                </div>
+              </li>
+              <li class="now">
+                <span class="dot"></span>
+                <div>
+                  <b>HR review</b
+                  ><span>HR accepts or rejects your application.</span>
+                </div>
+              </li>
+              <li>
+                <span class="dot"></span>
+                <div>
+                  <b>Decision emailed</b
+                  ><span>You get an automatic email either way.</span>
+                </div>
+              </li>
+              <li>
+                <span class="dot"></span>
+                <div>
+                  <b>Instructor account</b
+                  ><span
+                    >If accepted, your status becomes Instructor and you can use
+                    RFID attendance.</span
+                  >
+                </div>
+              </li>
+            </ul>
+            <button class="btn" type="button" id="backToSignin">
+              Back to sign in
+            </button>
+          </div>
         </div>
-        <ol class="steps" id="steps" aria-label="Application progress">
-          <li class="on">Account</li><li>Your details</li><li>Resume</li>
-        </ol>
 
-        <!-- step 1 -->
-        <div class="panel" data-step="1" style="display:grid;gap:14px">
-          <button class="btn" type="button" id="googleUp">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h5.9a5.05 5.05 0 0 1-2.19 3.31v2.75h3.54c2.07-1.91 3.25-4.72 3.25-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.54-2.75c-.98.66-2.24 1.05-3.74 1.05-2.87 0-5.3-1.94-6.17-4.55H2.17v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.83 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.17a11 11 0 0 0 0 9.86l3.66-2.84z"/><path fill="#EA4335" d="M12 5.36c1.62 0 3.07.56 4.21 1.65l3.15-3.15C17.46 2.09 14.97 1 12 1A11 11 0 0 0 2.17 7.07l3.66 2.84C6.7 7.3 9.13 5.36 12 5.36z"/></svg>
-            Sign up with Gmail
-          </button>
-          <div class="divider"><span>or enter your Gmail</span></div>
-          <div class="field">
-            <label for="su-email">Gmail address</label>
-            <input class="input" id="su-email" type="email" autocomplete="email" placeholder="yourname@gmail.com">
-          </div>
-          <div class="field">
-            <label for="su-pass">Create a password</label>
-            <div class="input-wrap">
-              <input class="input" id="su-pass" type="password" autocomplete="new-password" placeholder="At least 8 characters">
-              <button class="reveal" type="button" data-reveal="su-pass" aria-pressed="false">Show</button>
-            </div>
-          </div>
-          <p class="msg" id="msg1" role="alert"></p>
-          <button class="btn primary" type="button" data-next>Continue</button>
+        <div class="foot">
+          <span>Data Privacy Consent &middot; Cookies notice</span>
+          <span>Need help? Contact your HR office</span>
         </div>
+      </section>
+    </main>
 
-        <!-- step 2 -->
-        <div class="panel" data-step="2" hidden style="display:grid;gap:14px">
-          <div class="field">
-            <label for="su-name">Full name</label>
-            <input class="input" id="su-name" autocomplete="name" placeholder="First name, Last name">
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label for="su-age">Age</label>
-              <input class="input" id="su-age" type="number" inputmode="numeric" min="18" max="70" placeholder="e.g. 28">
-            </div>
-            <div class="field">
-              <label for="su-phone">Mobile number</label>
-              <input class="input" id="su-phone" type="tel" autocomplete="tel" placeholder="09XX XXX XXXX">
-            </div>
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label for="su-pos">Position</label>
-              <select class="input" id="su-pos">
-                <option value="">Select one</option>
-                <option>Instructor (full-time)</option>
-                <option>Instructor (part-time)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="su-edu">Highest education</label>
-              <select class="input" id="su-edu">
-                <option value="">Select one</option>
-                <option>Bachelor's degree</option>
-                <option>Master's degree</option>
-                <option>Doctorate</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <label for="su-exp-y">Years of experience</label>
-            <input class="input" id="su-exp-y" type="number" inputmode="numeric" min="0" max="50" placeholder="e.g. 3">
-          </div>
-          <div class="field">
-            <label for="su-exp">Teaching or work experience</label>
-            <textarea class="input" id="su-exp" placeholder="Where you taught or worked, subjects handled, certifications."></textarea>
-          </div>
-          <p class="msg" id="msg2" role="alert"></p>
-          <div class="btn-row">
-            <button class="btn ghost" type="button" data-back>Back</button>
-            <button class="btn primary" type="button" data-next>Continue</button>
-          </div>
-        </div>
+    <script>
+      (function () {
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var root = document.documentElement;
 
-        <!-- step 3 -->
-        <div class="panel" data-step="3" hidden style="display:grid;gap:14px">
-          <label class="drop" id="drop" for="resume">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-            <b>Upload your resume</b>
-            <span>Drag a PDF here or click to browse &middot; PDF only, up to 5 MB</span>
-          </label>
-          <input class="visually-hidden" id="resume" type="file" accept="application/pdf,.pdf">
-          <div class="file" id="fileRow" hidden>
-            <div class="ico">PDF</div>
-            <div class="meta"><b id="fileName"></b><span id="fileSize"></span></div>
-            <button type="button" id="fileRemove">Remove</button>
-          </div>
-          <div id="reviewBox" hidden>
-            <div class="roles-label">Review before you submit</div>
-            <dl class="review" id="review"></dl>
-          </div>
-          <label class="check"><input type="checkbox" id="consent"> I agree to the Data Privacy Consent and confirm my details are correct.</label>
-          <p class="msg" id="msg3" role="alert"></p>
-          <div class="btn-row">
-            <button class="btn ghost" type="button" data-back>Back</button>
-            <button class="btn primary" type="button" id="submitApp">Submit application</button>
-          </div>
-        </div>
-      </div>
+        // theme
+        $("themeBtn").addEventListener("click", function () {
+          var dark =
+            root.getAttribute("data-theme") === "dark" ||
+            (!root.getAttribute("data-theme") &&
+              matchMedia("(prefers-color-scheme: dark)").matches);
+          root.setAttribute("data-theme", dark ? "light" : "dark");
+        });
 
-      <!-- ===== SUBMITTED ===== -->
-      <div id="view-done" hidden style="display:grid;gap:20px">
-        <div class="done-badge"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-        <div>
-          <h1>Application <span>received</span></h1>
-          <p class="lede">We sent a confirmation to <b id="doneEmail">your Gmail</b>. HR will email you once they decide.</p>
-        </div>
-        <div class="pill" style="justify-self:start">Status: Pending review</div>
-        <ul class="timeline">
-          <li class="ok"><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Application submitted</b><span>Details and resume are with HR.</span></div></li>
-          <li class="now"><span class="dot"></span><div><b>HR review</b><span>HR accepts or rejects your application.</span></div></li>
-          <li><span class="dot"></span><div><b>Decision emailed</b><span>You get an automatic email either way.</span></div></li>
-          <li><span class="dot"></span><div><b>Instructor account</b><span>If accepted, your status becomes Instructor and you can use RFID attendance.</span></div></li>
-        </ul>
-        <button class="btn" type="button" id="backToSignin">Back to sign in</button>
-      </div>
-    </div>
+        // show / hide password
+        document.querySelectorAll("[data-reveal]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var f = $(b.getAttribute("data-reveal")),
+              show = f.type === "password";
+            f.type = show ? "text" : "password";
+            b.textContent = show ? "Hide" : "Show";
+            b.setAttribute("aria-pressed", String(show));
+          });
+        });
 
-    <div class="foot">
-      <span>Data Privacy Consent &middot; Cookies notice</span>
-      <span>Need help? Contact your HR office</span>
-    </div>
-  </section>
+        function nudge() {
+          // on phones, bring the form back to the top of the view
+          if (innerWidth <= 860) {
+            var c = document.querySelector(".card");
+            if (c && c.scrollIntoView)
+              c.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+        // ---------- views ----------
+        var views = {
+          signin: $("view-signin"),
+          signup: $("view-signup"),
+          done: $("view-done"),
+        };
+        function show(name) {
+          Object.keys(views).forEach(function (k) {
+            views[k].hidden = k !== name;
+          });
+          $("tabs").hidden = name === "done";
+          $("tab-in").setAttribute("aria-selected", String(name === "signin"));
+          $("tab-up").setAttribute("aria-selected", String(name === "signup"));
+          $("tabs").setAttribute(
+            "data-active",
+            name === "signup" ? "signup" : "signin",
+          );
+          if (name === "done") nudge();
+        }
+        document.querySelectorAll(".tab").forEach(function (t) {
+          t.addEventListener("click", function () {
+            show(t.getAttribute("data-view"));
+          });
+        });
+        $("backToSignin").addEventListener("click", function () {
+          show("signin");
+        });
 
+        // ---------- roles ----------
+        var role = "applicant";
+        var copy = {
+          applicant: {
+            chip: "Applicant",
+            t: "Teach with us. Apply in minutes.",
+            p: "Create an account with Gmail, send your details and resume, and follow your status until HR replies.",
+            lede: "Browse vacancies and manage your applications.",
+          },
+          instructor: {
+            chip: "Instructor",
+            t: "Tap in. Teach. Track your hours.",
+            p: "Log RFID attendance, view your own attendance record and request sick leave.",
+            lede: "Access your faculty attendance and employee information.",
+            note: "Welcome to the DNSC Faculty Portal.",
+            label: "Work email",
+            ph: "name@yourschool.edu",
+          },
+          admin: {
+            chip: "HR Admin",
+            t: "Applicants, leave and payroll in one view.",
+            p: "Accept or reject applicants, approve sick leave and generate payslips from attendance.",
+            lede: "Manage employee records, attendance, and payroll.",
+            note: "Welcome to the DNSC HR Administration Portal.",
+            label: "Admin email",
+            ph: "hr@yourschool.edu",
+          },
+        };
+        function setRole(r) {
+          role = r;
+          document.querySelectorAll(".role").forEach(function (b) {
+            b.setAttribute(
+              "aria-checked",
+              String(b.getAttribute("data-role") === r),
+            );
+          });
+          var c = copy[r],
+            isApp = r === "applicant";
+          $("signinLede").textContent = c.lede;
+          $("applicantAuth").hidden = !isApp;
+          $("signinForm").hidden = isApp;
+          if (!isApp) {
+            $("si-email-label").textContent = c.label;
+            $("si-email").placeholder = c.ph;
+            $("siNote").textContent = c.note;
+          }
+          $("siMsg").textContent = "";
+        }
+        document.querySelectorAll(".role").forEach(function (b) {
+          b.addEventListener("click", function () {
+            setRole(b.getAttribute("data-role"));
+          });
+        });
+        $("googleIn").addEventListener("click", function () {
+          $("googleMsg").textContent =
+            "Design preview only. Connect Google sign-in here.";
+        });
+        $("googleUp").addEventListener("click", function () {
+          $("msg1").style.color = "var(--muted)";
+          $("msg1").textContent =
+            "Design preview only. Connect Google sign-up here.";
+        });
 
-</main>
+        $("signinForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          window.location.href =
+            "../" +
+            (role === "admin"
+              ? "hr-admin/HR_Admin_Dashboard.html"
+              : "Attendance.html");
+        });
 
-<script>
-(function () {
-  var $ = function (id) { return document.getElementById(id); };
-  var root = document.documentElement;
+        // ---------- sign-up wizard ----------
+        var step = 1,
+          resume = null;
+        function gotoStep(n) {
+          step = n;
+          document.querySelectorAll(".panel").forEach(function (p) {
+            p.hidden = Number(p.getAttribute("data-step")) !== n;
+          });
+          document.querySelectorAll("#steps li").forEach(function (li, i) {
+            li.className = i + 1 < n ? "done" : i + 1 === n ? "on" : "";
+          });
+          if (n === 3) renderReview();
+        }
+        function flag(id, bad) {
+          $(id).setAttribute("aria-invalid", bad ? "true" : "false");
+          return bad;
+        }
+        function msg(id, t) {
+          var m = $(id);
+          m.style.color = "var(--err)";
+          m.textContent = t;
+        }
 
-  // theme
-  $('themeBtn').addEventListener('click', function () {
-    var dark = root.getAttribute('data-theme') === 'dark' ||
-      (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
-    root.setAttribute('data-theme', dark ? 'light' : 'dark');
-  });
+        function validate(n) {
+          if (n === 1) {
+            var em = $("su-email").value.trim(),
+              pw = $("su-pass").value;
+            var badE = flag("su-email", !/^[^\s@]+@gmail\.com$/i.test(em));
+            var badP = flag("su-pass", pw.length < 8);
+            if (badE) {
+              msg("msg1", "Enter a Gmail address that ends in @gmail.com.");
+              return false;
+            }
+            if (badP) {
+              msg("msg1", "Use a password with at least 8 characters.");
+              return false;
+            }
+            $("msg1").textContent = "";
+            return true;
+          }
+          if (n === 2) {
+            var age = Number($("su-age").value),
+              yrs = $("su-exp-y").value;
+            var bad = [
+              flag("su-name", !$("su-name").value.trim()),
+              flag("su-age", !(age >= 18 && age <= 70)),
+              flag(
+                "su-phone",
+                $("su-phone").value.replace(/\D/g, "").length < 10,
+              ),
+              flag("su-pos", !$("su-pos").value),
+              flag("su-edu", !$("su-edu").value),
+              flag("su-exp-y", yrs === "" || Number(yrs) < 0),
+            ].some(Boolean);
+            if (bad) {
+              msg(
+                "msg2",
+                "Fill in every field. Age must be 18 to 70 and the mobile number needs 10 digits.",
+              );
+              return false;
+            }
+            $("msg2").textContent = "";
+            return true;
+          }
+          return true;
+        }
+        document.querySelectorAll("[data-next]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            if (validate(step)) {
+              gotoStep(step + 1);
+              nudge();
+            }
+          });
+        });
+        document.querySelectorAll("[data-back]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            gotoStep(step - 1);
+            nudge();
+          });
+        });
 
-  // show / hide password
-  document.querySelectorAll('[data-reveal]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var f = $(b.getAttribute('data-reveal')), show = f.type === 'password';
-      f.type = show ? 'text' : 'password';
-      b.textContent = show ? 'Hide' : 'Show';
-      b.setAttribute('aria-pressed', String(show));
-    });
-  });
+        // resume upload
+        var MAX = 5 * 1024 * 1024;
+        function setResume(f) {
+          var m = $("msg3");
+          if (!f) return;
+          if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) {
+            msg("msg3", "Resume must be a PDF file.");
+            return;
+          }
+          if (f.size > MAX) {
+            msg("msg3", "That PDF is over 5 MB. Compress it and try again.");
+            return;
+          }
+          m.textContent = "";
+          resume = f;
+          $("fileName").textContent = f.name;
+          $("fileSize").textContent =
+            (f.size / 1024 < 1024
+              ? Math.round(f.size / 1024) + " KB"
+              : (f.size / 1048576).toFixed(1) + " MB") + " · ready";
+          $("fileRow").hidden = false;
+          $("drop").hidden = true;
+          $("reviewBox").hidden = false;
+          renderReview();
+        }
+        $("resume").addEventListener("change", function (e) {
+          setResume(e.target.files[0]);
+        });
+        $("fileRemove").addEventListener("click", function () {
+          resume = null;
+          $("resume").value = "";
+          $("fileRow").hidden = true;
+          $("drop").hidden = false;
+          $("reviewBox").hidden = true;
+        });
+        var drop = $("drop");
+        ["dragenter", "dragover"].forEach(function (ev) {
+          drop.addEventListener(ev, function (e) {
+            e.preventDefault();
+            drop.classList.add("over");
+          });
+        });
+        ["dragleave", "drop"].forEach(function (ev) {
+          drop.addEventListener(ev, function (e) {
+            e.preventDefault();
+            drop.classList.remove("over");
+          });
+        });
+        drop.addEventListener("drop", function (e) {
+          setResume(e.dataTransfer.files[0]);
+        });
 
-  function nudge() { // on phones, bring the form back to the top of the view
-    if (innerWidth <= 860) { var c = document.querySelector('.card'); if (c && c.scrollIntoView) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  }
-  // ---------- views ----------
-  var views = { signin: $('view-signin'), signup: $('view-signup'), done: $('view-done') };
-  function show(name) {
-    Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
-    $('tabs').hidden = name === 'done';
-    $('tab-in').setAttribute('aria-selected', String(name === 'signin'));
-    $('tab-up').setAttribute('aria-selected', String(name === 'signup'));
-    $('tabs').setAttribute('data-active', name === 'signup' ? 'signup' : 'signin');
-    if (name === 'done') nudge();
+        function esc(s) {
+          return String(s).replace(/[&<>"]/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+          });
+        }
+        function renderReview() {
+          var rows = [
+            ["Gmail", $("su-email").value],
+            ["Name", $("su-name").value],
+            ["Age", $("su-age").value],
+            ["Position", $("su-pos").value],
+            ["Education", $("su-edu").value],
+            ["Experience", $("su-exp-y").value + " yr"],
+            ["Resume", resume ? resume.name : ""],
+          ];
+          $("review").innerHTML = rows
+            .map(function (r) {
+              return (
+                "<div><dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd></div>"
+              );
+            })
+            .join("");
+        }
+        $("submitApp").addEventListener("click", function () {
+          if (!resume) {
+            msg("msg3", "Upload your resume as a PDF to continue.");
+            return;
+          }
+          if (!$("consent").checked) {
+            msg("msg3", "Tick the consent box to submit.");
+            return;
+          }
+          $("msg3").textContent = "";
+          $("doneEmail").textContent = $("su-email").value.trim();
+          show("done");
+        });
 
-  }
-  document.querySelectorAll('.tab').forEach(function (t) {
-    t.addEventListener('click', function () { show(t.getAttribute('data-view')); });
-  });
-  $('backToSignin').addEventListener('click', function () { show('signin'); });
+        // initial state
+        gotoStep(1);
+        setRole("applicant");
+        show("signin");
+      })();
+    </script>
 
-  // ---------- roles ----------
-  var role = 'applicant';
-  var copy = {
-    applicant: { chip: 'Applicant', t: 'Teach with us. Apply in minutes.', p: 'Create an account with Gmail, send your details and resume, and follow your status until HR replies.',
-      lede: 'Browse vacancies and manage your applications.' },
-    instructor: { chip: 'Instructor', t: 'Tap in. Teach. Track your hours.', p: 'Log RFID attendance, view your own attendance record and request sick leave.',
-      lede: 'Access your faculty attendance and employee information.', note: 'Welcome to the DNSC Faculty Portal.', label: 'Work email', ph: 'name@yourschool.edu' },
-    admin: { chip: 'HR Admin', t: 'Applicants, leave and payroll in one view.', p: 'Accept or reject applicants, approve sick leave and generate payslips from attendance.',
-      lede: 'Manage employee records, attendance, and payroll.', note: 'Welcome to the DNSC HR Administration Portal.', label: 'Admin email', ph: 'hr@yourschool.edu' }
-  };
-  function setRole(r) {
-    role = r;
-    document.querySelectorAll('.role').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-role') === r)); });
-    var c = copy[r], isApp = r === 'applicant';
-    $('signinLede').textContent = c.lede;
-    $('applicantAuth').hidden = !isApp;
-    $('signinForm').hidden = isApp;
-    if (!isApp) {
-      $('si-email-label').textContent = c.label;
-      $('si-email').placeholder = c.ph;
-      $('siNote').textContent = c.note;
-    }
-    $('siMsg').textContent = '';
-
-  }
-  document.querySelectorAll('.role').forEach(function (b) {
-    b.addEventListener('click', function () { setRole(b.getAttribute('data-role')); });
-  });
-  $('googleIn').addEventListener('click', function () { $('googleMsg').textContent = 'Design preview only. Connect Google sign-in here.'; });
-  $('googleUp').addEventListener('click', function () { $('msg1').style.color = 'var(--muted)'; $('msg1').textContent = 'Design preview only. Connect Google sign-up here.'; });
-
-  $('signinForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    window.location.href = '../' + (role === 'admin' ? 'hr-admin/HR_Admin_Dashboard.html' : 'Attendance.html');
-  });
-
-  // ---------- sign-up wizard ----------
-  var step = 1, resume = null;
-  function gotoStep(n) {
-    step = n;
-    document.querySelectorAll('.panel').forEach(function (p) { p.hidden = Number(p.getAttribute('data-step')) !== n; });
-    document.querySelectorAll('#steps li').forEach(function (li, i) { li.className = i + 1 < n ? 'done' : (i + 1 === n ? 'on' : ''); });
-    if (n === 3) renderReview();
-  }
-  function flag(id, bad) { $(id).setAttribute('aria-invalid', bad ? 'true' : 'false'); return bad; }
-  function msg(id, t) { var m = $(id); m.style.color = 'var(--err)'; m.textContent = t; }
-
-  function validate(n) {
-    if (n === 1) {
-      var em = $('su-email').value.trim(), pw = $('su-pass').value;
-      var badE = flag('su-email', !/^[^\s@]+@gmail\.com$/i.test(em));
-      var badP = flag('su-pass', pw.length < 8);
-      if (badE) { msg('msg1', 'Enter a Gmail address that ends in @gmail.com.'); return false; }
-      if (badP) { msg('msg1', 'Use a password with at least 8 characters.'); return false; }
-      $('msg1').textContent = ''; return true;
-    }
-    if (n === 2) {
-      var age = Number($('su-age').value), yrs = $('su-exp-y').value;
-      var bad = [
-        flag('su-name', !$('su-name').value.trim()),
-        flag('su-age', !(age >= 18 && age <= 70)),
-        flag('su-phone', $('su-phone').value.replace(/\D/g, '').length < 10),
-        flag('su-pos', !$('su-pos').value),
-        flag('su-edu', !$('su-edu').value),
-        flag('su-exp-y', yrs === '' || Number(yrs) < 0)
-      ].some(Boolean);
-      if (bad) { msg('msg2', 'Fill in every field. Age must be 18 to 70 and the mobile number needs 10 digits.'); return false; }
-      $('msg2').textContent = ''; return true;
-    }
-    return true;
-  }
-  document.querySelectorAll('[data-next]').forEach(function (b) { b.addEventListener('click', function () { if (validate(step)) { gotoStep(step + 1); nudge(); } }); });
-  document.querySelectorAll('[data-back]').forEach(function (b) { b.addEventListener('click', function () { gotoStep(step - 1); nudge(); }); });
-
-  // resume upload
-  var MAX = 5 * 1024 * 1024;
-  function setResume(f) {
-    var m = $('msg3');
-    if (!f) return;
-    if (!(f.type === 'application/pdf' || /\.pdf$/i.test(f.name))) { msg('msg3', 'Resume must be a PDF file.'); return; }
-    if (f.size > MAX) { msg('msg3', 'That PDF is over 5 MB. Compress it and try again.'); return; }
-    m.textContent = ''; resume = f;
-    $('fileName').textContent = f.name;
-    $('fileSize').textContent = (f.size / 1024 < 1024 ? Math.round(f.size / 1024) + ' KB' : (f.size / 1048576).toFixed(1) + ' MB') + ' · ready';
-    $('fileRow').hidden = false; $('drop').hidden = true; $('reviewBox').hidden = false; renderReview();
-  }
-  $('resume').addEventListener('change', function (e) { setResume(e.target.files[0]); });
-  $('fileRemove').addEventListener('click', function () {
-    resume = null; $('resume').value = ''; $('fileRow').hidden = true; $('drop').hidden = false; $('reviewBox').hidden = true;
-  });
-  var drop = $('drop');
-  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
-  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
-  drop.addEventListener('drop', function (e) { setResume(e.dataTransfer.files[0]); });
-
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function renderReview() {
-    var rows = [['Gmail', $('su-email').value], ['Name', $('su-name').value], ['Age', $('su-age').value], ['Position', $('su-pos').value],
-      ['Education', $('su-edu').value], ['Experience', $('su-exp-y').value + ' yr'], ['Resume', resume ? resume.name : '']];
-    $('review').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('');
-  }
-  $('submitApp').addEventListener('click', function () {
-    if (!resume) { msg('msg3', 'Upload your resume as a PDF to continue.'); return; }
-    if (!$('consent').checked) { msg('msg3', 'Tick the consent box to submit.'); return; }
-    $('msg3').textContent = '';
-    $('doneEmail').textContent = $('su-email').value.trim();
-    show('done');
-  });
-
-  // initial state
-  gotoStep(1); setRole('applicant'); show('signin');
-})();
-</script>
-
-<script src="../assets/demo.js"></script></body></html>
+    <script src="../assets/demo.js"></script>
+  </body>
+</html>
