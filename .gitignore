@@ -1,3 +1,6 @@
 /storage/*
 !/storage/.gitkeep
 /uploads/resumes/*.pdf
+/backups/before-static-20261027/
+/static-site.zip
+/backups/before-ui-flow-20261027/

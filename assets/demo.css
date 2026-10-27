@@ -31,3 +31,13 @@ body .hrms-layout>.main,body .hrms-layout>.demo-main{width:100%;min-width:0;max-
 @media print{.hrms-header,.hrms-prototype,.hrms-sidebar{display:none!important}body .hrms-layout{display:block}}
 [hidden]{display:none!important}
 @media(max-width:760px){.hrms-header{display:grid;grid-template-columns:minmax(0,1fr) auto}.hrms-header .hrms-brand{grid-column:1;grid-row:1;width:auto}.hrms-header .hrms-menu{grid-column:2;grid-row:1;margin:0}.hrms-header .hrms-public-nav{grid-column:1/-1;grid-row:2;width:auto}.hrms-header #demoTheme{grid-column:1/-1;grid-row:3;justify-self:start}.hrms-brand strong{overflow-wrap:normal}.hrms-brand span{font-size:11px}}
+
+/* Hamburger stays at the left of branding on all sidebar pages. */
+header.hrms-header.has-sidebar-menu #menu-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0!important;flex:0 0 44px;white-space:normal}
+header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-events:none}
+@media(max-width:760px){header.hrms-header.has-sidebar-menu{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:10px}header.hrms-header.has-sidebar-menu #menu-toggle{grid-column:1;grid-row:1}header.hrms-header.has-sidebar-menu .hrms-brand{grid-column:2;grid-row:1;width:auto;margin:0;min-width:0}header.hrms-header.has-sidebar-menu #theme-mode{grid-column:3;grid-row:1;margin:0}header.hrms-header.has-sidebar-menu .hrms-public-nav{grid-column:1/-1;grid-row:2;width:100%}header.hrms-header.has-sidebar-menu .hrms-brand strong{font-size:clamp(15px,4vw,19px)}header.hrms-header.has-sidebar-menu .hrms-brand span{font-size:10px}}
+
+/* Selected sidebar panels occupy the same content area instead of stacking down the page. */
+.sidebar-panel-view>.sidebar-panel-active{margin-top:0}
+.hrms-sidebar nav a[aria-current=location]{background:var(--slot-bg);color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
+@media(prefers-reduced-motion:reduce){.sidebar-panel-view{scroll-behavior:auto}}

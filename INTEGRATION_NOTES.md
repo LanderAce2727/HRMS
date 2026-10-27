@@ -1,76 +1,58 @@
-# DNSC Smart HRMS
+# DNSC Smart HRMS frontend UI/UX flow
 
-The application is running locally at **http://127.0.0.1:8085/index.html**.
+The current implementation is HTML5, CSS3, and browser JavaScript only. No PHP, database, server API, OAuth, or real credential verification is used.
 
-Use the HTTP address above. Opening index.html with file:// or a static VS Code Live Server cannot run the PHP backend.
+## New pages and shared frontend files
 
-## Accounts and first use
+- login.html: original single-card appearance with email/username, password, Sign In, and Google continuation. It contains no registration, signup, account creation, or forgot-password links. Demo-account details accompany the credentials section.
+- applicant-verification.html: mock Google profile, optional PRC via Not Applicable, required-field validation, and success notification before Job Vacancies.
+- job-vacancies.html: four sample Instructor I positions in IT, Mathematics, English, and Business Administration; each card contains all requested details and a selected-job link. The listings and deadlines are explicitly illustrative, not actual DNSC openings.
+- job-application.html: selected position and department, personal/professional fields, four document controls, validation, and a same-page submitted confirmation. No redirect follows submission.
+- faculty-dashboard.html: faculty profile, weekly schedule, subject cards, classroom assignments, mock attendance/history, and announcements.
+- assets/ui-model.js: sample records, predefined account matching, validation, mock state persistence, HR decisions, and faculty assignment rules.
+- assets/ui-flow.js: page-specific DOM behavior and navigation. No network request or real authentication is performed.
+- assets/ui-flow.css: responsive DNSC green-and-white extension of the original shared design.
 
-All three existing database accounts and their passwords were preserved. Login determines the account's role from the database; users cannot choose a more privileged role in the browser.
+## Reused pages
 
-1. Sign in with the existing HR administrator account.
-2. Publish actual positions under Job Vacancies. The current database has no published vacancies; no fictional positions were inserted.
-3. Review employee information, assign RFID cards, and set actual pay rates and their effective dates under Employee Records.
-4. Set the work start time and open the actual academic evaluation period in Dashboard > System Settings. Leaving the evaluation period blank closes evaluation submissions.
-5. Applicants can register, submit PDF resumes against open positions, view status, and see scheduled interviews. Students register separately and need HR enrollment verification before submitting faculty evaluations.
+The existing hr-admin/HR_Admin_Applicant_Management.html was enhanced instead of adding a duplicate applicant-management.html. It supports details, decisions, faculty registration, department/subject/room/schedule assignment, filters, and sample reset. Department selection and schedule validation are enforced; overlapping faculty times and already-booked sample classrooms are rejected.
 
-## Connected workflows
+Campus Sign In.html, DNSC_Sign_In_Single_Card.html, authentication/Authentication_Login.html, and authentication/Authentication_Login_Single_Card.html use the same updated sign-in interface and shared controller. They do not contain signup/registration options.
 
-- Password-hashed login, database-backed roles, idle session expiry, POST logout, and password changes under Account.
-- Applicant/student registration with unique email validation and automatic sign-in after successful database persistence.
-- Vacancy publishing, editing, categories, and publication status.
-- Application submission, duplicate-application prevention, private PDF storage/downloads, HR status decisions, and interview schedules.
-- Employee appointment records, employee accounts, accepted-applicant appointments, pay rates, employment status histories, contact updates, and leave requests/reviews.
-- RFID check-in and check-out against the signed-in employee's assigned card. Attendance is timed on the server in Philippine Standard Time. The second scan checks out; scans within one minute of check-in are rejected to prevent accidental duplicate scans.
-- HR corrections to check-in/check-out with required reasons and an audit history.
-- Daily-rate payslips from completed attendance records, entered deductions, duplicate/overlapping-period protection, CSV export, and printing. Rates must exist before the pay period starts; periods spanning a rate change must be split.
-- Student verification, faculty evaluations with one response per faculty/period, and aggregated reports.
-- Forest green/white DNSC styling, responsive sidebar, searchable tables, accessible sun/moon theme icons, and a saved theme preference.
+DNSC_HR_Dashboard.html and hr-admin/HR_Admin_Dashboard.html keep their original main content/components. Their palette and relevant links were updated. index.html keeps its existing layout with entry links into the new flow and the requested blue palette. Unrelated student, employee, attendance, registration, and legacy applicant pages were preserved.
 
-All 33 separate page URLs remain. Existing HTML entry points now load the live shared interface in assets/hrms.js. The existing shared design classes and responsive styles are retained; assets/dnsc.css supplies the DNSC palette. Fake navigation, fictional dashboard figures, and simulated success messages are no longer active.
+## Navigation and behavior
 
-## Running again
+Continue with Google -> applicant-verification.html -> job-vacancies.html -> job-application.html?job=<known sample key> -> submitted confirmation on the same page.
 
-Keep MySQL running in XAMPP, then run from the project directory:
+Faculty demo sign-in -> faculty-dashboard.html.
 
-```powershell
-.\Start-HRMS.ps1
-```
+HR demo sign-in -> existing HR dashboard -> existing Applicant Management -> approve application -> Register as Faculty -> optional View Faculty Dashboard link.
 
-Or keep a terminal open with:
+Login matches only predefined demonstration account strings. It does not authenticate against any service and does not store entered passwords. The Google control sets a sample profile and never requests a Google password or contacts Google.
 
-```powershell
-php -d display_errors=Off -d upload_max_filesize=5M -d post_max_size=8M -S 127.0.0.1:8085 router.php
-```
+The mock state is namespaced in browser localStorage. Role changes and assignments affect only that mock state. No account is activated, no message is sent, and no document contents are read/uploaded. The application stores document names and sizes only for the HR detail view. All user-provided strings rendered into HTML are escaped.
 
-Start-HRMS.ps1 launches a hidden PHP process and records its PID in storage/server.pid. Server output and errors go to storage/server.log and storage/server-errors.log. A different local port can be selected with -Port.
+Form fieldsets begin disabled until their JavaScript submit handlers are installed. Without JavaScript, no credential form is enabled for native submission. PRC Not Applicable disables and removes the required license-number condition. Application attachment checks enforce required documents, supported extensions, and the 5 MB per-file limit.
 
-The database defaults match the existing XAMPP setup: smart_hrms on 127.0.0.1:3306 with the existing local root connection. Override HRMS_DB_HOST, HRMS_DB_PORT, HRMS_DB_NAME, HRMS_DB_USER, and HRMS_DB_PASSWORD through environment variables for another installation.
+## Demo credentials
 
-For a fresh copy of the existing database, import the supplied SQL dump once and run:
+Faculty: faculty.demo or faculty.demo@dnsc.example / FacultyDemo123!
 
-```powershell
-php scripts/install.php
-```
+HR Admin: hr.demo or hr.demo@dnsc.example / HrDemo123!
 
-The installer is CLI-only and adds the live application tables/columns without replacing users, passwords, or existing records. It was applied to this project's current database. The old frontend generators are retired so they cannot overwrite the live application.
+## Deployment and verification
 
-Apache installations can use the included .htaccess and router.php with mod_rewrite and AllowOverride enabled. The local server is bound to 127.0.0.1 and is accessible only on this computer. Public hosting and HTTPS configuration are separate deployment work.
+The dist/ folder and static-site.zip include all 38 HTML pages plus the three shared flow assets. Upload their contents while preserving the folder structure. No database setup is needed.
 
-## Boundaries
+21 isolated model/controller checks passed. They cover the two credential routes, invalid credentials, mock Google profile, PRC/required-field checks, four vacancy links, selected-position propagation, file validation, same-page confirmation, HR approval/rejection, faculty assignment restrictions, schedule/room conflicts, role transitions, faculty-dashboard data, and reset behavior. Local file references, inline JavaScript syntax, duplicate IDs, login link restrictions, and deployment-copy consistency were also checked.
 
-- Email delivery, email-address verification, and emailed password recovery are not configured. Application decisions and interviews are visible in the applicant account. Forgotten-password recovery currently requires administrator assistance; the application does not pretend to send email.
-- Payroll implements daily-rate calculations with HR-entered deductions. Automated statutory deductions, benefits, partial-day rules, and bank payments are not integrated.
-- RFID requires a keyboard-style USB reader or entry of the assigned card number. Overnight shifts and multiple shifts in one day require additional attendance rules.
-- Faculty evaluation uses the period explicitly configured by HR and verified student status. It is not integrated with a registrar/course enrollment system.
-- This is a running local application, not a publicly deployed service. Browser visual/interaction review was unavailable because no browser/native UI connection was present. Syntax and startup checks were performed; no sample accounts, applications, attendance, or payroll records were created.
+A real browser visual review could not run: computer use returned no connected browsers and an unavailable native pipe. No claim of visual browser verification is made.
 
-Private files, SQL dumps, uploaded resumes, session files, logs, scripts, and repository metadata are blocked by the application router. Resume downloads enforce account ownership or the HR role. CSRF validation, parameterized queries, active-user checks, login throttling, escaped rendering, and audited HR changes are implemented. Password changes and employment status changes invalidate existing sessions as appropriate.
+Backend files and databases were not touched. Prior local recovery copies remain under backups/before-static-20261027/; frontend recovery for this update is under backups/before-ui-flow-20261027/. Neither is part of the deployment package.
 
-## Original design restored
+The latest presentation update restores the DNSC forest-green/white palette and removes visible demo/sample badges, notices, and account hints. Field labels and validation remain intact. The implementation still uses the same frontend-only mock flows; removing presentation labels does not create real authentication, verification, or uploads.
 
-The original saved sign-in card, role selector, input styling, HR dashboard metric/chart/quick-action layout, and faculty clock/scanner layout are restored with DNSC green/white colors. The homepage uses the earlier compact heading and service panels. The other pages use their original shared card/form spacing.
+Sidebar selection now uses a short fade/slide transition. Faculty same-page menu sections behave as exclusive content panels in the same content area instead of stacked scroll targets. Selection updates the URL hash and active state without native anchor scrolling; mobile navigation closes automatically. Separate HTML menu destinations retain their files, fade out/in, and start at the top. Reduced-motion preferences and modified/new-tab clicks are respected.
 
-Presentation rules were recovered from templates/login.source, templates/attendance.source, and the original committed HR dashboard into assets/original-design.css. Original preview scripts and fictional data were not reintroduced. assets/hrms.js still calls the existing live APIs for every account and record action. No backend or database changes were required for this design restoration.
-
-The original sign-in design is used by Campus Sign In.html, DNSC_Sign_In_Single_Card.html, and the organized authentication login pages. Theme controls keep the sun/moon icons. Hard-refresh the browser (Ctrl+F5) to load the restored presentation.
+Applicant self-registration and its navigation links have been removed. The old registration URL now opens the existing sign-in interface for compatibility. All 25 sidebar pages load assets/navigation.css for a fixed header/menu frame, consistent Segoe UI fallbacks, line heights, menu rows, and content headings. Only the main content area scrolls. Menu open/closed state is retained per viewport through sessionStorage; selecting a tab no longer closes or shifts the menu. Content transitions use opacity only, with no vertical movement. Deployment copies and the ZIP include the same rules.
