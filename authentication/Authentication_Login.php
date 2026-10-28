@@ -589,7 +589,7 @@
       @media print{.static-form,.static-links,.system-notice{display:none!important}}
     </style>
     <link rel="stylesheet" href="../assets/ui-flow.css" />
-  </head>
+  <link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="../assets/sign-in-background.css?v=20261028-attendance-access"></head>
   <body class="flow-page original-login" data-flow="login">
     <div
       class="flow-message"

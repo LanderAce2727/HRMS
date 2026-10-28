@@ -1,0 +1,17 @@
+.employee-profile [hidden]{display:none!important}
+.employee-profile{max-width:960px}
+.employee-profile-heading{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.employee-profile-avatar{display:grid;place-items:center;flex:none;width:72px;height:72px;border-radius:50%;background:var(--slot-bg);border:2px solid var(--line);color:var(--blue);font-size:25px;font-weight:700;letter-spacing:.04em}
+.employee-profile-heading h2{margin:0;overflow-wrap:anywhere}
+.employee-profile-edit{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--slot-bg);color:var(--blue);cursor:pointer}
+.employee-profile-edit:hover{border-color:var(--blue)}
+.employee-profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:0}
+.employee-profile-details dt{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.employee-profile-details dd{margin:0;font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere}
+.employee-profile-details .profile-wide{grid-column:1/-1}
+.employee-profile-form{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.employee-profile-form .profile-wide{grid-column:1/-1}
+.employee-profile-form h2{margin:0}
+.employee-profile-form .demo-actions{margin:0}
+#employee-profile-message{margin:16px 0 0;color:var(--blue)}
+@media(max-width:640px){.employee-profile-details,.employee-profile-form{grid-template-columns:minmax(0,1fr)}.employee-profile-avatar{width:52px;height:52px;font-size:19px}.employee-profile-heading{gap:10px}.employee-profile-heading h2{font-size:18px}}

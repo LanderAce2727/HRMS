@@ -13,13 +13,33 @@ function fillProfile(form){const p=model.getState().profile;for(const name of ['
 function valid(form){if(!form.reportValidity()){notify('Complete the required fields before continuing.',true);return false;}return true;}
 if(page==='login'){
  const f=document.getElementById('credential-login');f.addEventListener('submit',e=>{e.preventDefault();if(!valid(f))return;const a=model.login(f.elements.identity.value,f.elements.password.value);f.elements.password.value='';if(!a){notify('The credentials do not match. Check your username and password.',true);return;}location.href=url(a.destination);});
- document.getElementById('google-continue').onclick=()=>{model.beginGoogle();location.href=url('applicant-verification.html');};
+ document.getElementById('google-continue').onclick=()=>{const profile=model.beginGoogle();try{window.sessionStorage.setItem('dnsc-google-display-name',profile.fullName||'');}catch{}location.href=url('applicant-verification.html');};
 }
 if(page==='verification'){
  const f=document.getElementById('verification-form');fillProfile(f);license(f);f.addEventListener('submit',e=>{e.preventDefault();if(!valid(f))return;const data=values(f);data.prcNotApplicable=f.elements.prcNotApplicable.checked;const result=model.saveProfile(data);if(result.errors){errors(f,result.errors);return;}notify('Details completed successfully for this demonstration. Continuing to sample vacancies…');f.querySelector('button[type=submit]').disabled=true;setTimeout(()=>location.href=url('job-vacancies.html'),900);});
 }
 if(page==='vacancies'){
- const grid=document.getElementById('vacancy-grid');grid.innerHTML=model.jobs.map(job=>`<article class="demo-panel vacancy-card"><div class="vacancy-top">${badge('Teaching')}</div><h2>${esc(job.title)}</h2><p class="vacancy-department">${esc(job.department)}</p><dl><dt>Employment Type</dt><dd>${esc(job.type)}</dd><dt>Qualifications</dt><dd>${esc(job.qualifications)}</dd><dt>Job Description</dt><dd>${esc(job.description)}</dd><dt>Application Deadline</dt><dd>${esc(job.deadline)}</dd></dl><div class="demo-actions">${link('job-application.html?job='+encodeURIComponent(job.id),'Apply Now',true)}</div></article>`).join('');
+ const account=document.getElementById('vacancy-google-account'),accountName=document.getElementById('vacancy-google-name');
+ if(account&&accountName){let name='';try{name=window.sessionStorage.getItem('dnsc-google-display-name')||'';}catch{}account.hidden=!name.trim();accountName.textContent=name;accountName.title=name;}
+ const logout=document.getElementById('vacancy-logout');
+ if(logout)logout.addEventListener('click',()=>{try{window.sessionStorage.removeItem('dnsc-google-display-name');}catch{}if(account)account.hidden=true;if(accountName)accountName.textContent='';location.href=url('login.html');});
+ const grid=document.getElementById('vacancy-grid');grid.innerHTML=model.jobs.map(job=>`<article class="demo-panel vacancy-card"><h2 class="vacancy-heading"><button type="button" class="vacancy-toggle" id="vacancy-toggle-${esc(job.id)}" aria-expanded="false" aria-controls="vacancy-details-${esc(job.id)}"><span class="vacancy-summary"><span class="vacancy-title">${esc(job.title)}</span><span class="vacancy-department">${esc(job.department)}</span></span><span class="vacancy-type">${esc(job.type)}</span><span class="vacancy-toggle-hint"><span class="vacancy-toggle-label">View details</span><svg class="vacancy-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button></h2><div class="vacancy-details" id="vacancy-details-${esc(job.id)}" role="region" aria-labelledby="vacancy-toggle-${esc(job.id)}" aria-hidden="true" inert><div class="vacancy-details-clip"><div class="vacancy-details-content"><h3>Job Details</h3><dl><dt>Employment Type</dt><dd>${esc(job.type)}</dd><dt>Qualifications</dt><dd>${esc(job.qualifications)}</dd><dt>Job Description</dt><dd>${esc(job.description)}</dd><dt>Application Deadline</dt><dd>${esc(job.deadline)}</dd></dl><div class="demo-actions">${link('job-application.html?job='+encodeURIComponent(job.id),'Apply Now',true)}<button type="button" class="demo-button vacancy-close">Close details</button></div></div></div></div></article>`).join('');
+ grid.querySelectorAll('.vacancy-card').forEach(card=>{
+  const toggle=card.querySelector('.vacancy-toggle'),details=card.querySelector('.vacancy-details'),label=card.querySelector('.vacancy-toggle-label');
+  const setOpen=open=>{card.classList.toggle('is-open',open);toggle.setAttribute('aria-expanded',String(open));details.setAttribute('aria-hidden',String(!open));details.inert=!open;label.textContent=open?'Hide details':'View details';};
+  toggle.addEventListener('click',()=>setOpen(toggle.getAttribute('aria-expanded')!=='true'));
+  card.querySelector('.vacancy-close').addEventListener('click',()=>{toggle.focus({preventScroll:true});setOpen(false);toggle.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});});
+ });
+ const search=document.getElementById('vacancy-search'),searchToggle=document.getElementById('vacancy-search-toggle'),searchInput=document.getElementById('vacancy-search-input'),searchStatus=document.getElementById('vacancy-search-status');
+ if(search&&searchToggle&&searchInput){
+  let searchOpen=false;
+  const filter=()=>{const query=searchInput.value.trim().toLowerCase();let count=0;grid.querySelectorAll('.vacancy-card').forEach((card,index)=>{const job=model.jobs[index];const matches=(`${job.title} ${job.department} ${job.type} ${job.qualifications} ${job.description}`).toLowerCase().includes(query);card.hidden=!matches;if(matches)count++;});searchStatus.hidden=!query;searchStatus.textContent=count?`${count} position${count===1?'':'s'} found.`:'No positions found. Try a different keyword.';};
+  const setSearch=open=>{searchOpen=open;search.classList.toggle('is-open',open);searchToggle.setAttribute('aria-expanded',String(open));searchToggle.setAttribute('aria-label',open?'Close job search':'Search job vacancies');searchInput.disabled=!open;if(open)searchInput.focus();else{searchInput.value='';filter();searchToggle.focus();}};
+  searchToggle.addEventListener('click',()=>setSearch(!searchOpen));
+  searchInput.addEventListener('input',filter);
+  search.addEventListener('submit',event=>{event.preventDefault();filter();});
+  search.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();setSearch(false);}});
+ }
 }
 if(page==='application'){
  const key=new URL(location.href).searchParams.get('job'),job=model.jobs.find(j=>j.id===key),f=document.getElementById('application-form');

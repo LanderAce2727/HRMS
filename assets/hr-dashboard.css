@@ -1,0 +1,16 @@
+/* HR dashboard uses the same surfaces, spacing, and green accents as Employee pages. */
+body.hrms-dashboard #main-content .heading h1{color:var(--ink)}
+body.hrms-dashboard .metric,
+body.hrms-dashboard .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+body.hrms-dashboard .metric{padding:22px}
+body.hrms-dashboard .panel{padding:24px}
+body.hrms-dashboard .metrichead{color:var(--muted)}
+body.hrms-dashboard .metric strong{color:var(--ink)}
+body.hrms-dashboard .quick a{background:var(--bg);border-color:var(--line);color:var(--ink)}
+body.hrms-dashboard .quick a:hover{border-color:var(--blue);background:var(--slot-bg)}
+body.hrms-dashboard .panelhead h2{color:var(--ink)}
+body.hrms-dashboard .topbar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+:root:not([data-theme=dark]) body.hrms-dashboard .panel,
+:root:not([data-theme=dark]) body.hrms-dashboard .metric{border-top:3px solid #43815b}
+:root:not([data-theme=dark]) body.hrms-dashboard .heading h1{color:#164b38}
+@media(max-width:640px){body.hrms-dashboard .panel,body.hrms-dashboard .metric{padding:18px}body.hrms-dashboard .topbar{flex-wrap:wrap;gap:10px}}
