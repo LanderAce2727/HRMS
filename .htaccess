@@ -3,6 +3,9 @@ DirectoryIndex index.html
 # Static pages are served directly; no PHP router is used.
 <IfModule mod_rewrite.c>
 RewriteEngine On
+# Block sensitive directories
 RewriteRule ^(?:storage|uploads|db|api|scripts|server|backups|templates|\.git|\.codex|\.agents|\.aws)(?:/|$) - [F,L,NC]
-RewriteRule \.(?:php|sql|md|log|ini|env|bak)$ - [F,L,NC]
+
+# Block sensitive files, but allow PHP pages to run
+RewriteRule \.(?:sql|md|log|ini|env|bak)$ - [F,L,NC]
 </IfModule>
