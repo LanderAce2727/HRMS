@@ -17,7 +17,7 @@ The current implementation is HTML5, CSS3, and browser JavaScript only. No PHP, 
 
 The existing hr-admin/HR_Admin_Applicant_Management.html was enhanced instead of adding a duplicate applicant-management.html. It supports details, decisions, faculty registration, department/subject/room/schedule assignment, filters, and sample reset. Department selection and schedule validation are enforced; overlapping faculty times and already-booked sample classrooms are rejected.
 
-Campus Sign In.html, DNSC_Sign_In_Single_Card.html, authentication/Authentication_Login.html, and authentication/Authentication_Login_Single_Card.html use the same updated sign-in interface and shared controller. They do not contain signup/registration options.
+login.html is the single frontend sign-in page. The separate PHP login page and handler remain available for the backend implementation.
 
 DNSC_HR_Dashboard.html and hr-admin/HR_Admin_Dashboard.html keep their original main content/components. Their palette and relevant links were updated. index.html keeps its existing layout with entry links into the new flow and the requested blue palette. Unrelated student, employee, attendance, registration, and legacy applicant pages were preserved.
 
