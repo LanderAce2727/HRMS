@@ -54,7 +54,7 @@ try {
     }
 
     if ((int) $user['role_id'] === 2) {
-        header('Location: ../employee/');
+        header('Location: ../employee/Employee_Employee_Profile.html'); // wala ko kabalo
         exit;
     }
 
