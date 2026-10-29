@@ -1,5 +1,5 @@
-body.hrms-dashboard #main-content{background-color:#f5f8f5;background-image:linear-gradient(#fffffff0,#fffffff2),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat}
-:root[data-theme=dark] body.hrms-dashboard #main-content{background-color:#0e1914;background-image:linear-gradient(#0e1914f2,#0e1914f2),url('images/sign-in-campus.jpg')}
+body.hrms-dashboard #main-content{background-color:#f5f8f5;background-image:linear-gradient(var(--page-wash),var(--page-wash)),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat}
+:root[data-theme=dark] body.hrms-dashboard #main-content{background-color:#0e1914}
 body.hrms-dashboard .topbar{margin-bottom:16px;padding:11px 2px;border:0;border-radius:0;background:transparent;box-shadow:none}
 body.hrms-dashboard .topbar .crumb{font-size:12px;letter-spacing:.04em}
 body.hrms-dashboard .topbar .avatar{border-radius:50%;background:var(--slot-bg);border:1px solid var(--slot-line)}
@@ -26,7 +26,7 @@ body.hrms-dashboard .panelhead a:hover{text-decoration:underline}
 body.hrms-dashboard .attendance-chart{height:190px}
 body.hrms-dashboard .legend{margin-top:10px}
 body.hrms-dashboard .quick{gap:9px}
-body.hrms-dashboard .quick a{position:relative;min-height:84px;padding:15px 30px 15px 15px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.4;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+body.hrms-dashboard .quick a{position:relative;min-height:84px;padding:15px 30px 15px 15px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.4;transition:transform .18s ease,background-color .5s ease-in-out,color .5s ease-in-out,border-color .5s ease-in-out}
 body.hrms-dashboard .quick a::after{content:"↗";position:absolute;right:13px;top:13px;color:var(--blue);font-size:16px}
 body.hrms-dashboard .quick a:hover{transform:translateY(-2px);border-color:var(--slot-line);background:var(--slot-bg)}
 body.hrms-dashboard .quick a span{margin-bottom:5px;font-size:18px}

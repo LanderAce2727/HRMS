@@ -8,7 +8,7 @@ body.original-login[data-flow=login]{
  justify-content:center;
  background-color:#f5f8f5;
  background-image:
-  linear-gradient(#fffffff0,#fffffff2),
+  linear-gradient(var(--page-wash),var(--page-wash)),
   url('images/sign-in-campus.jpg');
  background-size:cover;
  background-position:center;
@@ -38,17 +38,13 @@ body.original-login[data-flow=login] .signin-attendance{
  position:fixed;left:max(20px,env(safe-area-inset-left));bottom:max(20px,env(safe-area-inset-bottom));
  display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #82b394;border-radius:14px;
  background:#164b38;color:#fff;text-decoration:none;font-size:13px;font-weight:600;
- box-shadow:0 6px 22px #001d1940;z-index:10;transition:background .2s,transform .2s;
+ box-shadow:0 6px 22px #001d1940;z-index:10;transition:background-color .5s ease-in-out,color .5s ease-in-out,transform .2s;
 }
 body.original-login[data-flow=login] .signin-attendance:hover{background:#286349;transform:translateY(-2px)}
 body.original-login[data-flow=login] .signin-attendance:focus-visible{outline:3px solid #fff;outline-offset:4px}
 @media(max-height:760px),(max-width:640px){body.original-login[data-flow=login]{padding-bottom:96px}}
 @media(prefers-reduced-motion:reduce){body.original-login[data-flow=login] .signin-attendance{transition:none}}
-:root[data-theme=dark] body.original-login[data-flow=login]{
- background-image:
-  linear-gradient(#0e1914f2,#0e1914f2),
-  url('images/sign-in-campus.jpg');
-}
+:root[data-theme=dark] body.original-login[data-flow=login]{background-color:#0e1914}
 :root[data-theme=dark] body.original-login[data-flow=login] .left{border-color:var(--line)}
 @media(max-width:640px){
  body.original-login[data-flow=login]{background-position:60% center;background-attachment:scroll}

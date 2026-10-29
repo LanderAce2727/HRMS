@@ -48,12 +48,21 @@ html:root:not([data-theme=dark]){
 :root:not([data-theme=dark]) .demo-table-wrap tbody tr:nth-child(even){background:#f1f6f2}
 :root:not([data-theme=dark]) .demo-table-wrap tbody tr:hover{background:#e0eee5}
 :root:not([data-theme=dark]) .profile-grid{padding:22px;background:#f1f6f2;border:1px solid #c9dbce;border-radius:12px}
-:root:not([data-theme=dark]) body{background-color:#f5f8f5;background-image:linear-gradient(#fffffff0,#fffffff2),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
-:root[data-theme=dark] body{background-color:#0e1914;background-image:linear-gradient(#0e1914f2,#0e1914f2),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
+@property --page-wash{syntax:"<color>";inherits:true;initial-value:#fffffff0}
+:root body{background-image:linear-gradient(var(--page-wash),var(--page-wash)),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
+:root:not([data-theme=dark]) body{--page-wash:#fffffff0;background-color:#f5f8f5}
+:root[data-theme=dark] body{--page-wash:#0e1914f2;background-color:#0e1914}
 :root:not([data-theme=dark]) body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){border-color:#80a98a}
 :root[data-theme=dark] body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){border-color:#527960}
 :root:not([data-theme=dark]) body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div):not(.vacancy-card){box-shadow:0 6px 16px #153d2814,0 18px 40px #153d2812}
 :root[data-theme=dark] body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div):not(.vacancy-card){box-shadow:0 8px 20px #0004,0 20px 42px #0003}
+@media(prefers-reduced-motion:no-preference){
+ :root body,:root body #main-content{transition:--page-wash .5s ease-in-out,background-color .5s ease-in-out,color .5s ease-in-out}
+ :root body :is(.hrms-header,.hrms-sidebar,.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div,.demo-table-wrap,th,td,input,select,textarea){transition:background-color .5s ease-in-out,color .5s ease-in-out,border-color .5s ease-in-out,box-shadow .5s ease-in-out}
+ :root body :is(h1,h2,h3,p,dt,dd,.hrms-brand,.hrms-brand span,.account-name){transition:color .5s ease-in-out}
+ :root body #theme-mode svg{animation:theme-icon-appear .5s ease-in-out both}
+ @keyframes theme-icon-appear{from{opacity:.35;transform:rotate(-35deg) scale(.75)}to{opacity:1;transform:rotate(0) scale(1)}}
+}
 @media print{
  :root body{background:#fff!important}
  :root body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){box-shadow:none!important}
