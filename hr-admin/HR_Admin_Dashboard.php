@@ -3,7 +3,7 @@ session_start();
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
 if (empty($_SESSION['user_id']) || (int)($_SESSION['role_id'] ?? 0) !== 1) {
-    header('Location: ../authentication/Authentication_Login.php');
+    header('Location: ../login.php');
     exit;
 }
 ?>

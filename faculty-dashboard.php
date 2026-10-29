@@ -1,7 +1,12 @@
 <?php
 session_start();
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
-    header('Location: Campus_Sign_In.php');
+
+if (
+    !isset($_SESSION['user_id']) ||
+    !isset($_SESSION['role_id']) ||
+    (int) $_SESSION['role_id'] !== 2
+) {
+    header('Location: login.php');
     exit;
 }
 ?>
@@ -646,7 +651,7 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
       >
       <nav class="hrms-public-nav" aria-label="Main navigation">
         <a href="index.html">Home</a
-        ><a href="logout.php" aria-label="Log out and return to sign in"
+        ><a href="authentication/logout.php" aria-label="Log out and return to sign in"
           >Log Out</a
         >
       </nav>

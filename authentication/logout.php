@@ -10,5 +10,5 @@ if (ini_get('session.use_cookies')) {
 
 session_destroy();
 
-header('Location: Authentication_Login.php');
+header('Location: ../login.php');
 exit;

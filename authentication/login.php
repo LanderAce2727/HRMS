@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: Authentication_Login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -12,7 +12,7 @@ $identity = trim($_POST['identity'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if ($identity === '' || $password === '') {
-    header('Location: Authentication_Login.php?error=empty');
+    header('Location: ../login.php?error=empty');
     exit;
 }
 
@@ -36,7 +36,7 @@ try {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
-        header('Location: Authentication_Login.php?error=invalid');
+        header('Location: ../login.php?error=invalid');
         exit;
     }
 
@@ -48,15 +48,17 @@ try {
     $_SESSION['role_id'] = (int) $user['role_id'];
     $_SESSION['branch_id'] = $user['branch_id'];
 
+    // HR Admin
     if ((int) $user['role_id'] === 1) {
         header('Location: ../hr-admin/HR_Admin_Dashboard.php');
         exit;
     }
 
+    // Faculty / Instructor
     if ((int) $user['role_id'] === 2) {
-        header('Location: ../employee/Employee_Employee_Profile.html'); // wala ko kabalo
+        header('Location: ../faculty-dashboard.php');
         exit;
-    }
+    }   
 
     session_unset();
     session_destroy();
