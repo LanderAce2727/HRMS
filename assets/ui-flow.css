@@ -20,32 +20,50 @@ header.hrms-header.has-sidebar-menu #menu-toggle{display:inline-flex;align-items
 header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-events:none}
 @media(max-width:760px){header.hrms-header.has-sidebar-menu{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:10px}header.hrms-header.has-sidebar-menu #menu-toggle{grid-column:1;grid-row:1}header.hrms-header.has-sidebar-menu .hrms-brand{grid-column:2;grid-row:1;width:auto;margin:0;min-width:0}header.hrms-header.has-sidebar-menu #theme-mode{grid-column:3;grid-row:1;margin:0}header.hrms-header.has-sidebar-menu .hrms-public-nav{grid-column:1/-1;grid-row:2;width:100%}header.hrms-header.has-sidebar-menu .hrms-brand strong{font-size:clamp(15px,4vw,19px)}header.hrms-header.has-sidebar-menu .hrms-brand span{font-size:10px}}
 
-/* Compact vacancy columns with animated, highlighted job details. */
-.vacancy-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
-.vacancy-card.demo-panel{padding:0;overflow:hidden;border-radius:12px;transition:border-color .25s ease,box-shadow .25s ease}
-.vacancy-card .vacancy-heading{margin:0;font:inherit}
-.vacancy-toggle{display:flex;flex-wrap:wrap;align-items:center;gap:14px 8px;width:100%;border:0;background:var(--panel);color:var(--ink);padding:18px;text-align:left;transition:background .25s ease}
-.vacancy-toggle:hover{background:var(--slot-bg)}
-.vacancy-toggle:focus-visible{outline:3px solid var(--blue);outline-offset:-4px}
-.vacancy-summary{display:grid;gap:5px;flex:1 0 100%;min-width:0}
-.vacancy-title{font-family:Outfit,'Segoe UI',sans-serif;font-size:20px;font-weight:700;line-height:1.3}
-.vacancy-summary .vacancy-department{margin:0;font-size:14px;font-weight:700;color:var(--blue);overflow-wrap:anywhere}
-.vacancy-type{font-size:12px;font-weight:600;background:var(--slot-bg);color:var(--blue);padding:5px 12px;border-radius:6px}
-.vacancy-toggle-hint{display:flex;align-items:center;gap:6px;margin-left:auto;color:var(--blue);font-size:12px;font-weight:600;white-space:nowrap}
+.vacancy-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start;max-width:1120px;margin-inline:auto}
+body[data-flow=vacancies] .vacancy-card.demo-panel{--job-accent:#137d9c;--job-soft:#adf3e2;padding:8px;overflow:hidden;margin:0;border:2px solid #43815b;border-radius:17px;background:var(--panel);box-shadow:0 10px 25px #143e3e1c;transition:transform .22s ease,box-shadow .22s ease}
+body[data-flow=vacancies] .vacancy-card[data-job=math]{--job-accent:#3f69c9;--job-soft:#d8e7ff}
+body[data-flow=vacancies] .vacancy-card[data-job=english]{--job-accent:#b9683f;--job-soft:#ffe0c2}
+body[data-flow=vacancies] .vacancy-card[data-job=business]{--job-accent:#7655b6;--job-soft:#e7d8ff}
+body[data-flow=vacancies] .vacancy-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px #143e3e2b}
+.vacancy-card-top{display:flex;align-items:center;gap:7px;padding:1px 2px 7px}
+.vacancy-mark{display:grid;place-items:center;width:27px;height:27px;flex:none;border-radius:50%;background:var(--job-accent);color:#fff;font:800 13px Outfit,'Segoe UI',sans-serif}
+.vacancy-publisher{display:grid;min-width:0;line-height:1.2}
+.vacancy-publisher small{color:var(--muted);font-size:10px}
+.vacancy-publisher strong{color:var(--ink);font-size:12px}
+.vacancy-index{margin-left:auto;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em}
+.vacancy-media{position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;min-height:128px;max-height:170px;aspect-ratio:1.6;border-radius:11px;background:radial-gradient(circle at 78% 18%,#ffffff9c 0 12%,transparent 13%),linear-gradient(135deg,var(--job-soft),var(--job-accent));background-position:center;background-size:cover}
+.vacancy-media::before{content:"";position:absolute;z-index:-1;width:170px;height:170px;right:-30px;bottom:-95px;border:25px solid #ffffff55;border-radius:43% 57% 54% 46%;transform:rotate(-24deg)}
+.vacancy-media::after{content:"";position:absolute;z-index:-1;width:105px;height:105px;left:-35px;top:-47px;border:17px solid #ffffff75;border-radius:50%}
+.vacancy-media-initials{color:#ffffffeb;font:800 clamp(40px,4vw,58px) Outfit,'Segoe UI',sans-serif;letter-spacing:-.08em;text-shadow:0 8px 20px #183e4a3b}
+.vacancy-media-caption{position:absolute;right:7px;bottom:7px;left:7px;overflow:hidden;padding:4px 7px;border:1px solid #ffffffa6;border-radius:6px;background:#ffffffd9;color:#234135;font-size:9px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.vacancy-summary{display:grid;gap:2px;min-height:76px;padding:9px 3px 6px}
+.vacancy-summary .vacancy-department{margin:0;color:var(--job-accent);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.vacancy-title{margin:0;font-family:Outfit,'Segoe UI',sans-serif;font-size:17px;font-weight:700;line-height:1.2}
+.vacancy-excerpt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:var(--muted);font-size:11px;line-height:1.4}
+.vacancy-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 3px;border-top:1px solid var(--line);font-size:10px}
+.vacancy-type{color:var(--job-accent);font-weight:800;white-space:nowrap}
+.vacancy-deadline{color:var(--muted);text-align:right}
+.vacancy-deadline strong{display:block;color:var(--ink);font-size:10px;white-space:nowrap}
+.vacancy-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.vacancy-toggle,.vacancy-actions .demo-button{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:38px;padding:7px 5px;border-radius:9px;text-align:center;text-decoration:none;font-size:11px;font-weight:800;line-height:1.2}
+.vacancy-toggle{border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.vacancy-toggle:hover{border-color:var(--job-accent);color:var(--job-accent)}
+.vacancy-toggle:focus-visible{outline:3px solid var(--job-accent);outline-offset:2px}
+.vacancy-actions .demo-button.primary{background:var(--job-accent)!important;border-color:var(--job-accent)!important;color:#fff!important}
 .vacancy-chevron{flex:none;transition:transform .3s ease}
-.vacancy-card.is-open{border-color:var(--blue);box-shadow:0 0 0 2px var(--slot-bg)}
-.vacancy-card.is-open .vacancy-toggle{background:var(--slot-bg)}
-.vacancy-card.is-open .vacancy-title{color:var(--blue)}
+body[data-flow=vacancies] .vacancy-card.is-open{box-shadow:0 18px 34px #143e3e2b}
 .vacancy-card.is-open .vacancy-chevron{transform:rotate(180deg)}
 .vacancy-details{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s ease,opacity .25s ease}
 .vacancy-card.is-open .vacancy-details{grid-template-rows:1fr;opacity:1}
 .vacancy-details-clip{min-height:0;overflow:hidden}
-.vacancy-details-content{padding:18px;overflow-wrap:anywhere;border-top:1px solid var(--line);border-left:4px solid var(--blue);background:color-mix(in srgb,var(--slot-bg) 45%,var(--panel))}
-.vacancy-details-content h3{margin:0;color:var(--blue);font-size:17px}
+.vacancy-details-content{padding:13px 3px 3px;overflow-wrap:anywhere;border-top:1px solid var(--line);background:var(--panel)}
+.vacancy-details-content h3{margin:0;color:var(--job-accent);font-size:15px}
 .vacancy-details-content dl{margin:0}
-.vacancy-details-content .demo-actions{margin-top:0;padding-top:22px}
-@media(max-width:1100px){.vacancy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:640px){.vacancy-grid{grid-template-columns:minmax(0,1fr)}.vacancy-title{font-size:18px}}
+.vacancy-details-content dt{margin-top:12px}
+.vacancy-close{margin-top:14px}
+@media(max-width:960px){.vacancy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.vacancy-grid{grid-template-columns:minmax(0,1fr);gap:18px}.vacancy-media{aspect-ratio:1.5}.vacancy-summary{min-height:0}}
 @media(prefers-reduced-motion:reduce){.vacancy-card.demo-panel,.vacancy-toggle,.vacancy-chevron,.vacancy-details{transition:none}}
 
 .vacancy-search{display:flex;align-items:center;gap:0;margin:0;max-width:100%;border:1px solid transparent;border-radius:10px;transition:background .25s,border-color .25s}

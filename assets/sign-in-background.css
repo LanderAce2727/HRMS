@@ -6,10 +6,9 @@ body.original-login[data-flow=login]{
  display:flex;
  flex-direction:column;
  justify-content:center;
- background-color:#123e2b;
+ background-color:#f5f8f5;
  background-image:
-  linear-gradient(115deg,rgba(9,55,34,.9) 0%,rgba(17,85,50,.58) 48%,rgba(31,107,65,.2) 100%),
-  linear-gradient(0deg,rgba(6,35,22,.72) 0%,rgba(16,66,39,.08) 65%),
+  linear-gradient(#fffffff0,#fffffff2),
   url('images/sign-in-campus.jpg');
  background-size:cover;
  background-position:center;
@@ -47,8 +46,7 @@ body.original-login[data-flow=login] .signin-attendance:focus-visible{outline:3p
 @media(prefers-reduced-motion:reduce){body.original-login[data-flow=login] .signin-attendance{transition:none}}
 :root[data-theme=dark] body.original-login[data-flow=login]{
  background-image:
-  linear-gradient(115deg,rgba(3,27,17,.94) 0%,rgba(7,48,28,.76) 48%,rgba(11,61,34,.5) 100%),
-  linear-gradient(0deg,rgba(2,19,11,.78) 0%,rgba(8,37,21,.15) 65%),
+  linear-gradient(#0e1914f2,#0e1914f2),
   url('images/sign-in-campus.jpg');
 }
 :root[data-theme=dark] body.original-login[data-flow=login] .left{border-color:var(--line)}

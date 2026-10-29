@@ -1,17 +1,30 @@
 .employee-profile [hidden]{display:none!important}
-.employee-profile{max-width:960px}
-.employee-profile-heading{display:flex;align-items:center;gap:12px;margin-bottom:24px}
-.employee-profile-avatar{display:grid;place-items:center;flex:none;width:72px;height:72px;border-radius:50%;background:var(--slot-bg);border:2px solid var(--line);color:var(--blue);font-size:25px;font-weight:700;letter-spacing:.04em}
-.employee-profile-heading h2{margin:0;overflow-wrap:anywhere}
-.employee-profile-edit{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--slot-bg);color:var(--blue);cursor:pointer}
-.employee-profile-edit:hover{border-color:var(--blue)}
-.employee-profile-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:0}
-.employee-profile-details dt{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
-.employee-profile-details dd{margin:0;font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere}
+body .employee-profile.demo-panel{max-width:1080px;padding:0;overflow:hidden;border-radius:24px}
+.employee-tab-panel.sidebar-panel-active{animation:employee-tab-enter .24s ease-out}
+@keyframes employee-tab-enter{from{transform:translateY(8px)}to{transform:translateY(0)}}
+.employee-profile-cover{position:relative;display:flex;align-items:flex-start;justify-content:flex-end;overflow:hidden;height:165px;padding:22px 28px;background:linear-gradient(115deg,#b8d7d5 0%,#c7d9d2 48%,#d9d3e0 100%)}
+.employee-profile-cover::before,.employee-profile-cover::after{content:"";position:absolute;border:1px solid #ffffff80;border-radius:50%}
+.employee-profile-cover::before{width:330px;height:330px;left:-90px;top:-200px;box-shadow:0 0 0 55px #ffffff26}
+.employee-profile-cover::after{width:210px;height:210px;right:15%;bottom:-165px;box-shadow:0 0 0 40px #ffffff24}
+.employee-profile-cover span{z-index:1;color:#245c4b;font-size:11px;font-weight:800;letter-spacing:.16em}
+.employee-profile-heading{position:relative;display:flex;align-items:flex-end;gap:17px;margin:-52px 30px 25px}
+.employee-profile-avatar{display:grid;place-items:center;flex:none;width:102px;height:102px;border:5px solid var(--panel);border-radius:50%;background:linear-gradient(135deg,#17613f,#6cbba5);color:#fff;font:800 29px Outfit,'Segoe UI',sans-serif;letter-spacing:.02em;box-shadow:0 8px 24px #103b242a}
+.employee-profile-identity{flex:1;min-width:0;padding-bottom:4px}
+.employee-profile-identity h2{margin:0 0 3px;overflow-wrap:anywhere}
+.employee-profile-identity p{margin:0;color:var(--muted);font-size:14px}
+.employee-profile-edit{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;min-height:42px;margin-bottom:6px;padding:8px 14px;border:1px solid var(--blue);border-radius:99px;background:var(--panel);color:var(--blue);font-weight:700;cursor:pointer}
+.employee-profile-edit:hover{background:var(--slot-bg)}
+.employee-profile-section-title{margin:0 30px 14px;color:var(--ink);font-size:16px}
+.employee-profile-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 30px 30px;padding:0;border:0;background:transparent;box-shadow:none}
+.employee-profile-details > div{min-width:0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.employee-profile-details dt{margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.employee-profile-details dd{margin:0;font-size:14px;font-weight:700;white-space:pre-wrap;overflow-wrap:anywhere}
 .employee-profile-details .profile-wide{grid-column:1/-1}
-.employee-profile-form{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.employee-profile-form{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;padding:30px}
 .employee-profile-form .profile-wide{grid-column:1/-1}
 .employee-profile-form h2{margin:0}
 .employee-profile-form .demo-actions{margin:0}
-#employee-profile-message{margin:16px 0 0;color:var(--blue)}
-@media(max-width:640px){.employee-profile-details,.employee-profile-form{grid-template-columns:minmax(0,1fr)}.employee-profile-avatar{width:52px;height:52px;font-size:19px}.employee-profile-heading{gap:10px}.employee-profile-heading h2{font-size:18px}}
+#employee-profile-message{margin:0 30px 24px;color:var(--blue)}
+@media(max-width:800px){.employee-profile-details{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.employee-profile-cover{height:140px}.employee-profile-heading{flex-wrap:wrap;gap:10px;margin:-42px 20px 22px}.employee-profile-avatar{width:84px;height:84px;font-size:24px}.employee-profile-identity{flex-basis:calc(100% - 100px)}.employee-profile-identity h2{font-size:20px}.employee-profile-edit{margin:4px 0 0}.employee-profile-section-title{margin-inline:20px}.employee-profile-details,.employee-profile-form{grid-template-columns:minmax(0,1fr)}.employee-profile-details{margin:0 20px 24px}.employee-profile-form{padding:22px}.employee-profile-details .profile-wide,.employee-profile-form .profile-wide{grid-column:auto}#employee-profile-message{margin:0 20px 20px}}
+@media(prefers-reduced-motion:reduce){.employee-tab-panel.sidebar-panel-active{animation:none}}

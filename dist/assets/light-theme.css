@@ -27,7 +27,6 @@ html:root:not([data-theme=dark]){
 :root:not([data-theme=dark]) .demo-heading h1{color:#164b38}
 :root:not([data-theme=dark]) .demo-panel{border-color:#bdcfc3;border-top:3px solid #43815b;box-shadow:0 6px 24px #153d2810}
 :root:not([data-theme=dark]) .employee-profile-avatar{background:#164b38;color:#fff;border-color:#91b49e;box-shadow:0 0 0 5px #e0eee5}
-:root:not([data-theme=dark]) .employee-profile-details{padding:22px;background:#f1f6f2;border:1px solid #c9dbce;border-radius:12px}
 :root:not([data-theme=dark]) .demo-table-wrap th{background:#e0eee5;color:#173b2c}
 :root:not([data-theme=dark]) .demo-form input,
 :root:not([data-theme=dark]) .demo-form textarea,
@@ -49,7 +48,13 @@ html:root:not([data-theme=dark]){
 :root:not([data-theme=dark]) .demo-table-wrap tbody tr:nth-child(even){background:#f1f6f2}
 :root:not([data-theme=dark]) .demo-table-wrap tbody tr:hover{background:#e0eee5}
 :root:not([data-theme=dark]) .profile-grid{padding:22px;background:#f1f6f2;border:1px solid #c9dbce;border-radius:12px}
+:root:not([data-theme=dark]) body{background-color:#f5f8f5;background-image:linear-gradient(#fffffff0,#fffffff2),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
+:root[data-theme=dark] body{background-color:#0e1914;background-image:linear-gradient(#0e1914f2,#0e1914f2),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
+:root:not([data-theme=dark]) body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){border-color:#80a98a}
+:root[data-theme=dark] body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){border-color:#527960}
+:root:not([data-theme=dark]) body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div):not(.vacancy-card){box-shadow:0 6px 16px #153d2814,0 18px 40px #153d2812}
+:root[data-theme=dark] body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div):not(.vacancy-card){box-shadow:0 8px 20px #0004,0 20px 42px #0003}
 @media print{
- :root:not([data-theme=dark]) .demo-panel{box-shadow:none}
- :root:not([data-theme=dark]) .employee-profile-details{background:#fff}
+ :root body{background:#fff!important}
+ :root body :is(.demo-panel,.panel,.metric,.card,.subject-card,.assignment-row,.profile-grid,.employee-profile-details > div){box-shadow:none!important}
 }
