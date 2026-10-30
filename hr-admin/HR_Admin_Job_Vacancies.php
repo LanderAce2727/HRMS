@@ -2,18 +2,11 @@
 
 declare(strict_types=1);
 
-// HR_Admin_Job_Vacancies.php
-// Expected location: <project>/hr_admin/HR_Admin_Job_Vacancies.php  (db.php lives in <project>/config/db.php)
-
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
 $pdo = db();
 
-/* ---------------------------------------------------------------
- * Access control: only an active user whose role is "hr_admin".
- * Your login script must set $_SESSION['user_id'].
- * --------------------------------------------------------------- */
 $userId = (int)($_SESSION['user_id'] ?? 0);
 if ($userId <= 0) {
     header('Location: ../login.html');
