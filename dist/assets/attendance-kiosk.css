@@ -1,0 +1,10 @@
+body.attendance-kiosk{min-height:100vh;margin:0;background:var(--bg);color:var(--ink)}
+.attendance-kiosk-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px clamp(18px,4vw,40px);background:#164b38;color:#fff;border-bottom:3px solid #79a98b}
+.attendance-kiosk-header strong{font-family:Outfit,'Segoe UI',sans-serif;font-size:20px}
+.attendance-kiosk-header .attendance-back{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #91b49e;border-radius:10px;background:#235f46;color:#fff;text-decoration:none;font-weight:600;white-space:nowrap}
+.attendance-kiosk-header .attendance-back:hover{background:#307754}
+.attendance-kiosk-header .attendance-back:focus-visible{outline:3px solid #fff;outline-offset:3px}
+body.attendance-kiosk .content{width:100%;max-width:1180px;margin:0 auto;padding:32px 24px 48px}
+body.attendance-kiosk .primary-grid{margin-bottom:24px}
+body.attendance-kiosk #notice{max-width:1132px;margin:16px auto 0;padding:14px 18px;background:var(--slot-bg);border:1px solid var(--line);border-radius:10px}
+@media(max-width:640px){.attendance-kiosk-header{flex-wrap:wrap;padding:16px}.attendance-kiosk-header strong{font-size:17px}body.attendance-kiosk .content{padding:24px 16px 36px}}

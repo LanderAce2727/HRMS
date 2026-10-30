@@ -1,0 +1,96 @@
+/* DNSC forest-green and white styling over the existing card and dashboard design. */
+/* DNSC: forest green and white, with a muted mint surface system. */
+html:root{--bg:#f3f7f4;--surface:#fff;--panel:#fff;--fg:#17372c;--ink:#17372c;--muted:#5b7066;--line:#d9e5de;--border:#d9e5de;--accent:#17613f;--blue:#17613f;--cyan:#3b9467;--accent-2:#3b9467;--accent-ink:#fff;--glow:#17613f22;--slot-bg:#e8f2eb;--slot-line:#8ab79c;--shadow:0 8px 28px #174b2e09;--link:#17613f;--page:var(--bg);--sub:var(--muted);--soft:var(--slot-bg)}
+html:root[data-theme=dark]{--bg:#0e1914;--surface:#16271e;--panel:#16271e;--fg:#edf5ef;--ink:#edf5ef;--muted:#aec4b6;--line:#30493a;--border:#30493a;--accent:#8dd3a7;--blue:#8dd3a7;--cyan:#9cd3b2;--accent-2:#9cd3b2;--accent-ink:#102b1b;--glow:#8dd3a722;--slot-bg:#203b2b;--slot-line:#537b60;--shadow:0 8px 28px #0002;--link:#a2e0b7}
+
+
+.flow-page .demo-button.primary{background:#17613f!important;border-color:#17613f!important;color:#fff!important}
+.flow-page .demo-button:hover{border-color:var(--blue);transform:translateY(-1px)}
+.flow-page .demo-button{transition:transform .15s,background-color .5s ease-in-out,color .5s ease-in-out,border-color .5s ease-in-out;min-height:44px}
+.flow-page .flow-form{max-width:none}.flow-form fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:18px}.flow-form fieldset:disabled{opacity:.65}.flow-form input,.flow-form select,.flow-form textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--ink);font:inherit;font-size:16px;min-width:0}.flow-form label{display:grid;gap:6px;font-weight:600}.flow-form textarea{min-height:100px;resize:vertical}.flow-form label.checkline{display:flex;align-items:center;gap:9px}.flow-form .checkline input{width:18px;height:18px;padding:0;accent-color:var(--blue)}.flow-form input:read-only{color:var(--muted)}.flow-form [aria-invalid=true]{border-color:#c53c51;outline:2px solid #c53c5122}.flow-form .section-heading{margin:6px 0 0;border-top:1px solid var(--line);padding-top:22px}.flow-form .section-heading:first-child{border:0;padding:0}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.form-grid .full-width{grid-column:1/-1}.flow-hint{color:var(--muted);font-size:12px;font-weight:400;line-height:1.6}.flow-message{padding:14px 18px;border:1px solid var(--slot-line);border-radius:12px;background:var(--slot-bg);color:var(--ink);margin-bottom:20px}.flow-message.flow-error{border-color:#c53c51;color:#a9263c;background:#fff0f2}.flow-page .flow-message:focus{outline:2px solid var(--blue);outline-offset:3px}.google-button{display:flex;align-items:center;justify-content:center;gap:12px;min-height:48px;padding:12px 18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font-weight:600;cursor:pointer;width:100%}.google-button:hover{border-color:var(--blue);box-shadow:var(--shadow)}.google-button svg{width:20px;height:20px;flex:none}.demo-credentials{font-size:12px;color:var(--muted);line-height:1.7}.demo-credentials summary{cursor:pointer;font-weight:600}.demo-credentials code{overflow-wrap:anywhere;white-space:normal}.flow-page.original-login .card{gap:20px}.flow-page.original-login .flow-form{display:grid;gap:16px}.flow-page.original-login .btn.primary{background:linear-gradient(100deg,#17613f,#3b9467)!important;color:#fff!important}.flow-page.original-login .flow-form .input-wrap input{padding-right:66px}.flow-page.original-login .shell{max-width:650px}.flow-page.original-login .flow-message{max-width:650px;margin:0 auto 18px}.flow-page .public-layout{max-width:1320px}.verification-card{max-width:820px;margin:auto}.flow-page .hrms-header{border-color:var(--line)}.vacancy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.vacancy-card{display:flex;flex-direction:column;margin:0}.vacancy-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}.sample-tag{font-size:11px;color:var(--muted);font-weight:600}.vacancy-card .demo-actions{margin-top:auto;padding-top:20px}.vacancy-department{font-weight:600;color:var(--ink);margin-top:0}.vacancy-card dt{color:var(--muted);font-size:12px;font-weight:600;margin:16px 0 5px}.vacancy-card dd{margin:0;line-height:1.7}.vacancy-card h2{margin-bottom:8px}.panel-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.profile-grid dt{font-size:12px;color:var(--muted);font-weight:600}.profile-grid dd{margin:5px 0 0;overflow-wrap:anywhere}.flow-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.flow-toolbar input,.flow-toolbar select{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:11px 13px;border-radius:10px;min-height:44px}.flow-toolbar input{flex:1;min-width:180px}.cell-secondary{display:block;font-size:12px;color:var(--muted);margin-top:5px}.flow-page table td{vertical-align:top;white-space:normal;min-width:100px}.flow-page table button{white-space:nowrap}.assignment-row{padding:18px;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;background:var(--bg)}.assignment-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}.subject-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}.subject-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px}.subject-card h3{margin-bottom:10px}.subject-card p,.subject-card li{font-size:13px;line-height:1.7}.flow-layout .demo-panel{scroll-margin-top:20px}.faculty-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.faculty-overview .demo-panel{margin:0}.faculty-overview strong{display:block;font-size:23px;color:var(--blue);margin-top:8px}.confirmation-panel{text-align:center;padding:36px}.confirmation-icon{height:62px;width:62px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;font-size:30px;background:var(--slot-bg);color:var(--blue)}.announcements{display:grid;gap:14px;padding-left:22px}.file-label span[data-file-list]{overflow-wrap:anywhere}.flow-page .hrms-sidebar .account-name{min-width:0}.flow-page .hrms-sidebar nav{min-width:207px}
+@media(max-width:900px){.faculty-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.form-grid,.vacancy-grid,.profile-grid,.assignment-fields{grid-template-columns:1fr}.form-grid .full-width{grid-column:auto}.flow-toolbar{flex-direction:column}.flow-toolbar input,.flow-toolbar select{width:100%}.vacancy-top{align-items:flex-start}.flow-page .hrms-header .icon-button{margin-left:auto}.flow-page.original-login .brand-name{font-size:16px}.faculty-overview{gap:10px}.faculty-overview .demo-panel{padding:14px}.faculty-overview strong{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.flow-page *{transition:none!important;scroll-behavior:auto!important}}
+@media print{.flow-form,.flow-message,.flow-toolbar,.flow-hint,.demo-credentials{display:none!important}}
+.flow-page.original-login .flow-form button[type=submit]{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border-radius:14px;font-size:15px;background:linear-gradient(100deg,#17613f,#3b9467)!important}
+.flow-page.original-login .flow-form input{border-radius:14px;min-height:48px}
+
+/* Hamburger stays at the left of branding on all sidebar pages. */
+header.hrms-header.has-sidebar-menu #menu-toggle{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0!important;flex:0 0 44px;white-space:normal}
+header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-events:none}
+@media(max-width:760px){header.hrms-header.has-sidebar-menu{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:10px}header.hrms-header.has-sidebar-menu #menu-toggle{grid-column:1;grid-row:1}header.hrms-header.has-sidebar-menu .hrms-brand{grid-column:2;grid-row:1;width:auto;margin:0;min-width:0}header.hrms-header.has-sidebar-menu #theme-mode{grid-column:3;grid-row:1;margin:0}header.hrms-header.has-sidebar-menu .hrms-public-nav{grid-column:1/-1;grid-row:2;width:100%}header.hrms-header.has-sidebar-menu .hrms-brand strong{font-size:clamp(15px,4vw,19px)}header.hrms-header.has-sidebar-menu .hrms-brand span{font-size:10px}}
+
+.vacancy-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start;max-width:1120px;margin-inline:auto}
+body[data-flow=vacancies] .vacancy-card.demo-panel{--job-accent:#137d9c;--job-soft:#adf3e2;padding:8px;overflow:hidden;margin:0;border:2px solid #43815b;border-radius:17px;background:var(--panel);box-shadow:0 10px 25px #143e3e1c;transition:transform .22s ease,box-shadow .5s ease-in-out,background-color .5s ease-in-out,border-color .5s ease-in-out}
+body[data-flow=vacancies] .vacancy-card[data-job=math]{--job-accent:#3f69c9;--job-soft:#d8e7ff}
+body[data-flow=vacancies] .vacancy-card[data-job=english]{--job-accent:#b9683f;--job-soft:#ffe0c2}
+body[data-flow=vacancies] .vacancy-card[data-job=business]{--job-accent:#7655b6;--job-soft:#e7d8ff}
+body[data-flow=vacancies] .vacancy-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px #143e3e2b}
+.vacancy-card-top{display:flex;align-items:center;gap:7px;padding:1px 2px 7px}
+.vacancy-mark{display:grid;place-items:center;width:27px;height:27px;flex:none;border-radius:50%;background:var(--job-accent);color:#fff;font:800 13px Outfit,'Segoe UI',sans-serif}
+.vacancy-publisher{display:grid;min-width:0;line-height:1.2}
+.vacancy-publisher small{color:var(--muted);font-size:10px}
+.vacancy-publisher strong{color:var(--ink);font-size:12px}
+.vacancy-index{margin-left:auto;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em}
+.vacancy-media{position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;min-height:128px;max-height:170px;aspect-ratio:1.6;border-radius:11px;background:radial-gradient(circle at 78% 18%,#ffffff9c 0 12%,transparent 13%),linear-gradient(135deg,var(--job-soft),var(--job-accent));background-position:center;background-size:cover}
+.vacancy-media::before{content:"";position:absolute;z-index:-1;width:170px;height:170px;right:-30px;bottom:-95px;border:25px solid #ffffff55;border-radius:43% 57% 54% 46%;transform:rotate(-24deg)}
+.vacancy-media::after{content:"";position:absolute;z-index:-1;width:105px;height:105px;left:-35px;top:-47px;border:17px solid #ffffff75;border-radius:50%}
+.vacancy-media-initials{color:#ffffffeb;font:800 clamp(40px,4vw,58px) Outfit,'Segoe UI',sans-serif;letter-spacing:-.08em;text-shadow:0 8px 20px #183e4a3b}
+.vacancy-media-caption{position:absolute;right:7px;bottom:7px;left:7px;overflow:hidden;padding:4px 7px;border:1px solid #ffffffa6;border-radius:6px;background:#ffffffd9;color:#234135;font-size:9px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.vacancy-summary{display:grid;gap:2px;min-height:76px;padding:9px 3px 6px}
+.vacancy-summary .vacancy-department{margin:0;color:var(--job-accent);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}
+.vacancy-title{margin:0;font-family:Outfit,'Segoe UI',sans-serif;font-size:17px;font-weight:700;line-height:1.2}
+.vacancy-excerpt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:var(--muted);font-size:11px;line-height:1.4}
+.vacancy-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 3px;border-top:1px solid var(--line);font-size:10px}
+.vacancy-type{color:var(--job-accent);font-weight:800;white-space:nowrap}
+.vacancy-deadline{color:var(--muted);text-align:right}
+.vacancy-deadline strong{display:block;color:var(--ink);font-size:10px;white-space:nowrap}
+.vacancy-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.vacancy-toggle,.vacancy-actions .demo-button{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:38px;padding:7px 5px;border-radius:9px;text-align:center;text-decoration:none;font-size:11px;font-weight:800;line-height:1.2}
+.vacancy-toggle{border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.vacancy-toggle:hover{border-color:var(--job-accent);color:var(--job-accent)}
+.vacancy-toggle:focus-visible{outline:3px solid var(--job-accent);outline-offset:2px}
+.vacancy-actions .demo-button.primary{background:var(--job-accent)!important;border-color:var(--job-accent)!important;color:#fff!important}
+.vacancy-chevron{flex:none;transition:transform .3s ease}
+body[data-flow=vacancies] .vacancy-card.is-open{box-shadow:0 18px 34px #143e3e2b}
+.vacancy-card.is-open .vacancy-chevron{transform:rotate(180deg)}
+.vacancy-details{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s ease,opacity .25s ease}
+.vacancy-card.is-open .vacancy-details{grid-template-rows:1fr;opacity:1}
+.vacancy-details-clip{min-height:0;overflow:hidden}
+.vacancy-details-content{padding:13px 3px 3px;overflow-wrap:anywhere;border-top:1px solid var(--line);background:var(--panel)}
+.vacancy-details-content h3{margin:0;color:var(--job-accent);font-size:15px}
+.vacancy-details-content dl{margin:0}
+.vacancy-details-content dt{margin-top:12px}
+.vacancy-close{margin-top:14px}
+@media(max-width:960px){.vacancy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.vacancy-grid{grid-template-columns:minmax(0,1fr);gap:18px}.vacancy-media{aspect-ratio:1.5}.vacancy-summary{min-height:0}}
+@media(prefers-reduced-motion:reduce){.vacancy-card.demo-panel,.vacancy-toggle,.vacancy-chevron,.vacancy-details{transition:none}}
+
+.vacancy-search{display:flex;align-items:center;gap:0;margin:0;max-width:100%;border:1px solid transparent;border-radius:10px;transition:background .25s,border-color .25s}
+body[data-flow=vacancies]>.hrms-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto}
+body[data-flow=vacancies]>.hrms-header .hrms-public-nav{order:0;width:auto;justify-content:center}
+body[data-flow=vacancies]>.hrms-header .vacancy-search{justify-self:end;flex-direction:row-reverse}
+body[data-flow=vacancies]>.hrms-header .vacancy-search-button{padding:0}
+.vacancy-header-tools{display:flex;align-items:center;justify-content:flex-end;gap:16px;min-width:0;justify-self:end}
+.vacancy-google-account{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:14px;font-weight:700;min-width:0}
+.vacancy-google-account[hidden]{display:none!important}
+.vacancy-google-account svg{flex:none}
+.vacancy-logout{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;margin-left:6px}
+#vacancy-google-name{display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:1000px){body[data-flow=vacancies]>.hrms-header{grid-template-columns:minmax(0,1fr) auto auto}body[data-flow=vacancies]>.hrms-header .hrms-brand{grid-column:1;grid-row:1;width:auto}body[data-flow=vacancies]>.hrms-header #theme-mode{grid-column:3;grid-row:1}body[data-flow=vacancies]>.hrms-header .hrms-public-nav{grid-column:1/3;grid-row:2;justify-content:flex-start}body[data-flow=vacancies]>.hrms-header .vacancy-search{grid-column:3;grid-row:2}}
+@media(max-width:1000px){body[data-flow=vacancies]>.hrms-header .hrms-public-nav{grid-column:1;grid-row:2}body[data-flow=vacancies]>.hrms-header .vacancy-header-tools{grid-column:2/4;grid-row:2;flex-wrap:wrap;gap:10px;max-width:100%}#vacancy-google-name{max-width:130px}}
+.vacancy-search.is-open{background:var(--panel);border-color:var(--slot-line)}
+.vacancy-search-button{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--blue)}
+.vacancy-search-button:hover{background:var(--slot-bg)}
+.vacancy-search-field{width:0;opacity:0;overflow:hidden;visibility:hidden;transition:width .3s ease,opacity .2s ease,visibility .3s}
+.vacancy-search.is-open .vacancy-search-field{width:220px;opacity:1;visibility:visible}
+.vacancy-search input{display:block;width:100%;min-width:0;height:42px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit}
+.vacancy-card[hidden]{display:none}
+#vacancy-search-status{color:var(--muted);margin:0 0 16px}
+@media(max-width:640px){.vacancy-search.is-open .vacancy-search-field{width:160px}}
+@media(prefers-reduced-motion:reduce){.vacancy-search,.vacancy-search-field{transition:none}}
+
+/* Selected sidebar panels occupy the same content area instead of stacking down the page. */
+.sidebar-panel-view>.sidebar-panel-active{margin-top:0}
+.hrms-sidebar nav a[aria-current=location]{background:var(--slot-bg);color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
+@media(prefers-reduced-motion:reduce){.sidebar-panel-view{scroll-behavior:auto}}

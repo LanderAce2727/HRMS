@@ -1,0 +1,42 @@
+body.hrms-dashboard #main-content{background-color:#f5f8f5;background-image:linear-gradient(var(--page-wash),var(--page-wash)),url('images/sign-in-campus.jpg');background-position:center;background-size:cover;background-repeat:no-repeat}
+:root[data-theme=dark] body.hrms-dashboard #main-content{background-color:#0e1914}
+body.hrms-dashboard .topbar{margin-bottom:16px;padding:11px 2px;border:0;border-radius:0;background:transparent;box-shadow:none}
+body.hrms-dashboard .topbar .crumb{font-size:12px;letter-spacing:.04em}
+body.hrms-dashboard .topbar .avatar{border-radius:50%;background:var(--slot-bg);border:1px solid var(--slot-line)}
+body.hrms-dashboard #main-content .heading{position:relative;isolation:isolate;overflow:hidden;min-height:172px;margin-bottom:22px;padding:30px 36px;border-radius:22px;background:linear-gradient(110deg,#123e2f 0%,#1b6043 65%,#26744e 100%);box-shadow:0 18px 38px #123e2f2b}
+body.hrms-dashboard #main-content .heading::before{content:"";position:absolute;z-index:-1;right:-56px;top:-125px;width:340px;height:340px;border:1px solid #ffffff30;border-radius:50%;box-shadow:0 0 0 54px #ffffff0c,0 0 0 108px #ffffff08}
+body.hrms-dashboard #main-content .heading::after{content:"HR / 01";position:absolute;right:36px;bottom:29px;color:#e5f2e5bd;font:700 12px Outfit,'Segoe UI',sans-serif;letter-spacing:.18em}
+body.hrms-dashboard #main-content .heading h1{margin:0 0 8px;color:#fff;font-size:clamp(28px,3vw,39px);letter-spacing:-.025em}
+body.hrms-dashboard #main-content .heading p{max-width:600px;color:#e2efe6;font-size:14px;line-height:1.6}
+body.hrms-dashboard .metrics{gap:14px;margin-bottom:22px}
+body.hrms-dashboard .metric{position:relative;overflow:hidden;min-height:145px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 9px 24px #123e2f0d}
+body.hrms-dashboard .metric::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--blue)}
+body.hrms-dashboard .metric:nth-child(2)::before{background:#63a87c}
+body.hrms-dashboard .metric:nth-child(3)::before{background:#c79a56}
+body.hrms-dashboard .metric:nth-child(4)::before{background:#8a9aa7}
+body.hrms-dashboard .metrichead{gap:8px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+body.hrms-dashboard .metricicon{width:34px;height:34px;flex:none;border-radius:10px;background:var(--slot-bg);color:var(--blue);font-size:17px}
+body.hrms-dashboard .metric strong{margin:14px 0 0;color:var(--ink);font-size:32px}
+body.hrms-dashboard .dashboardgrid{gap:20px}
+body.hrms-dashboard .panel{padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel);box-shadow:0 9px 24px #123e2f0b}
+body.hrms-dashboard .panelhead{padding-bottom:15px;border-bottom:1px solid var(--line)}
+body.hrms-dashboard .panelhead h2{color:var(--ink);font-size:18px;font-weight:700}
+body.hrms-dashboard .panelhead a{color:var(--blue);font-size:13px;font-weight:700;text-decoration:none}
+body.hrms-dashboard .panelhead a:hover{text-decoration:underline}
+body.hrms-dashboard .attendance-chart{height:190px}
+body.hrms-dashboard .legend{margin-top:10px}
+body.hrms-dashboard .quick{gap:9px}
+body.hrms-dashboard .quick a{position:relative;min-height:84px;padding:15px 30px 15px 15px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.4;transition:transform .18s ease,background-color .5s ease-in-out,color .5s ease-in-out,border-color .5s ease-in-out}
+body.hrms-dashboard .quick a::after{content:"↗";position:absolute;right:13px;top:13px;color:var(--blue);font-size:16px}
+body.hrms-dashboard .quick a:hover{transform:translateY(-2px);border-color:var(--slot-line);background:var(--slot-bg)}
+body.hrms-dashboard .quick a span{margin-bottom:5px;font-size:18px}
+body.hrms-dashboard .activity p{margin:0;padding:18px;border:1px dashed var(--line);border-radius:12px;background:var(--bg)}
+body.hrms-dashboard .demo-table-wrap{border:1px solid var(--line);border-radius:12px}
+body.hrms-dashboard .demo-table-wrap th{background:var(--bg)}
+body.hrms-dashboard .demo-table-wrap td[colspan]{padding:28px;color:var(--muted);text-align:center}
+body.hrms-dashboard details.panel summary{color:var(--ink)}
+@media(max-width:760px){body.hrms-dashboard #main-content .heading{min-height:155px;padding:25px}body.hrms-dashboard #main-content .heading::after{right:25px;bottom:20px}body.hrms-dashboard .metric{min-height:130px}}
+@media(max-width:640px){body.hrms-dashboard .panel,body.hrms-dashboard .metric{padding:18px}body.hrms-dashboard .topbar{flex-wrap:wrap;gap:10px}body.hrms-dashboard #main-content .heading{padding:22px 22px 42px}body.hrms-dashboard .quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){body.hrms-dashboard .quick{grid-template-columns:1fr}body.hrms-dashboard .metrichead{letter-spacing:0}}
+@media(prefers-reduced-motion:reduce){body.hrms-dashboard .quick a{transition:none}}
+@media print{body.hrms-dashboard #main-content{background:#fff}}

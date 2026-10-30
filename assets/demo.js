@@ -1,1 +1,1 @@
-// Legacy entry point. Live pages use assets/hrms.js.
+// Compatibility placeholder. All pages contain their own browser-only controls.

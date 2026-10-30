@@ -1,0 +1,52 @@
+/* Campus photograph with a green gradient layered above it. */
+body.original-login[data-flow=login]{
+ min-height:100vh;
+ min-height:100svh;
+ height:auto;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ background-color:#f5f8f5;
+ background-image:
+  linear-gradient(var(--page-wash),var(--page-wash)),
+  url('images/sign-in-campus.jpg');
+ background-size:cover;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-attachment:fixed;
+}
+body.original-login[data-flow=login] .shell{
+ width:100%;
+ max-width:460px;
+ min-height:0;
+ margin:auto;
+}
+body.original-login[data-flow=login] .left{
+ padding:28px;
+ gap:22px;
+ border-radius:22px;
+ border-color:rgba(217,237,223,.65);
+ box-shadow:0 24px 72px rgba(0,25,13,.3);
+}
+body.original-login[data-flow=login] .card{gap:16px;margin:0;max-width:none}
+body.original-login[data-flow=login] .flow-form fieldset{gap:14px}
+body.original-login[data-flow=login] h1{font-size:30px}
+body.original-login[data-flow=login] .logo-slot{width:44px;height:44px;border-radius:12px}
+body.original-login[data-flow=login] .brand-name{font-size:16px}
+body.original-login[data-flow=login] .brand-sub{font-size:9px}
+body.original-login[data-flow=login] .signin-attendance{
+ position:fixed;left:max(20px,env(safe-area-inset-left));bottom:max(20px,env(safe-area-inset-bottom));
+ display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #82b394;border-radius:14px;
+ background:#164b38;color:#fff;text-decoration:none;font-size:13px;font-weight:600;
+ box-shadow:0 6px 22px #001d1940;z-index:10;transition:background-color .5s ease-in-out,color .5s ease-in-out,transform .2s;
+}
+body.original-login[data-flow=login] .signin-attendance:hover{background:#286349;transform:translateY(-2px)}
+body.original-login[data-flow=login] .signin-attendance:focus-visible{outline:3px solid #fff;outline-offset:4px}
+@media(max-height:760px),(max-width:640px){body.original-login[data-flow=login]{padding-bottom:96px}}
+@media(prefers-reduced-motion:reduce){body.original-login[data-flow=login] .signin-attendance{transition:none}}
+:root[data-theme=dark] body.original-login[data-flow=login]{background-color:#0e1914}
+:root[data-theme=dark] body.original-login[data-flow=login] .left{border-color:var(--line)}
+@media(max-width:640px){
+ body.original-login[data-flow=login]{background-position:60% center;background-attachment:scroll}
+ body.original-login[data-flow=login] .left{padding:24px 20px}
+}
