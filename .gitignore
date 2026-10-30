@@ -4,4 +4,4 @@
 /backups/before-static-20261027/
 /static-site.zip
 /backups/before-ui-flow-20261027/
-config/db.php
+# config/db.php
