@@ -653,19 +653,21 @@
                 </div>
               </label>
 
-              <?php if (isset($_GET['error'])): ?>
-                <p class="msg" role="alert">
-                  <?php
-                  if ($_GET['error'] === 'empty') {
-                      echo 'Please enter your username/email and password.';
-                  } elseif ($_GET['error'] === 'invalid') {
-                      echo 'Invalid username/email or password.';
-                  } else {
-                      echo 'Unable to sign in. Please try again.';
-                  }
-                  ?>
-                </p>
-              <?php endif; ?>
+              <?php
+                if ($_GET['error'] === 'empty') {
+                  echo 'Please enter your username/email and password.';
+                } elseif ($_GET['error'] === 'invalid') {
+                  echo 'Invalid username/email or password.';
+                } elseif ($_GET['error'] === 'google_denied') {
+                  echo 'Google sign-in was cancelled.';
+                } elseif ($_GET['error'] === 'google_domain') {
+                  echo 'Please use your institutional Google account.';
+                } elseif ($_GET['error'] === 'google_failed') {
+                  echo 'Google sign-in failed. Please try again.';
+                } else {
+                  echo 'Unable to sign in. Please try again.';
+                }  
+              ?>
 
               <div>
                 <button type="submit" class="demo-button primary">Sign In</button>
