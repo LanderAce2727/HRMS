@@ -653,21 +653,25 @@
                 </div>
               </label>
 
-              <?php
-                if ($_GET['error'] === 'empty') {
-                  echo 'Please enter your username/email and password.';
-                } elseif ($_GET['error'] === 'invalid') {
-                  echo 'Invalid username/email or password.';
-                } elseif ($_GET['error'] === 'google_denied') {
-                  echo 'Google sign-in was cancelled.';
-                } elseif ($_GET['error'] === 'google_domain') {
-                  echo 'Please use your institutional Google account.';
-                } elseif ($_GET['error'] === 'google_failed') {
-                  echo 'Google sign-in failed. Please try again.';
-                } else {
-                  echo 'Unable to sign in. Please try again.';
-                }  
-              ?>
+              <?php if (isset($_GET['error'])): ?>
+                <p class="msg" role="alert">
+                  <?php
+                    if ($_GET['error'] === 'empty') {
+                      echo 'Please enter your username/email and password.';
+                    } elseif ($_GET['error'] === 'invalid') {
+                      echo 'Invalid username/email or password.';
+                    } elseif ($_GET['error'] === 'google_denied') {
+                      echo 'Google sign-in was cancelled.';
+                    } elseif ($_GET['error'] === 'google_domain') {
+                      echo 'Please use your institutional Google account.';
+                    } elseif ($_GET['error'] === 'google_failed') {
+                      echo 'Google sign-in failed. Please try again.';
+                    } else {
+                      echo 'Unable to sign in. Please try again.';
+                    }
+                  ?>
+                </p>
+              <?php endif; ?>
 
               <div>
                 <button type="submit" class="demo-button primary">Sign In</button>
@@ -675,7 +679,8 @@
             </fieldset>
           </form>
           <div class="divider">or</div>
-          <button class="google-button" type="button" id="google-continue">
+          <button class="google-button" type="button" id="google-continue"
+            onclick="location.href='authentication/google-login.php'">
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 fill="#4285F4"
