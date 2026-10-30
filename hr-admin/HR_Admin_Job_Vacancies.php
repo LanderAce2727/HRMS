@@ -4324,14 +4324,14 @@ $isEdit = $form['id'] !== '';
     <header class="hrms-header has-sidebar-menu"><button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
-            
-            <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
+
+        <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
     </header>
     <div id="notice" class="system-notice" role="status" tabindex="-1" <?= $flash ? '' : ' hidden' ?>><?= $flash ? e($flash['msg']) : '' ?></div>
     <div class="demo-layout hrms-layout">
         <aside class="demo-sidebar hrms-sidebar" id="portal-sidebar">
             <p class="account-name">HR Admin Pages</p>
-            <nav aria-label="Section navigation"><a href="HR_Admin_Dashboard.php">Dashboard</a><a href="HR_Admin_Job_Vacancies.php" aria-current="page">Job Vacancies</a><a href="HR_Admin_Applicant_Management.html">Applicants</a><a href="HR_Admin_Employee_Records.html">Employee Records</a><a href="HR_Admin_Employee_Status.html">Employment Status &amp; Leave</a><a href="HR_Admin_Attendance_Management.html">Attendance</a><a href="HR_Admin_Student_Verification.html">Student Verification</a><a href="HR_Admin_Payroll.html">Payroll</a><a href="HR_Admin_Evaluation_Reports.html">Evaluation Reports</a></nav>
+            <nav aria-label="Section navigation"><a href="HR_Admin_Dashboard.php">Dashboard</a><a href="HR_Admin_Job_Vacancies.php" aria-current="page">Job Vacancies</a><a href="HR_Admin_Applicant_Management.php">Applicants</a><a href="HR_Admin_Employee_Records.php">Employee Records</a><a href="HR_Admin_Employee_Status.php">Employment Status &amp; Leave</a><a href="HR_Admin_Attendance_Management.php">Attendance</a><a href="HR_Admin_Student_Verification.php">Student Verification</a><a href="HR_Admin_Payroll.php">Payroll</a><a href="HR_Admin_Evaluation_Reports.php">Evaluation Reports</a></nav>
         </aside>
         <main class="demo-main" id="main-content">
             <header class="demo-heading">
@@ -4345,28 +4345,34 @@ $isEdit = $form['id'] !== '';
                     <p>There are no vacancies yet. Create one below.</p>
                 <?php else: ?>
                     <div class="demo-table-wrap">
-                        <table class="demo-table">
+                        <table>
                             <thead>
                                 <tr>
-                                    <th>Position</th>
-                                    <th>Department</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th>Applicants</th>
-                                    <th>Posted</th>
-                                    <th>Action</th>
+                                    <th scope="col">Position</th>
+                                    <th scope="col">Department</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Applicants</th>
+                                    <th scope="col">Posted</th>
+                                    <th scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($vacancies as $v): ?>
                                     <tr>
-                                        <td><strong><?= e($v['job_title']) ?></strong><br><small><?= e(mb_strimwidth($v['job_description'], 0, 90, '…')) ?></small></td>
-                                        <td><?= e($v['department_name']) ?><br><small><?= e($v['branch_name']) ?></small></td>
+                                        <td>
+                                            <div><?= e($v['job_title']) ?></div>
+                                            <div><small><?= e(mb_strimwidth($v['job_description'], 0, 90, '…')) ?></small></div>
+                                        </td>
+                                        <td>
+                                            <div><?= e($v['department_name']) ?></div>
+                                            <div><small><?= e($v['branch_name']) ?></small></div>
+                                        </td>
                                         <td><?= e(ucfirst($v['category'])) ?></td>
-                                        <td><?= e($v['status']) ?></td>
+                                        <td><span class="demo-badge"><?= e(ucfirst($v['status'])) ?></span></td>
                                         <td><?= (int)$v['applicants'] ?></td>
-                                        <td><?= e(date('M j, Y', strtotime($v['created_at']))) ?></td>
-                                        <td><a href="?edit=<?= (int)$v['id'] ?>#vacancy-form">Edit</a></td>
+                                        <td><?= e(date('F j, Y', strtotime($v['created_at']))) ?></td>
+                                        <td><a class="demo-button" href="?edit=<?= (int)$v['id'] ?>#vacancy-form">Edit</a></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

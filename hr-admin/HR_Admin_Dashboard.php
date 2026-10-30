@@ -4251,7 +4251,7 @@ $statusLabel = [
   <div class="demo-layout hrms-layout">
     <aside class="demo-sidebar hrms-sidebar" id="portal-sidebar">
       <p class="account-name">HR Admin Pages</p>
-      <nav aria-label="Section navigation"><a href="HR_Admin_Dashboard.php" aria-current="page">Dashboard</a><a href="HR_Admin_Job_Vacancies.php">Job Vacancies</a><a href="HR_Admin_Applicant_Management.html">Applicants</a><a href="HR_Admin_Employee_Records.html">Employee Records</a><a href="HR_Admin_Employee_Status.html">Employment Status &amp; Leave</a><a href="HR_Admin_Attendance_Management.html">Attendance</a><a href="HR_Admin_Student_Verification.html">Student Verification</a><a href="HR_Admin_Payroll.html">Payroll</a><a href="HR_Admin_Evaluation_Reports.html">Evaluation Reports</a></nav>
+      <nav aria-label="Section navigation"><a href="HR_Admin_Dashboard.php" aria-current="page">Dashboard</a><a href="HR_Admin_Job_Vacancies.php">Job Vacancies</a><a href="HR_Admin_Applicant_Management.php">Applicants</a><a href="HR_Admin_Employee_Records.php">Employee Records</a><a href="HR_Admin_Employee_Status.php">Employment Status &amp; Leave</a><a href="HR_Admin_Attendance_Management.php">Attendance</a><a href="HR_Admin_Student_Verification.php">Student Verification</a><a href="HR_Admin_Payroll.php">Payroll</a><a href="HR_Admin_Evaluation_Reports.php">Evaluation Reports</a></nav>
     </aside>
     <main class="demo-main main" id="main-content">
       <header class="topbar"><span class="crumb">DNSC / HR Management / <strong>Dashboard</strong></span>
