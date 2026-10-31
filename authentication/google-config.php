@@ -7,7 +7,7 @@ return $local + [
     'client_id'       => getenv('GOOGLE_CLIENT_ID')     ?: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
     'client_secret'   => getenv('GOOGLE_CLIENT_SECRET') ?: 'YOUR_CLIENT_SECRET',
     // Must match EXACTLY what you add under "Authorized redirect URIs" in Google Cloud Console.
-    'redirect_uri'    => 'https://yourdomain.com/authentication/google-callback.php',
+    'redirect_uri'    => 'http://localhost/HRMS/authentication/google-callback.php',
     // Restrict to your institution, e.g. 'dnsc.edu.ph'. Leave '' to allow any Google account.
     'allowed_domain'  => '',
     // role_id given to NEW accounts created via Google. TODO: set to your applicant role_id (see `roles` table).

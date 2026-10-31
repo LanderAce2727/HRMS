@@ -1,7 +1,7 @@
 <?php
 // Lets the static HTML pages read the signed-in user (replaces the mock Google profile).
 session_start();
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 if (empty($_SESSION['user_id'])) {

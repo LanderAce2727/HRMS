@@ -19,6 +19,19 @@ if ($identity === '' || $password === '') {
 try {
     $pdo = db();
 
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $attemptKey = hash('sha256', $ip);
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM login_attempts
+         WHERE attempt_key = :key AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)'
+    );
+    $stmt->execute(['key' => $attemptKey]);
+    if ((int) $stmt->fetchColumn() >= 5) {
+        header('Location: ../login.php?error=invalid');
+        exit;
+    }
+
     $stmt = $pdo->prepare(
         "SELECT id, username, email, password_hash, role_id, branch_id
          FROM users
@@ -36,6 +49,8 @@ try {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
+        $pdo->prepare('INSERT INTO login_attempts (attempt_key) VALUES (:key)')
+            ->execute(['key' => $attemptKey]);
         header('Location: ../login.php?error=invalid');
         exit;
     }
@@ -48,17 +63,15 @@ try {
     $_SESSION['role_id'] = (int) $user['role_id'];
     $_SESSION['branch_id'] = $user['branch_id'];
 
-    // HR Admin
     if ((int) $user['role_id'] === 1) {
         header('Location: ../hr-admin/HR_Admin_Dashboard.php');
         exit;
     }
 
-    // Faculty / Instructor
     if ((int) $user['role_id'] === 2) {
         header('Location: ../faculty-dashboard.php');
         exit;
-    }   
+    }
 
     session_unset();
     session_destroy();

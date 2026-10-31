@@ -4640,7 +4640,7 @@ $total = count($applicants);
                         <p><strong>Resume:</strong> <a href="<?= e($detail['resume_file_path']) ?>" target="_blank" rel="noopener"><?= e(basename($detail['resume_file_path'])) ?></a></p>
                     <?php endif; ?>
                     <p><strong>Specialization:</strong> <?= e($detail['specialization'] ?? '—') ?></p>
-                    <p><strong>PRC license no.:</strong> <?= !empty($detail['prc_not_applicable']) ? 'Not applicable (no PRC license)' : e($detail['prc_license_number'] ?: '—') ?></p>
+                    <p><strong>PRC license no.:</strong> <?= !empty($detail['prc_not_applicable']) ? 'Not applicable (no PRC license)' : e($detail['prc_license_number'] ?? '—') ?></p>
                     <p><strong>Address:</strong> <?= nl2br(e($detail['address'] ?? '—')) ?></p>
                     <?php if ($documents): ?>
                         <p><strong>Documents:</strong></p>
