@@ -588,10 +588,175 @@ body.original-login .input-wrap input{padding-right:64px}
 .page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
 
+/* Double panel unevenness fix*/
+body.original-login .card{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+     gap:14px;
+}
+
+.static-links{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    margin-top:24px;
+}
+
+/* lower page buttons redesign*/
+body.original-login .static-links .demo-button{
+    width:75% !important;
+    min-height:48px;
+    border-radius:50px;
+    background:rgba(255,255,255,.35) !important;
+    backdrop-filter:blur(8px);
+    border:1px solid var(--line) !important;
+    color:var(--ink) !important;
+    font-weight:600;
+    text-decoration:none;
+    transition:
+        background-color .25s ease,
+        border-color .25s ease,
+        transform .2s ease,
+        box-shadow .25s ease;
+}
+
+/* lower page buttons - Hover state */
+body.original-login .static-links .demo-button:hover{
+    background:#ececec !important;
+    border:1px solid var(--accent) !important;
+    color:var(--accent) !important;
+    text-decoration:none !important;
+    box-shadow:
+        0 0 0 2px rgba(23,97,63,.08);
+    transform:translateY(-2px);
+    letter-spacing:.2px;
+}
+
+/* adds distance for sign in button */
+body.original-login .static-form > div:last-child{
+    margin-top:20px;
+}
+
+/* Adjusted the shadow effect for sign in button*/
+body.original-login .btn.primary{
+    box-shadow:0 2px 8px rgba(0,0,0,.25) !important;
+}
+
+/* Panel readjustments */
+body.original-login .left{
+    background:rgba(255,255,255,.90);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.55);
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.08);
+    border-radius:28px;
+    gap: 20px;
+}
+body.original-login .left::after{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    right:-100px;
+    bottom:-100px;
+    background:
+        radial-gradient(
+            circle,
+            rgba(170,255,220,.25),
+            transparent 70%
+        );
+    pointer-events:none;
+}
+
+/* Dark mode settings */
+:root[data-theme="dark"] body.original-login .left{
+    background:
+        linear-gradient(
+            rgba(255,255,255,.03),
+            rgba(255,255,255,.01)
+        ),
+        rgba(15,45,30,.55);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(140,200,160,.18);
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.25);
+}
+:root[data-theme="dark"] body.original-login .left::before{
+    opacity:.4;
+}
+:root[data-theme="dark"] body.original-login .left::after{
+    opacity:.45;
+}
+:root[data-theme="dark"] body.original-login .input,
+:root[data-theme="dark"] body.original-login select.input{
+    background:rgba(5,20,12,.55);
+    border:1px solid rgba(120,180,140,.20);
+    color:#eef6f0;
+}
+:root[data-theme="dark"] body.original-login .input:hover{
+    border-color:rgba(140,210,170,.35);
+}
+:root[data-theme="dark"] body.original-login h1{
+    color:#f5f8f6;
+}
+:root[data-theme="dark"] body.original-login .lede,
+:root[data-theme="dark"] body.original-login label{
+    color:#c9d8cf;
+}
+:root[data-theme="dark"] body.original-login .tabs{
+    background:rgba(0,15,10,.65);
+}
+:root[data-theme="dark"] body.original-login .tabs::before{
+    background:rgba(18,40,28,.85);
+}
+:root[data-theme="dark"] body.original-login .tabs,
+:root[data-theme="dark"] body.original-login .theme-btn{
+    border-color:rgba(140,210,170,.18);
+}
+:root[data-theme="dark"] body.original-login .static-links .demo-button{
+    background:rgba(255,255,255,.06) !important;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(160,220,180,.18) !important;
+    color:#edf5ef !important;
+    text-decoration:none !important;
+    box-shadow:0 2px 8px rgba(0,0,0,.25) !important;
+}
+:root[data-theme="dark"] body.original-login .static-links .demo-button:hover{
+    background:rgba(255,255,255,.14) !important;
+    border:1px solid rgba(160,220,180,.35) !important;
+    color:#a8efbf !important;
+    transform:translateY(-2px);
+    box-shadow:0 2px 8px rgba(0,0,0,.25) !important;
+}
+
+/* Delayed header light to dark mode transition Fix*/
+body.original-login h1,
+body.original-login h1 span{
+    transition:none !important;
+}
+p.lede{
+    transition:none !important;
+}
+
+/* To match student login form as refrence */
+body.original-login form,
+body.original-login .static-form{
+    gap:12px;
+}
+body.original-login .left{
+    padding:32px !important;
+    gap:20px !important;
+}
+
+
 </style>
 <link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee"></head>
 <body class="original-login">
-<div id="notice" class="system-notice" role="status" tabindex="-1" hidden></div><main class="shell" id="main-content"><section class="left" aria-label="Account registration"><div class="top"><a class="brand" href="../index.html"><div class="logo-slot" aria-hidden="true">DNSC</div><div><div class="brand-name">DNSC SMART HRMS</div><span class="brand-sub">Human Resource Management System</span></div></a><button class="theme-btn" type="button" id="theme-mode" aria-label="Switch color theme"></button></div><div class="card"><nav class="tabs" data-active="signup" aria-label="Account access"><a class="tab" href="Authentication_Login.html">Sign in</a><a class="tab" href="Authentication_Student_Registration.html" aria-current="page">Register</a></nav><div><h1>Student <span>registration</span></h1><p class="lede">Student registration.</p></div><div class="demo-form static-form" role="group" aria-label="Form details" data-static-form="register"><input type="hidden" name="role" value="student"><label>Full name<input name="full_name" type="text" value="" required maxlength="150" autocomplete="name"></label><label>Email address<input name="email" type="email" value="" required maxlength="100" autocomplete="email"></label><label>Contact number<input name="contact_number" type="tel" value="" maxlength="20" autocomplete="tel"></label><label>Password (at least 12 characters)<input name="password" type="password" value="" required minlength="12" maxlength="72" autocomplete="new-password"></label><label>Student number<input name="student_number" type="text" value="" required maxlength="50"></label><label>Program<input name="program" type="text" value="" required maxlength="150"></label><label>Year level<select name="year_level" required><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label><div><button class="btn primary" type="button" data-static-submit="">Create Account</button></div></div><a href="Authentication_Login.html">Already have an account? Sign in</a></div><footer class="foot"><a href="../index.html">Home</a><a href="../applicant/Applicant_Job_Listings.html">Job Vacancies</a></footer></section><div class="static-links"><a class="demo-button" href="../hr-admin/HR_Admin_Dashboard.html">HR Admin Pages</a><a class="demo-button" href="../applicant/Applicant_Job_Listings.html">Applicant Pages</a><a class="demo-button" href="../employee/Employee_Employee_Profile.html">Employee Pages</a><a class="demo-button" href="../student/Student_Faculty_Selection.html">Student Pages</a></div></main>
+<div id="notice" class="system-notice" role="status" tabindex="-1" hidden></div><main class="shell" id="main-content"><section class="left" aria-label="Account registration"><div class="top"><a class="brand" href="../index.html"><div class="logo-slot" aria-hidden="true">DNSC</div><div><div class="brand-name">DNSC SMART HRMS</div><span class="brand-sub">Human Resource Management System</span></div></a><button class="theme-btn" type="button" id="theme-mode" aria-label="Switch color theme"></button></div><div class="card"><nav class="tabs" data-active="signup" aria-label="Account access"><a class="tab" href="Authentication_Login.html">Sign in</a><a class="tab" href="Authentication_Student_Registration.html" aria-current="page">Register</a></nav><div><h1>Student <span>registration</span></h1><p class="lede">Get started by creating your account and accessing the student portal.</p></div><div class="demo-form static-form" role="group" aria-label="Form details" data-static-form="register"><input type="hidden" name="role" value="student"><label>Full name<input name="full_name" type="text" value="" required maxlength="150" autocomplete="name"></label><label>Email address<input name="email" type="email" value="" required maxlength="100" autocomplete="email"></label><label>Contact number<input name="contact_number" type="tel" value="" maxlength="20" autocomplete="tel"></label><label>Password (at least 12 characters)<input name="password" type="password" value="" required minlength="12" maxlength="72" autocomplete="new-password"></label><label>Student number<input name="student_number" type="text" value="" required maxlength="50"></label><label>Program<input name="program" type="text" value="" required maxlength="150"></label><label>Year level<select name="year_level" required><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select></label><div><button class="btn primary" type="button" data-static-submit="">Create Account</button></div></div><a href="Authentication_Login.html">Already have an account? Sign in</a></div><footer class="foot"><a href="../index.html">Home</a><a href="../applicant/Applicant_Job_Listings.html">Job Vacancies</a></footer></section><div class="static-links"><a class="demo-button" href="../hr-admin/HR_Admin_Dashboard.html">HR Admin Pages</a><a class="demo-button" href="../applicant/Applicant_Job_Listings.html">Applicant Pages</a><a class="demo-button" href="../employee/Employee_Employee_Profile.html">Employee Pages</a><a class="demo-button" href="../student/Student_Faculty_Selection.html">Student Pages</a></div></main>
 <script>
 /* Browser-only controls. No requests, authentication, uploads, or record storage. */
 (() => {
