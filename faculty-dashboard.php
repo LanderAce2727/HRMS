@@ -671,6 +671,7 @@ if (
           ><a href="#subjects">Assigned Subjects</a
           ><a href="#rooms">Assigned Classrooms</a
           ><a href="#attendance">Attendance Overview</a
+          ><a href="#payslips">Payslip</a
           ><a href="#announcements">Announcements</a>
         </nav>
       </aside>
@@ -792,6 +793,45 @@ if (
             </div>
           </section>
         </section>
+
+        <section class="demo-panel" id="payslips">
+    <header class="demo-heading">
+        <h1>My Payslip</h1>
+        <p>
+            Payslips use recorded attendance and the applicable daily rate.
+            Generating a payslip does not transfer funds.
+        </p>
+    </header>
+        <section class="demo-panel">
+            <h2>Payslips</h2>
+            <div class="demo-table-wrap">
+                <table>
+                   <thead>
+                      <tr>
+                          <th scope="col">Payslip Number</th>
+                          <th scope="col">Faculty</th>
+                          <th scope="col">Period</th>
+                          <th scope="col">Days</th>
+                          <th scope="col">Daily Rate</th>
+                          <th scope="col">Gross</th>
+                          <th scope="col">Deductions</th>
+                          <th scope="col">Net</th>
+                      </tr>
+                    </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8">No records to display.</td>
+                            </tr>
+                        </tbody>
+                  </table>
+            </div>
+        </section>
+
+            <button class="demo-button" type="button" data-print>
+                Print / Save as PDF
+            </button>
+        </section>
+                
         <section class="demo-panel" id="announcements">
           <h2>Announcements</h2>
           <ul class="announcements">
