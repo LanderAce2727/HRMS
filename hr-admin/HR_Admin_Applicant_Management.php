@@ -4532,7 +4532,7 @@ $total = count($applicants);
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
         <nav class="hrms-public-nav" aria-label="Main navigation">
-            <a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../login.html" aria-label="Log out and return to sign in">Log Out</a>
+            <a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a>
         </nav>
         <button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
     </header>
