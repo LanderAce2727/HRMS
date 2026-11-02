@@ -4349,7 +4349,7 @@ $statusLabel = [
             <div class="panelhead">
               <h2>Quick Actions</h2>
             </div>
-            <div class="quick"><a href="HR_Admin_Applicant_Management.html"><span aria-hidden="true">♧</span>Review applicants</a><a href="HR_Admin_Attendance_Management.html"><span aria-hidden="true">◷</span>View attendance</a><a href="HR_Admin_Employee_Status.html"><span aria-hidden="true">▤</span>Manage leave</a><a href="HR_Admin_Payroll.html"><span aria-hidden="true">▣</span>Payroll summary</a></div>
+            <div class="quick"><a href="HR_Admin_Applicant_Management.php"><span aria-hidden="true">♧</span>Review applicants</a><a href="HR_Admin_Attendance_Management.php"><span aria-hidden="true">◷</span>View attendance</a><a href="HR_Admin_Employee_Status.php"><span aria-hidden="true">▤</span>Manage leave</a><a href="HR_Admin_Payroll.php"><span aria-hidden="true">▣</span>Payroll summary</a></div>
           </section>
 
           <section class="panel">

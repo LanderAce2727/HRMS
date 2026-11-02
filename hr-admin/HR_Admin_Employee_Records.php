@@ -77,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $editId = ctype_digit($form['id']) ? (int)$form['id'] : 0;
-        if ($form['id'] !== '' && $editId === 0) {
-            throw new UserError('Invalid employee ID.');
+        if ($editId === 0) {
+            throw new UserError('Please choose an employee to edit from the directory.');
         }
 
         // ---- validation ----
@@ -128,11 +128,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $isFac  = (int)$form['is_faculty'];
         $fullName = $form['first_name'] . ' ' . $form['last_name'];
 
-        $instructorRole = (int)$pdo->query("SELECT id FROM roles WHERE role_name = 'instructor'")->fetchColumn();
-
         $pdo->beginTransaction();
 
-        if ($editId > 0) {
+        {
             /* ===== EDIT existing employee ===== */
             $st = $pdo->prepare('SELECT id, user_id FROM employees WHERE id = ?');
             $st->execute([$editId]);
@@ -180,74 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $recordId = $editId;
             $action   = 'update_employee';
             $msg      = 'Employee updated.';
-        } else {
-            /* ===== ADD new employee ===== */
-            $ex = $pdo->prepare('SELECT id, role_id FROM users WHERE email = ?');
-            $ex->execute([$form['email']]);
-            $existing = $ex->fetch();
-
-            if ($existing) {
-                // Allowed only for an accepted applicant who is not an employee yet.
-                $uid = (int)$existing['id'];
-                $has = $pdo->prepare('SELECT COUNT(*) FROM employees WHERE user_id = ?');
-                $has->execute([$uid]);
-                $acc = $pdo->prepare("SELECT COUNT(*) FROM applications WHERE applicant_user_id = ? AND status = 'accepted'");
-                $acc->execute([$uid]);
-                if ($has->fetchColumn() || !$acc->fetchColumn()) {
-                    throw new UserError('That email is already used by another account.');
-                }
-                $pdo->prepare(
-                    "UPDATE users SET role_id = ?, branch_id = ?, session_version = session_version + 1
-                      WHERE id = ? AND role_id = (SELECT id FROM roles WHERE role_name = 'applicant')"
-                )->execute([$instructorRole, (int)$branchId, $uid]);
-            } else {
-                if ($password === '') {
-                    throw new UserError('An initial password (12+ characters) is required for a new account.');
-                }
-                // Build a unique username from the email.
-                $base = strtolower(preg_replace('/[^a-z0-9._-]/i', '', explode('@', $form['email'])[0]));
-                $base = substr($base !== '' ? $base : 'user', 0, 44);
-                $username = $base;
-                $n = 1;
-                $uq = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
-                while (true) {
-                    $uq->execute([$username]);
-                    if (!$uq->fetchColumn()) {
-                        break;
-                    }
-                    $username = $base . (++$n);
-                }
-                $pdo->prepare(
-                    'INSERT INTO users (branch_id, role_id, username, email, password_hash) VALUES (?,?,?,?,?)'
-                )->execute([(int)$branchId, $instructorRole, $username, $form['email'], password_hash($password, PASSWORD_DEFAULT)]);
-                $uid = (int)$pdo->lastInsertId();
-            }
-
-            $pdo->prepare(
-                "INSERT INTO employees (user_id, employee_number, rfid_card_number, first_name, last_name,
-                                        department_id, position_title, is_faculty, date_hired, current_status)
-                 VALUES (?,?,?,?,?,?,?,?,?,'active')"
-            )->execute([
-                $uid, $form['employee_number'], $rfid, $form['first_name'], $form['last_name'],
-                (int)$form['department_id'], $form['position_title'], $isFac, $form['date_hired'],
-            ]);
-            $recordId = (int)$pdo->lastInsertId();
-
-            $pdo->prepare(
-                'INSERT INTO user_profiles (user_id, full_name) VALUES (?, ?)
-                 ON DUPLICATE KEY UPDATE full_name = VALUES(full_name)'
-            )->execute([$uid, $fullName]);
-
-            $pdo->prepare('INSERT INTO pay_rates (employee_id, daily_rate, hourly_rate, effective_date) VALUES (?,?,?,?)')
-                ->execute([$recordId, $daily, $hourly, $form['rate_effective_date']]);
-
-            $pdo->prepare(
-                "INSERT INTO employee_status_histories (employee_id, previous_status, new_status, change_reason, changed_by_user_id, effective_date)
-                 VALUES (?, NULL, 'active', 'Employee record created', ?, ?)"
-            )->execute([$recordId, $userId, $form['date_hired']]);
-
-            $action = 'create_employee';
-            $msg    = 'Employee added.';
         }
 
         $pdo->prepare('INSERT INTO audit_logs (user_id, action_type, target_table, record_id, details) VALUES (?,?,?,?,?)')
@@ -4476,10 +4406,11 @@ $isEdit = $form['id'] !== '';
           </table>
         </div>
       </section>
+      <?php if ($isEdit): ?>
       <div>
         <section class="demo-panel" id="employee-form">
-          <h2><?= $isEdit ? 'Edit employee' : 'Add an employee' ?></h2>
-          <form class="demo-form" method="post" action="<?= e(basename(__FILE__)) ?>" aria-label="Form details"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="id" value="<?= e($form['id']) ?>"><label>First name<input name="first_name" type="text" value="<?= e($form['first_name']) ?>" required maxlength="50"></label><label>Last name<input name="last_name" type="text" value="<?= e($form['last_name']) ?>" required maxlength="50"></label><label>Work email<input name="email" type="email" value="<?= e($form['email']) ?>" required maxlength="100"></label><label>Initial password (12+ characters; leave blank for an accepted applicant)<input name="password" type="password" value="" minlength="12" autocomplete="new-password"></label><label>Employee number<input name="employee_number" type="text" value="<?= e($form['employee_number']) ?>" required maxlength="30"></label><label>RFID card number<input name="rfid_card_number" type="text" value="<?= e($form['rfid_card_number']) ?>" maxlength="50"></label><label>Department<select name="department_id" required>
+          <h2>Edit employee</h2>
+          <form class="demo-form" method="post" action="<?= e(basename(__FILE__)) ?>" aria-label="Form details"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="id" value="<?= e($form['id']) ?>"><label>First name<input name="first_name" type="text" value="<?= e($form['first_name']) ?>" required maxlength="50"></label><label>Last name<input name="last_name" type="text" value="<?= e($form['last_name']) ?>" required maxlength="50"></label><label>Work email<input name="email" type="email" value="<?= e($form['email']) ?>" required maxlength="100"></label><label>New password (12+ characters; leave blank to keep the current password)<input name="password" type="password" value="" minlength="12" autocomplete="new-password"></label><label>Employee number<input name="employee_number" type="text" value="<?= e($form['employee_number']) ?>" required maxlength="30"></label><label>RFID card number<input name="rfid_card_number" type="text" value="<?= e($form['rfid_card_number']) ?>" maxlength="50"></label><label>Department<select name="department_id" required>
                 <option value=""<?= $form['department_id'] === '' ? ' selected' : '' ?>>Select a department</option>
                 <?php foreach ($departments as $d): ?>
                 <option value="<?= (int)$d['id'] ?>"<?= (string)$d['id'] === $form['department_id'] ? ' selected' : '' ?>><?= e($d['department_name']) ?></option>
@@ -4488,10 +4419,11 @@ $isEdit = $form['id'] !== '';
                 <option value="1"<?= $form['is_faculty'] === '1' ? ' selected' : '' ?>>Teaching faculty</option>
                 <option value="0"<?= $form['is_faculty'] === '0' ? ' selected' : '' ?>>Non-teaching staff</option>
               </select></label><label>Date hired<input name="date_hired" type="date" value="<?= e($form['date_hired']) ?>" required></label><label>Daily pay rate (PHP)<input name="daily_rate" type="number" value="<?= e($form['daily_rate']) ?>" required min="0" max="9999999" step="0.01"></label><label>Pay rate effective date<input name="rate_effective_date" type="date" value="<?= e($form['rate_effective_date']) ?>" required></label>
-            <div><button class="demo-button primary" type="submit"><?= $isEdit ? 'Update Employee' : 'Save Employee' ?></button><?php if ($isEdit): ?> <a class="demo-button" href="<?= e(basename(__FILE__)) ?>">Cancel</a><?php endif; ?></div>
+            <div><button class="demo-button primary" type="submit">Update Employee</button> <a class="demo-button" href="<?= e(basename(__FILE__)) ?>">Cancel</a></div>
           </form>
         </section>
       </div>
+      <?php endif; ?>
     </main>
   </div>
   <script>

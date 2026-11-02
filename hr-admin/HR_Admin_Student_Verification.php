@@ -4271,7 +4271,7 @@ $students = $pdo->query(
                   <td><?= e($s['review_notes'] ?? '') ?></td>
                   <td>
                     <?php if ($s['verification_status'] === 'pending'): ?>
-                      <form method="post" action="<?= e(basename(__FILE__)) ?>"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="review_student"><input type="hidden" name="student_id" value="<?= (int)$s['id'] ?>"><input type="text" name="review_notes" maxlength="255" placeholder="Review notes" aria-label="Review notes"> <button class="demo-button primary" type="submit" name="decision" value="verified">Verify</button> <button class="demo-button" type="submit" name="decision" value="rejected">Reject</button></form>
+                      <form method="post" action="<?= e(basename(__FILE__)) ?>" style="display:grid;gap:8px;min-width:220px"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="review_student"><input type="hidden" name="student_id" value="<?= (int)$s['id'] ?>"><input type="text" name="review_notes" maxlength="255" placeholder="Review notes" aria-label="Review notes" style="width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;border-radius:10px;font-size:15px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="demo-button primary" type="submit" name="decision" value="verified" style="text-align:center">Verify</button><button class="demo-button" type="submit" name="decision" value="rejected" style="text-align:center">Reject</button></div></form>
                     <?php else: ?>
                       —
                     <?php endif; ?>
