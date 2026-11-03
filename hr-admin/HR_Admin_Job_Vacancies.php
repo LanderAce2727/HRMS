@@ -34,8 +34,8 @@ if (empty($_SESSION['csrf'])) {
 }
 $csrf = $_SESSION['csrf'];
 
-const STATUSES   = ['draft', 'open', 'closed'];
-const CATEGORIES = ['teaching', 'non-teaching'];
+const STATUSES   = ['open', 'closed'];
+const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract'];
 
 $flash     = $_SESSION['flash'] ?? null;   // ['type' => 'success'|'error', 'msg' => '...']
 unset($_SESSION['flash']);
@@ -43,24 +43,22 @@ unset($_SESSION['flash']);
 /* ---------------- default form values ---------------- */
 $form = [
     'id'              => '',
-    'job_title'       => '',
+    'title'           => '',
     'department_id'   => '',
-    'category'        => 'teaching',
-    'status'          => 'draft',
-    'job_description' => '',
-    'requirements'    => '',
+    'employment_type' => 'Full-time',
+    'status'          => 'open',
+    'description'     => '',
 ];
 
 /* ---------------- handle save ---------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form = [
         'id'              => trim((string)($_POST['id'] ?? '')),
-        'job_title'       => trim((string)($_POST['job_title'] ?? '')),
+        'title'           => trim((string)($_POST['title'] ?? '')),
         'department_id'   => trim((string)($_POST['department_id'] ?? '')),
-        'category'        => (string)($_POST['category'] ?? ''),
-        'status'          => (string)($_POST['status'] ?? ''),
-        'job_description' => trim((string)($_POST['job_description'] ?? '')),
-        'requirements'    => trim((string)($_POST['requirements'] ?? '')),
+        'employment_type' => (string)($_POST['employment_type'] ?? 'Full-time'),
+        'status'          => (string)($_POST['status'] ?? 'open'),
+        'description'     => trim((string)($_POST['description'] ?? '')),
     ];
 
     $errors = [];
@@ -68,30 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
         $errors[] = 'Your session expired. Please try again.';
     }
-    if ($form['job_title'] === '' || mb_strlen($form['job_title']) > 150) {
+    if ($form['title'] === '' || mb_strlen($form['title']) > 150) {
         $errors[] = 'Position title is required (max 150 characters).';
     }
-    if ($form['job_description'] === '' || mb_strlen($form['job_description']) > 30000) {
+    if ($form['description'] === '' || mb_strlen($form['description']) > 30000) {
         $errors[] = 'Job description is required (max 30,000 characters).';
     }
-    if (mb_strlen($form['requirements']) > 30000) {
-        $errors[] = 'Requirements must be 30,000 characters or fewer.';
+    if (!in_array($form['employment_type'], EMPLOYMENT_TYPES, true)) {
+        $errors[] = 'Invalid employment type.';
     }
     if (!in_array($form['status'], STATUSES, true)) {
         $errors[] = 'Invalid publication status.';
     }
-    if (!in_array($form['category'], CATEGORIES, true)) {
-        $errors[] = 'Invalid category.';
-    }
 
-    // The vacancy's branch comes from the chosen department.
-    $branchId = null;
-    if (ctype_digit($form['department_id'])) {
-        $d = $pdo->prepare('SELECT branch_id FROM departments WHERE id = ?');
-        $d->execute([(int)$form['department_id']]);
-        $branchId = $d->fetchColumn();
-    }
-    if ($branchId === false || $branchId === null) {
+    if (!ctype_digit($form['department_id'])) {
         $errors[] = 'Please select a valid department.';
     }
 
@@ -107,18 +95,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($editId > 0) {
                 $st = $pdo->prepare(
                     'UPDATE vacancies
-                        SET branch_id = ?, department_id = ?, job_title = ?, job_description = ?,
-                            requirements = ?, status = ?, category = ?
+                        SET department_id = ?, title = ?, description = ?,
+                            employment_type = ?, status = ?
                       WHERE id = ?'
                 );
                 $st->execute([
-                    (int)$branchId,
                     (int)$form['department_id'],
-                    $form['job_title'],
-                    $form['job_description'],
-                    $form['requirements'] !== '' ? $form['requirements'] : null,
+                    $form['title'],
+                    $form['description'],
+                    $form['employment_type'],
                     $form['status'],
-                    $form['category'],
                     $editId,
                 ]);
                 $recordId = $editId;
@@ -126,19 +112,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $st = $pdo->prepare(
                     'INSERT INTO vacancies
-                        (branch_id, department_id, job_title, job_description, requirements,
-                         status, posted_by_user_id, category)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                        (department_id, title, description, employment_type, status)
+                     VALUES (?, ?, ?, ?, ?)'
                 );
                 $st->execute([
-                    (int)$branchId,
                     (int)$form['department_id'],
-                    $form['job_title'],
-                    $form['job_description'],
-                    $form['requirements'] !== '' ? $form['requirements'] : null,
+                    $form['title'],
+                    $form['description'],
+                    $form['employment_type'],
                     $form['status'],
-                    $userId,
-                    $form['category'],
                 ]);
                 $recordId = (int)$pdo->lastInsertId();
                 $action   = 'create';
@@ -153,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $action . '_vacancy',
                 'vacancies',
                 $recordId,
-                $form['job_title'] . ' [' . $form['status'] . ']',
+                $form['title'] . ' [' . $form['status'] . ']',
             ]);
 
             $pdo->commit();
@@ -181,12 +163,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($row = $st->fetch()) {
         $form = [
             'id'              => (string)$row['id'],
-            'job_title'       => $row['job_title'],
+            'title'           => $row['title'],
             'department_id'   => (string)$row['department_id'],
-            'category'        => $row['category'],
+            'employment_type' => $row['employment_type'],
             'status'          => $row['status'],
-            'job_description' => $row['job_description'],
-            'requirements'    => (string)$row['requirements'],
+            'description'     => $row['description'],
         ];
     } else {
         $flash = ['type' => 'error', 'msg' => 'Vacancy not found.'];
@@ -202,12 +183,12 @@ $departments = $pdo->query(
 )->fetchAll();
 
 $vacancies = $pdo->query(
-    'SELECT v.id, v.job_title, v.job_description, v.category, v.status, v.created_at,
+    'SELECT v.id, v.title, v.description, v.employment_type, v.status, v.created_at,
             d.department_name, b.branch_name,
             (SELECT COUNT(*) FROM applications a WHERE a.vacancy_id = v.id) AS applicants
        FROM vacancies v
        JOIN departments d ON d.id = v.department_id
-       JOIN branches b    ON b.id = v.branch_id
+       JOIN branches b    ON b.id = d.branch_id
       ORDER BY v.created_at DESC, v.id DESC'
 )->fetchAll();
 
@@ -246,6 +227,7 @@ $isEdit = $form['id'] !== '';
             --glow: #326bfa22;
             --slot-bg: #edf3ff;
             --slot-line: #7ea2ff;
+            --
             --shadow: 0 10px 30px #2144880d;
             --link: #2458cd
         }
@@ -4343,7 +4325,7 @@ $isEdit = $form['id'] !== '';
                                 <tr>
                                     <th scope="col">Position</th>
                                     <th scope="col">Department</th>
-                                    <th scope="col">Category</th>
+                                    <th scope="col">Employment Type</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Applicants</th>
                                     <th scope="col">Posted</th>
@@ -4354,17 +4336,17 @@ $isEdit = $form['id'] !== '';
                                 <?php foreach ($vacancies as $v): ?>
                                     <tr>
                                         <td>
-                                            <div><?= e($v['job_title']) ?></div>
-                                            <div><small><?= e(mb_strimwidth($v['job_description'], 0, 90, '…')) ?></small></div>
+                                            <div><?= e($v['title'] ?? '') ?></div>
+                                            <div><small><?= e(mb_strimwidth($v['description'] ?? '', 0, 90, '…')) ?></small></div>
                                         </td>
                                         <td>
-                                            <div><?= e($v['department_name']) ?></div>
-                                            <div><small><?= e($v['branch_name']) ?></small></div>
+                                            <div><?= e($v['department_name'] ?? 'General') ?></div>
+                                            <div><small><?= e($v['branch_name'] ?? 'Main Campus') ?></small></div>
                                         </td>
-                                        <td><?= e(ucfirst($v['category'])) ?></td>
-                                        <td><span class="demo-badge"><?= e(ucfirst($v['status'])) ?></span></td>
-                                        <td><?= (int)$v['applicants'] ?></td>
-                                        <td><?= e(date('F j, Y', strtotime($v['created_at']))) ?></td>
+                                        <td><?= e(ucfirst($v['employment_type'] ?? 'Full-time')) ?></td>
+                                        <td><span class="demo-badge"><?= e(ucfirst($v['status'] ?? 'open')) ?></span></td>
+                                        <td><?= (int)($v['applicants'] ?? 0) ?></td>
+                                        <td><?= e(date('F j, Y', strtotime($v['created_at'] ?? 'now'))) ?></td>
                                         <td><a class="demo-button" href="?edit=<?= (int)$v['id'] ?>#vacancy-form">Edit</a></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -4381,7 +4363,7 @@ $isEdit = $form['id'] !== '';
                         <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                         <input type="hidden" name="id" value="<?= e($form['id']) ?>">
 
-                        <label>Position title<input name="job_title" type="text" value="<?= e($form['job_title']) ?>" required maxlength="150"></label>
+                        <label>Position title<input name="title" type="text" value="<?= e($form['title']) ?>" required maxlength="150"></label>
 
                         <label>Department<select name="department_id" required>
                                 <option value="" <?= $form['department_id'] === '' ? ' selected' : '' ?>>Select a department</option>
@@ -4402,7 +4384,7 @@ $isEdit = $form['id'] !== '';
                                 <?php endforeach; ?>
                             </select></label>
 
-                        <label>Job description<textarea name="job_description" required maxlength="30000"><?= e($form['job_description']) ?></textarea></label>
+                        <label>Job description<textarea name="description" required maxlength="30000"><?= e($form['description']) ?></textarea></label>
                         <label>Qualifications and requirements<textarea name="requirements" maxlength="30000"><?= e($form['requirements']) ?></textarea></label>
 
                         <div>

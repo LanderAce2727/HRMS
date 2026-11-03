@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 27, 2026 at 04:42 PM
+-- Generation Time: Nov 03, 2026 at 06:26 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,20 +41,33 @@ CREATE TABLE `applications` (
   `experience_details` text DEFAULT NULL,
   `cover_letter` text DEFAULT NULL,
   `resume_file_path` varchar(255) DEFAULT NULL,
-  `status` enum('submitted','under_review','accepted','rejected') DEFAULT 'submitted',
+  `status` enum('submitted','reviewing','interviewed','hired','rejected') DEFAULT 'submitted',
   `reviewed_by_user_id` bigint(20) DEFAULT NULL,
   `reviewed_at` timestamp NULL DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `specialization` varchar(150) DEFAULT NULL,
+  `prc_license_number` varchar(40) DEFAULT NULL,
+  `prc_not_applicable` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `applications`
+-- Table structure for table `application_documents`
 --
 
-INSERT INTO `applications` (`id`, `vacancy_id`, `applicant_user_id`, `full_name`, `email`, `contact_number`, `age`, `position_applied`, `highest_education`, `years_experience`, `experience_details`, `cover_letter`, `resume_file_path`, `status`, `reviewed_by_user_id`, `reviewed_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 10, 'Maria Santos', 'maria.santos@dnsc.edu.ph', '09170000003', 32, 'Instructor II - Computer Science', 'Masters Degree', 5, '5 years as Instructor I at XYZ College', 'I am applying for the Instructor II position...', '/uploads/resumes/maria_santos_cv.pdf', 'under_review', 1, '2026-10-26 02:00:00', '2026-10-26 17:16:13', '2026-10-26 17:16:13'),
-(2, 2, 11, 'Juan Dela Cruz', 'juan.delacruz@dnsc.edu.ph', '09170000004', 28, 'HR Officer', 'Bachelors Degree', 2, '2 years as HR Assistant at ABC Corp', 'Interested in the HR Officer role...', '/uploads/resumes/juan_delacruz_cv.pdf', 'submitted', NULL, NULL, '2026-10-26 17:16:13', '2026-10-26 17:16:13');
+CREATE TABLE `application_documents` (
+  `id` bigint(20) NOT NULL,
+  `application_id` bigint(20) NOT NULL,
+  `document_type` enum('resume','application_letter','transcript','credential') NOT NULL,
+  `original_name` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `mime_type` varchar(100) DEFAULT NULL,
+  `file_size` int(10) UNSIGNED DEFAULT NULL,
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -77,14 +90,6 @@ CREATE TABLE `attendance_logs` (
   `check_out_time` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `attendance_logs`
---
-
-INSERT INTO `attendance_logs` (`id`, `employee_id`, `branch_id`, `work_date`, `check_in_time`, `status`, `is_corrected`, `corrected_by_user_id`, `correction_notes`, `created_at`, `updated_at`, `check_out_time`) VALUES
-(1, 1, 1, '2026-03-20', '2026-03-19 23:45:00', 'present', 0, NULL, NULL, '2026-10-26 14:30:44', '2026-10-26 14:30:44', NULL),
-(2, 2, 1, '2026-03-20', '2026-03-20 00:00:00', 'present', 0, NULL, NULL, '2026-10-26 14:30:44', '2026-10-26 14:30:44', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -100,14 +105,6 @@ CREATE TABLE `audit_logs` (
   `details` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `audit_logs`
---
-
-INSERT INTO `audit_logs` (`id`, `user_id`, `action_type`, `target_table`, `record_id`, `details`, `created_at`) VALUES
-(1, 1, 'CREATE', 'vacancies', 1, 'Posted vacancy: Instructor II - Computer Science', '2026-10-26 17:16:13'),
-(2, 1, 'UPDATE', 'applications', 1, 'Status changed from submitted to under_review', '2026-10-26 17:16:13');
 
 -- --------------------------------------------------------
 
@@ -129,8 +126,32 @@ CREATE TABLE `branches` (
 --
 
 INSERT INTO `branches` (`id`, `branch_code`, `branch_name`, `address`, `created_at`, `updated_at`) VALUES
-(1, 'BR-MAIN', 'Panabo Main Campus', 'Panabo City', '2026-10-25 14:32:14', '2026-10-25 14:32:14'),
+(1, 'MAIN', 'Main Campus', 'Panabo City', '2026-10-25 14:32:14', '2026-11-02 01:28:48'),
 (2, 'BR-EXT', 'Extension Campus', 'Extension Site, Panabo City', '2026-10-26 14:18:25', '2026-10-26 15:06:36');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cache`
+--
+
+CREATE TABLE `cache` (
+  `key` varchar(255) NOT NULL,
+  `value` mediumtext NOT NULL,
+  `expiration` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cache_locks`
+--
+
+CREATE TABLE `cache_locks` (
+  `key` varchar(255) NOT NULL,
+  `owner` varchar(255) NOT NULL,
+  `expiration` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -178,8 +199,11 @@ CREATE TABLE `departments` (
 --
 
 INSERT INTO `departments` (`id`, `branch_id`, `department_name`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Human Resources', '2026-10-25 14:32:14', '2026-10-25 14:32:14'),
-(2, 1, 'Information Technology', '2026-10-25 14:32:14', '2026-10-25 14:32:14');
+(1, 1, 'Information Technology', '2026-10-25 14:32:14', '2026-11-02 00:34:32'),
+(2, 1, 'Mathematics', '2026-10-25 14:32:14', '2026-11-02 00:34:32'),
+(3, 1, 'English', '2026-11-02 00:34:32', '2026-11-02 01:27:06'),
+(4, 1, 'Business Administration', '2026-11-02 00:34:32', '2026-11-02 01:27:06'),
+(5, 1, 'Administration', '2026-11-02 01:27:06', '2026-11-02 01:27:06');
 
 -- --------------------------------------------------------
 
@@ -196,14 +220,6 @@ CREATE TABLE `email_notification_logs` (
   `error_message` text DEFAULT NULL,
   `sent_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `email_notification_logs`
---
-
-INSERT INTO `email_notification_logs` (`id`, `application_id`, `recipient_email`, `notification_type`, `delivery_status`, `error_message`, `sent_at`) VALUES
-(1, 1, 'maria.santos@dnsc.edu.ph', 'accepted', 'sent', NULL, '2026-10-26 02:05:00'),
-(2, 2, 'juan.delacruz@dnsc.edu.ph', 'rejected', 'failed', 'SMTP connection timeout', NULL);
 
 -- --------------------------------------------------------
 
@@ -233,8 +249,10 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `user_id`, `employee_number`, `rfid_card_number`, `first_name`, `middle_name`, `last_name`, `department_id`, `position_title`, `is_faculty`, `date_hired`, `current_status`, `created_at`, `updated_at`) VALUES
-(1, 2, 'EMP-2026-001', 'RFID-99887766', 'John', NULL, 'Doe', 2, 'Instructor I', 1, '2026-01-15', 'active', '2026-10-25 14:32:14', '2026-10-25 14:32:14'),
-(2, 11, 'EMP-2026-003', 'RFID-10000002', 'Juan', NULL, 'Dela Cruz', 2, 'HR Assistant', 0, '2025-06-01', 'active', '2026-10-26 14:26:41', '2026-10-26 14:26:41');
+(1, 1, 'EMP-2026-001', NULL, 'Maria', NULL, 'Santos', 5, 'HR Administrator', 0, '2026-01-01', 'active', '2026-11-02 00:34:32', '2026-11-02 01:27:06'),
+(2, 2, 'EMP-2026-002', NULL, 'Carlos', NULL, 'Reyes', 5, 'HR Assistant', 0, '2026-01-01', 'active', '2026-11-02 00:34:32', '2026-11-02 01:27:06'),
+(3, 3, 'EMP-2026-003', NULL, 'Juan', NULL, 'Cruz', 1, 'Instructor I', 1, '2026-01-01', 'active', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 4, 'EMP-2026-004', NULL, 'Ana', NULL, 'Garcia', 2, 'Instructor I', 1, '2026-01-01', 'active', '2026-11-02 00:34:32', '2026-11-02 00:34:32');
 
 -- --------------------------------------------------------
 
@@ -253,13 +271,41 @@ CREATE TABLE `employee_status_histories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `employee_status_histories`
+-- Table structure for table `evaluations`
 --
 
-INSERT INTO `employee_status_histories` (`id`, `employee_id`, `previous_status`, `new_status`, `change_reason`, `changed_by_user_id`, `effective_date`, `created_at`) VALUES
-(1, 1, NULL, 'active', 'Initial hire', 1, '2026-01-15', '2026-10-26 17:16:13'),
-(2, 2, 'active', 'on_leave', 'Approved sick leave', 1, '2026-10-01', '2026-10-26 17:16:13');
+CREATE TABLE `evaluations` (
+  `id` bigint(20) NOT NULL,
+  `student_id` bigint(20) NOT NULL,
+  `instructor_id` bigint(20) NOT NULL,
+  `subject_id` bigint(20) NOT NULL,
+  `semester` tinyint(3) UNSIGNED NOT NULL,
+  `academic_year` varchar(9) NOT NULL,
+  `rating` tinyint(3) UNSIGNED NOT NULL,
+  `comment` text DEFAULT NULL,
+  `status` enum('draft','submitted') NOT NULL DEFAULT 'submitted',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `failed_jobs`
+--
+
+CREATE TABLE `failed_jobs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `uuid` varchar(255) NOT NULL,
+  `connection` varchar(255) NOT NULL,
+  `queue` varchar(255) NOT NULL,
+  `payload` longtext NOT NULL,
+  `exception` longtext NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -280,13 +326,40 @@ CREATE TABLE `interview_schedules` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `interview_schedules`
+-- Table structure for table `jobs`
 --
 
-INSERT INTO `interview_schedules` (`id`, `application_id`, `interviewer_user_id`, `interview_date`, `interview_time`, `location_or_link`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, '2026-11-05', '10:00:00', 'HR Office, Admin Building Room 201', 'scheduled', 'Panel interview with Dept Head', '2026-10-26 17:16:13', '2026-10-26 17:16:13'),
-(2, 2, 1, '2026-11-06', '14:00:00', 'https://meet.google.com/abc-defg-hij', 'scheduled', 'Online interview via Google Meet', '2026-10-26 17:16:13', '2026-10-26 17:16:13');
+CREATE TABLE `jobs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `queue` varchar(255) NOT NULL,
+  `payload` longtext NOT NULL,
+  `attempts` smallint(5) UNSIGNED NOT NULL,
+  `reserved_at` int(10) UNSIGNED DEFAULT NULL,
+  `available_at` int(10) UNSIGNED NOT NULL,
+  `created_at` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `job_batches`
+--
+
+CREATE TABLE `job_batches` (
+  `id` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `total_jobs` int(11) NOT NULL,
+  `pending_jobs` int(11) NOT NULL,
+  `failed_jobs` int(11) NOT NULL,
+  `failed_job_ids` longtext NOT NULL,
+  `options` mediumtext DEFAULT NULL,
+  `cancelled_at` int(11) DEFAULT NULL,
+  `created_at` int(11) NOT NULL,
+  `finished_at` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -308,14 +381,6 @@ CREATE TABLE `leave_requests` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `leave_requests`
---
-
-INSERT INTO `leave_requests` (`id`, `employee_id`, `leave_type`, `start_date`, `end_date`, `reason`, `status`, `reviewed_by_user_id`, `review_notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Vacation Leave', '2026-12-20', '2026-12-24', 'Family vacation during semester break', 'approved', 1, 'Approved - no conflicts', '2026-10-26 17:16:13', '2026-10-26 17:16:13'),
-(2, 2, 'Sick Leave', '2026-10-01', '2026-10-05', 'Medical procedure recovery', 'approved', 1, 'Medical certificate submitted', '2026-10-26 17:16:13', '2026-10-26 17:16:13');
-
 -- --------------------------------------------------------
 
 --
@@ -333,9 +398,41 @@ CREATE TABLE `login_attempts` (
 --
 
 INSERT INTO `login_attempts` (`id`, `attempt_key`, `created_at`) VALUES
-(1, '1daa19db81b6e9fe075197d2c59ee854c1cfd0f44571888fd117552173b3947c', '2026-10-26 13:27:35'),
-(2, '1daa19db81b6e9fe075197d2c59ee854c1cfd0f44571888fd117552173b3947c', '2026-10-26 13:35:32'),
-(3, '1daa19db81b6e9fe075197d2c59ee854c1cfd0f44571888fd117552173b3947c', '2026-10-26 13:38:30');
+(14, 'eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3', '2026-11-03 16:31:31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `migrations`
+--
+
+CREATE TABLE `migrations` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `migration` varchar(255) NOT NULL,
+  `batch` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+(1, '0001_01_01_000001_create_cache_table', 1),
+(2, '0001_01_01_000002_create_jobs_table', 1),
+(3, '2026_10_30_125927_create_password_reset_tokens_and_sessions_tables', 2),
+(4, '2026_10_30_130135_add_laravel_columns_to_users_table', 3);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -358,14 +455,6 @@ CREATE TABLE `payslips` (
   `deductions` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `payslips`
---
-
-INSERT INTO `payslips` (`id`, `payslip_number`, `employee_id`, `period_start_date`, `period_end_date`, `total_days_worked`, `daily_rate_applied`, `gross_salary`, `net_salary`, `generated_by_user_id`, `generated_at`, `deductions`) VALUES
-(1, 'PS-2026-10-001', 1, '2026-10-01', '2026-10-15', 11, 1500.00, 16500.00, 14850.00, 1, '2026-10-26 17:16:13', 1650.00),
-(2, 'PS-2026-10-002', 2, '2026-10-01', '2026-10-15', 11, 1200.00, 13200.00, 11880.00, 1, '2026-10-26 17:16:13', 1320.00);
-
 -- --------------------------------------------------------
 
 --
@@ -380,20 +469,6 @@ CREATE TABLE `payslip_items` (
   `amount` decimal(10,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `payslip_items`
---
-
-INSERT INTO `payslip_items` (`id`, `payslip_id`, `item_type`, `item_name`, `amount`, `created_at`) VALUES
-(1, 1, 'deduction', 'SSS Contribution', 675.00, '2026-10-26 17:16:13'),
-(2, 1, 'deduction', 'PhilHealth Contribution', 412.50, '2026-10-26 17:16:13'),
-(3, 1, 'deduction', 'Pag-IBIG Contribution', 200.00, '2026-10-26 17:16:13'),
-(4, 1, 'deduction', 'Withholding Tax', 362.50, '2026-10-26 17:16:13'),
-(5, 2, 'deduction', 'SSS Contribution', 540.00, '2026-10-26 17:16:13'),
-(6, 2, 'deduction', 'PhilHealth Contribution', 330.00, '2026-10-26 17:16:13'),
-(7, 2, 'deduction', 'Pag-IBIG Contribution', 200.00, '2026-10-26 17:16:13'),
-(8, 2, 'deduction', 'Withholding Tax', 250.00, '2026-10-26 17:16:13');
 
 -- --------------------------------------------------------
 
@@ -410,14 +485,6 @@ CREATE TABLE `pay_rates` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pay_rates`
---
-
-INSERT INTO `pay_rates` (`id`, `employee_id`, `daily_rate`, `hourly_rate`, `effective_date`, `created_at`, `updated_at`) VALUES
-(1, 1, 1500.00, 187.50, '2026-01-15', '2026-10-26 17:16:13', '2026-10-26 17:16:13'),
-(2, 2, 1200.00, 150.00, '2025-06-01', '2026-10-26 17:16:13', '2026-10-26 17:16:13');
 
 -- --------------------------------------------------------
 
@@ -436,9 +503,10 @@ CREATE TABLE `roles` (
 --
 
 INSERT INTO `roles` (`id`, `role_name`, `description`) VALUES
-(1, 'hr_admin', NULL),
-(2, 'instructor', NULL),
-(3, 'applicant', NULL);
+(1, 'hr_admin', 'Human Resources administrator - full system access'),
+(2, 'instructor', 'Faculty or staff member with a login'),
+(3, 'applicant', 'Pending applicant - not yet an employee'),
+(4, 'student', 'Enrolled student');
 
 -- --------------------------------------------------------
 
@@ -464,8 +532,72 @@ CREATE TABLE `sections` (
 --
 
 INSERT INTO `sections` (`id`, `section_code`, `section_name`, `program`, `year_level`, `semester`, `academic_year`, `max_students`, `created_at`, `updated_at`) VALUES
-(1, 'BSIT-2A', 'BSIT 2nd Year Section A', 'BSIT', 2, 1, '2026-2027', 40, '2026-10-27 15:36:18', '2026-10-27 15:36:18'),
-(2, 'BSIT-2B', 'BSIT 2nd Year Section B', 'BSIT', 2, 1, '2026-2027', 40, '2026-10-27 15:36:18', '2026-10-27 15:36:18');
+(1, 'BSIT-1A', 'BSIT-1A', 'BSIT', 1, 1, '2026-2027', 40, '2026-10-27 15:36:18', '2026-11-02 01:47:10'),
+(2, 'BSMATH-1A', 'BSMATH-1A', 'BSMATH', 1, 1, '2026-2027', 40, '2026-10-27 15:36:18', '2026-11-02 01:47:10');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sessions`
+--
+
+CREATE TABLE `sessions` (
+  `id` varchar(255) NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `payload` longtext NOT NULL,
+  `last_activity` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `sessions`
+--
+
+INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+('qQFUIROfuPQEJ6AQ9UAMwd3U8soPXyNYz4wahxh7', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJkRUVyOHJIa2hBa1JXd21JbWh1Ym55VnI0bHdBT0tUMFlzZFYwZTRaIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9kYXNoYm9hcmQiLCJyb3V0ZSI6ImRhc2hib2FyZCJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX0sImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjoxLCJwYXNzd29yZF9oYXNoX3dlYiI6IjIwODQ4MGEwOWU4Nzg5NWJmNWZhZmIwNDdiNmNkYTIzNjE3MmNhYjU1MmZhZjc5MDQ2ZGY3MTdkMTY2MjFmMmQifQ==', 1793398001);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `students`
+--
+
+CREATE TABLE `students` (
+  `id` bigint(20) NOT NULL,
+  `user_id` bigint(20) DEFAULT NULL,
+  `student_number` varchar(30) NOT NULL,
+  `first_name` varchar(50) NOT NULL,
+  `middle_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `program` varchar(50) NOT NULL,
+  `year_level` tinyint(3) UNSIGNED NOT NULL,
+  `section_id` bigint(20) DEFAULT NULL,
+  `enrollment_date` date NOT NULL,
+  `status` enum('active','inactive','graduated','dropped') DEFAULT 'active',
+  `verification_status` enum('pending','verified','rejected') NOT NULL DEFAULT 'pending',
+  `review_notes` varchar(255) DEFAULT NULL,
+  `reviewed_by_user_id` bigint(20) DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`id`, `user_id`, `student_number`, `first_name`, `middle_name`, `last_name`, `program`, `year_level`, `section_id`, `enrollment_date`, `status`, `verification_status`, `review_notes`, `reviewed_by_user_id`, `reviewed_at`, `created_at`, `updated_at`) VALUES
+(1, 5, 'STD-2026-001', 'Mark', NULL, 'Penduko', 'BSIT', 1, 1, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 6, 'STD-2026-002', 'Bea', NULL, 'Alonzo', 'BSIT', 1, 1, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 7, 'STD-2026-003', 'Jose', NULL, 'Rizal', 'BSIT', 1, 1, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 8, 'STD-2026-004', 'Luz', NULL, 'Macaraeg', 'BSIT', 1, 1, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(5, 9, 'STD-2026-005', 'Kathryn', NULL, 'Bernardo', 'BSIT', 1, 1, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(6, 10, 'STD-2026-006', 'Coco', NULL, 'Martin', 'BSMATH', 1, 2, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(7, 11, 'STD-2026-007', 'Dingdong', NULL, 'Dantes', 'BSMATH', 1, 2, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(8, 12, 'STD-2026-008', 'Marian', NULL, 'Rivera', 'BSMATH', 1, 2, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(9, 13, 'STD-2026-009', 'Vic', NULL, 'Sotto', 'BSMATH', 1, 2, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(10, 14, 'STD-2026-010', 'Joey', NULL, 'De Leon', 'BSMATH', 1, 2, '2026-08-01', 'active', 'verified', NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32');
 
 -- --------------------------------------------------------
 
@@ -511,7 +643,9 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
+('academic_period', '2026-2027 1st Semester'),
 ('company_name', 'Davao del Norte State College'),
+('late_after', '08:00'),
 ('payroll_cutoff_day', '15');
 
 -- --------------------------------------------------------
@@ -536,16 +670,6 @@ CREATE TABLE `teaching_schedules` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ;
 
---
--- Dumping data for table `teaching_schedules`
---
-
-INSERT INTO `teaching_schedules` (`id`, `instructor_id`, `subject_id`, `section_id`, `classroom_id`, `day`, `start_time`, `end_time`, `semester`, `academic_year`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 1, 1, 'Monday', '08:00:00', '10:00:00', 1, '2026-2027', 'active', '2026-10-27 15:36:18', '2026-10-27 15:36:18'),
-(2, 1, 2, 1, 1, 'Wednesday', '13:00:00', '15:00:00', 1, '2026-2027', 'active', '2026-10-27 15:36:18', '2026-10-27 15:36:18'),
-(3, 1, 1, 2, 2, 'Tuesday', '08:00:00', '10:00:00', 1, '2026-2027', 'active', '2026-10-27 15:36:18', '2026-10-27 15:36:18'),
-(4, 1, 3, 2, 1, 'Thursday', '10:00:00', '12:00:00', 1, '2026-2027', 'active', '2026-10-27 15:36:18', '2026-10-27 15:36:18');
-
 -- --------------------------------------------------------
 
 --
@@ -557,9 +681,13 @@ CREATE TABLE `users` (
   `branch_id` bigint(20) DEFAULT NULL,
   `role_id` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
+  `remember_token` varchar(100) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
+  `google_sub` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `session_version` int(11) NOT NULL DEFAULT 1
@@ -569,11 +697,21 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `branch_id`, `role_id`, `username`, `email`, `password_hash`, `is_active`, `created_at`, `updated_at`, `session_version`) VALUES
-(1, 1, 1, 'hr_admin', 'hr@school.edu.ph', '$2y$10$e0MYzXyjpJS7Pd0RVvHwHe11yLqS.N9W1.0.u1.1.1.1.1.1.1', 1, '2026-10-25 14:32:14', '2026-10-25 14:32:14', 1),
-(2, 1, 2, 'instructor_john', 'john.doe@school.edu.ph', '$2y$10$e0MYzXyjpJS7Pd0RVvHwHe11yLqS.N9W1.0.u1.1.1.1.1.1.1', 1, '2026-10-25 14:32:14', '2026-10-25 14:32:14', 1),
-(10, 1, 2, 'instructor_maria', 'maria.santos@dnsc.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, '2026-10-26 14:18:25', '2026-10-26 14:18:25', 1),
-(11, 1, 2, 'staff_juan', 'juan.delacruz@dnsc.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, '2026-10-26 14:18:25', '2026-10-26 14:18:25', 1);
+INSERT INTO `users` (`id`, `branch_id`, `role_id`, `username`, `name`, `email`, `email_verified_at`, `password_hash`, `remember_token`, `is_active`, `google_sub`, `created_at`, `updated_at`, `session_version`) VALUES
+(1, NULL, 1, 'hr_msantos', NULL, 'maria.santos@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(2, NULL, 1, 'hr_creyes', NULL, 'carlos.reyes@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(3, NULL, 2, 'inst_jcruz', NULL, 'juan.cruz@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(4, NULL, 2, 'inst_agarcia', NULL, 'ana.garcia@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(5, NULL, 4, 'stud_mpenduko', NULL, 'mark.penduko@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(6, NULL, 4, 'stud_balonzo', NULL, 'bea.alonzo@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(7, NULL, 4, 'stud_jrizal', NULL, 'jose.rizal@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(8, NULL, 4, 'stud_lmacaraeg', NULL, 'luz.macaraeg@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(9, NULL, 4, 'stud_kbernardo', NULL, 'kathryn.bernardo@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(10, NULL, 4, 'stud_cmartin', NULL, 'coco.martin@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(11, NULL, 4, 'stud_ddantes', NULL, 'dingdong.dantes@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(12, NULL, 4, 'stud_mrivera', NULL, 'marian.rivera@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 01:47:10', 1),
+(13, NULL, 4, 'stud_vsotto', NULL, 'vic.sotto@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(14, NULL, 4, 'stud_jdeleon', NULL, 'joey.deleon@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1);
 
 -- --------------------------------------------------------
 
@@ -586,6 +724,11 @@ CREATE TABLE `user_profiles` (
   `full_name` varchar(150) NOT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
+  `prc_license_number` varchar(40) DEFAULT NULL,
+  `prc_not_applicable` tinyint(1) NOT NULL DEFAULT 0,
+  `specialization` varchar(150) DEFAULT NULL,
+  `highest_education` varchar(100) DEFAULT NULL,
+  `profile_completed_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -594,10 +737,21 @@ CREATE TABLE `user_profiles` (
 -- Dumping data for table `user_profiles`
 --
 
-INSERT INTO `user_profiles` (`user_id`, `full_name`, `contact_number`, `address`, `created_at`, `updated_at`) VALUES
-(2, 'John Doe', NULL, NULL, '2026-10-26 15:15:43', '2026-10-26 15:15:43'),
-(10, 'Maria Santos', '09170000003', 'Panabo City', '2026-10-26 15:15:43', '2026-10-26 15:15:43'),
-(11, 'Juan Dela Cruz', '09170000004', 'Panabo City', '2026-10-26 15:15:43', '2026-10-26 15:15:43');
+INSERT INTO `user_profiles` (`user_id`, `full_name`, `contact_number`, `address`, `prc_license_number`, `prc_not_applicable`, `specialization`, `highest_education`, `profile_completed_at`, `created_at`, `updated_at`) VALUES
+(1, 'Maria Santos', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 'Carlos Reyes', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 'Juan Cruz', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 'Ana Garcia', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(5, 'Mark Penduko', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(6, 'Bea Alonzo', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(7, 'Jose Rizal', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(8, 'Luz Macaraeg', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(9, 'Kathryn Bernardo', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(10, 'Coco Martin', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(11, 'Dingdong Dantes', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(12, 'Marian Rivera', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(13, 'Vic Sotto', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(14, 'Joey De Leon', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32');
 
 -- --------------------------------------------------------
 
@@ -607,25 +761,25 @@ INSERT INTO `user_profiles` (`user_id`, `full_name`, `contact_number`, `address`
 
 CREATE TABLE `vacancies` (
   `id` bigint(20) NOT NULL,
-  `branch_id` bigint(20) NOT NULL,
   `department_id` bigint(20) NOT NULL,
-  `job_title` varchar(150) NOT NULL,
-  `job_description` text NOT NULL,
-  `requirements` text DEFAULT NULL,
-  `status` enum('open','closed','draft') DEFAULT 'open',
-  `posted_by_user_id` bigint(20) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `employment_type` enum('Full-time','Part-time','Contract') DEFAULT 'Full-time',
+  `description` text NOT NULL,
+  `closing_date` date NOT NULL,
+  `status` enum('open','closed') DEFAULT 'open',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `category` enum('teaching','non-teaching') NOT NULL DEFAULT 'non-teaching'
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vacancies`
 --
 
-INSERT INTO `vacancies` (`id`, `branch_id`, `department_id`, `job_title`, `job_description`, `requirements`, `status`, `posted_by_user_id`, `created_at`, `updated_at`, `category`) VALUES
-(1, 1, 2, 'Instructor II - Computer Science', 'Teach undergraduate CS courses, advise students, participate in curriculum development.', 'MS in Computer Science or related field; 2+ years teaching experience.', 'open', 1, '2026-10-26 17:16:13', '2026-10-26 17:16:13', 'teaching'),
-(2, 1, 1, 'HR Officer', 'Handle employee records, recruitment coordination, and benefits administration.', 'Bachelor degree in HR or Psychology; 1+ year HR experience.', 'open', 1, '2026-10-26 17:16:13', '2026-10-26 17:16:13', 'non-teaching');
+INSERT INTO `vacancies` (`id`, `department_id`, `title`, `employment_type`, `description`, `closing_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Instructor I', 'Full-time', 'Prepare and deliver computing courses, assess learning, and mentor students.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 2, 'Instructor I', 'Full-time', 'Teach mathematics courses, develop learning resources, and support student learning.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 3, 'Instructor I', 'Full-time', 'Facilitate language and communication courses and assess student performance.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 4, 'Instructor I', 'Part-time', 'Teach business courses and connect classroom concepts with professional practice.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32');
 
 --
 -- Indexes for dumped tables
@@ -636,10 +790,15 @@ INSERT INTO `vacancies` (`id`, `branch_id`, `department_id`, `job_title`, `job_d
 --
 ALTER TABLE `applications`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `vacancy_id` (`vacancy_id`),
-  ADD KEY `applicant_user_id` (`applicant_user_id`),
-  ADD KEY `reviewed_by_user_id` (`reviewed_by_user_id`),
-  ADD KEY `idx_application_status` (`status`);
+  ADD UNIQUE KEY `uq_applicant_vacancy` (`applicant_user_id`,`vacancy_id`),
+  ADD KEY `vacancy_id` (`vacancy_id`);
+
+--
+-- Indexes for table `application_documents`
+--
+ALTER TABLE `application_documents`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `application_id` (`application_id`);
 
 --
 -- Indexes for table `attendance_logs`
@@ -667,6 +826,20 @@ ALTER TABLE `branches`
   ADD UNIQUE KEY `branch_code` (`branch_code`);
 
 --
+-- Indexes for table `cache`
+--
+ALTER TABLE `cache`
+  ADD PRIMARY KEY (`key`),
+  ADD KEY `cache_expiration_index` (`expiration`);
+
+--
+-- Indexes for table `cache_locks`
+--
+ALTER TABLE `cache_locks`
+  ADD PRIMARY KEY (`key`),
+  ADD KEY `cache_locks_expiration_index` (`expiration`);
+
+--
 -- Indexes for table `classrooms`
 --
 ALTER TABLE `classrooms`
@@ -679,7 +852,7 @@ ALTER TABLE `classrooms`
 --
 ALTER TABLE `departments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `branch_id` (`branch_id`);
+  ADD KEY `departments_ibfk_1` (`branch_id`);
 
 --
 -- Indexes for table `email_notification_logs`
@@ -708,6 +881,24 @@ ALTER TABLE `employee_status_histories`
   ADD KEY `changed_by_user_id` (`changed_by_user_id`);
 
 --
+-- Indexes for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_eval_unique` (`student_id`,`instructor_id`,`subject_id`,`semester`,`academic_year`),
+  ADD KEY `idx_eval_instructor` (`instructor_id`),
+  ADD KEY `idx_eval_subject` (`subject_id`),
+  ADD KEY `idx_eval_period` (`academic_year`,`semester`);
+
+--
+-- Indexes for table `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`),
+  ADD KEY `failed_jobs_connection_queue_failed_at_index` (`connection`,`queue`,`failed_at`);
+
+--
 -- Indexes for table `interview_schedules`
 --
 ALTER TABLE `interview_schedules`
@@ -716,6 +907,19 @@ ALTER TABLE `interview_schedules`
   ADD KEY `interviewer_user_id` (`interviewer_user_id`),
   ADD KEY `idx_interview_date` (`interview_date`),
   ADD KEY `idx_interview_status` (`status`);
+
+--
+-- Indexes for table `jobs`
+--
+ALTER TABLE `jobs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `jobs_queue_index` (`queue`);
+
+--
+-- Indexes for table `job_batches`
+--
+ALTER TABLE `job_batches`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `leave_requests`
@@ -733,6 +937,18 @@ ALTER TABLE `login_attempts`
   ADD PRIMARY KEY (`id`),
   ADD KEY `attempt_window` (`attempt_key`,`created_at`),
   ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`email`);
 
 --
 -- Indexes for table `payslips`
@@ -773,6 +989,26 @@ ALTER TABLE `sections`
   ADD KEY `idx_program_year` (`program`,`year_level`);
 
 --
+-- Indexes for table `sessions`
+--
+ALTER TABLE `sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sessions_user_id_index` (`user_id`),
+  ADD KEY `sessions_last_activity_index` (`last_activity`);
+
+--
+-- Indexes for table `students`
+--
+ALTER TABLE `students`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_student_number` (`student_number`),
+  ADD UNIQUE KEY `uq_student_user` (`user_id`),
+  ADD KEY `idx_student_program` (`program`,`year_level`),
+  ADD KEY `idx_student_section` (`section_id`),
+  ADD KEY `idx_students_verification` (`verification_status`),
+  ADD KEY `students_reviewed_by_fk` (`reviewed_by_user_id`);
+
+--
 -- Indexes for table `subjects`
 --
 ALTER TABLE `subjects`
@@ -803,6 +1039,7 @@ ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `google_sub` (`google_sub`),
   ADD KEY `branch_id` (`branch_id`),
   ADD KEY `role_id` (`role_id`);
 
@@ -817,9 +1054,7 @@ ALTER TABLE `user_profiles`
 --
 ALTER TABLE `vacancies`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `branch_id` (`branch_id`),
-  ADD KEY `department_id` (`department_id`),
-  ADD KEY `posted_by_user_id` (`posted_by_user_id`);
+  ADD KEY `department_id` (`department_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -829,7 +1064,13 @@ ALTER TABLE `vacancies`
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `application_documents`
+--
+ALTER TABLE `application_documents`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `attendance_logs`
@@ -859,7 +1100,7 @@ ALTER TABLE `classrooms`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `email_notification_logs`
@@ -871,7 +1112,7 @@ ALTER TABLE `email_notification_logs`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `employee_status_histories`
@@ -880,10 +1121,28 @@ ALTER TABLE `employee_status_histories`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `failed_jobs`
+--
+ALTER TABLE `failed_jobs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `interview_schedules`
 --
 ALTER TABLE `interview_schedules`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `jobs`
+--
+ALTER TABLE `jobs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `leave_requests`
@@ -895,7 +1154,13 @@ ALTER TABLE `leave_requests`
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `payslips`
@@ -928,6 +1193,12 @@ ALTER TABLE `sections`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `students`
+--
+ALTER TABLE `students`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `subjects`
 --
 ALTER TABLE `subjects`
@@ -943,13 +1214,13 @@ ALTER TABLE `teaching_schedules`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `vacancies`
 --
 ALTER TABLE `vacancies`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
@@ -959,9 +1230,14 @@ ALTER TABLE `vacancies`
 -- Constraints for table `applications`
 --
 ALTER TABLE `applications`
-  ADD CONSTRAINT `applications_ibfk_1` FOREIGN KEY (`vacancy_id`) REFERENCES `vacancies` (`id`),
-  ADD CONSTRAINT `applications_ibfk_2` FOREIGN KEY (`applicant_user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `applications_ibfk_3` FOREIGN KEY (`reviewed_by_user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `applications_ibfk_1` FOREIGN KEY (`vacancy_id`) REFERENCES `vacancies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `applications_ibfk_2` FOREIGN KEY (`applicant_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `application_documents`
+--
+ALTER TABLE `application_documents`
+  ADD CONSTRAINT `application_documents_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `attendance_logs`
@@ -987,7 +1263,7 @@ ALTER TABLE `classrooms`
 -- Constraints for table `departments`
 --
 ALTER TABLE `departments`
-  ADD CONSTRAINT `departments_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `departments_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `email_notification_logs`
@@ -1008,6 +1284,14 @@ ALTER TABLE `employees`
 ALTER TABLE `employee_status_histories`
   ADD CONSTRAINT `employee_status_histories_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `employee_status_histories_ibfk_2` FOREIGN KEY (`changed_by_user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  ADD CONSTRAINT `fk_eval_instructor` FOREIGN KEY (`instructor_id`) REFERENCES `employees` (`id`),
+  ADD CONSTRAINT `fk_eval_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`),
+  ADD CONSTRAINT `fk_eval_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`);
 
 --
 -- Constraints for table `interview_schedules`
@@ -1043,6 +1327,14 @@ ALTER TABLE `pay_rates`
   ADD CONSTRAINT `pay_rates_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `students`
+--
+ALTER TABLE `students`
+  ADD CONSTRAINT `fk_student_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_student_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `students_reviewed_by_fk` FOREIGN KEY (`reviewed_by_user_id`) REFERENCES `users` (`id`);
+
+--
 -- Constraints for table `subjects`
 --
 ALTER TABLE `subjects`
@@ -1074,9 +1366,7 @@ ALTER TABLE `user_profiles`
 -- Constraints for table `vacancies`
 --
 ALTER TABLE `vacancies`
-  ADD CONSTRAINT `vacancies_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`),
-  ADD CONSTRAINT `vacancies_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
-  ADD CONSTRAINT `vacancies_ibfk_3` FOREIGN KEY (`posted_by_user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `vacancies_ibfk_1` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
