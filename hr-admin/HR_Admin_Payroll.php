@@ -61,6 +61,14 @@ $form = [
   'deductions'        => '0',
 ];
 
+/* ---------------- pay-rate form defaults ---------------- */
+$rateForm = [
+  'employee_id' => '',
+  'daily_rate' => '',
+  'effective_date' => date('Y-m-d'),
+];
+$isRateEdit = false;
+
 /* ---------------- generate payslip ---------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   foreach ($form as $k => $_) {
@@ -71,7 +79,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
       throw new UserError('Your session expired. Please try again.');
     }
-    if ((string)($_POST['action'] ?? '') !== 'generate_payslip') {
+    $action = (string)($_POST['action'] ?? '');
+
+    // Save a new rate row instead of overwriting history.
+    if ($action === 'update_rate') {
+      $rateEmployeeId = (int)($_POST['rate_employee_id'] ?? 0);
+      $dailyRateInput = trim((string)($_POST['daily_rate'] ?? ''));
+      $effectiveDate = trim((string)($_POST['effective_date'] ?? ''));
+
+      if ($rateEmployeeId <= 0) {
+        throw new UserError('Please select an employee for the rate update.');
+      }
+      if (!is_numeric($dailyRateInput) || (float)$dailyRateInput <= 0 || (float)$dailyRateInput > 9999999) {
+        throw new UserError('Daily rate must be greater than zero.');
+      }
+      if (!valid_date($effectiveDate)) {
+        throw new UserError('Please enter a valid effective date.');
+      }
+
+      $employeeCheck = $pdo->prepare('SELECT id FROM employees WHERE id = ?');
+      $employeeCheck->execute([$rateEmployeeId]);
+      if (!$employeeCheck->fetchColumn()) {
+        throw new UserError('The selected employee does not exist.');
+      }
+
+      $dailyRateValue = round((float)$dailyRateInput, 2);
+      $hourlyRateValue = round($dailyRateValue / 8, 2);
+
+      $insertRate = $pdo->prepare(
+        'INSERT INTO pay_rates (employee_id, daily_rate, hourly_rate, effective_date) VALUES (?,?,?,?)'
+      );
+      $insertRate->execute([$rateEmployeeId, $dailyRateValue, $hourlyRateValue, $effectiveDate]);
+
+      $_SESSION['flash'] = [
+        'type' => 'success',
+        'msg' => 'Employee rate updated. The previous rate history was preserved.'
+      ];
+      header('Location: ' . basename(__FILE__));
+      exit;
+    }
+
+    if ($action !== 'generate_payslip') {
       throw new UserError('Unknown action.');
     }
 
@@ -179,6 +227,170 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
+/* ---------------- load selected employee rate for editing ---------------- */
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && isset($_GET['edit_rate'])) {
+  $editRateEmployeeId = filter_var($_GET['edit_rate'], FILTER_VALIDATE_INT);
+  if (!$editRateEmployeeId || $editRateEmployeeId < 1) {
+    $flash = ['type' => 'error', 'msg' => 'Invalid employee selected for rate editing.'];
+  } else {
+    $rateQuery = $pdo->prepare(
+      'SELECT e.id, e.first_name, e.last_name,
+              pr.daily_rate, pr.effective_date
+         FROM employees e
+         LEFT JOIN pay_rates pr
+           ON pr.id = (
+             SELECT pr2.id
+               FROM pay_rates pr2
+              WHERE pr2.employee_id = e.id
+              ORDER BY pr2.effective_date DESC, pr2.id DESC
+              LIMIT 1
+           )
+        WHERE e.id = ?
+        LIMIT 1'
+    );
+    $rateQuery->execute([$editRateEmployeeId]);
+    $selectedRate = $rateQuery->fetch();
+
+    if ($selectedRate) {
+      $rateForm = [
+        'employee_id' => (string)$selectedRate['id'],
+        'daily_rate' => $selectedRate['daily_rate'] !== null ? (string)$selectedRate['daily_rate'] : '',
+        'effective_date' => $selectedRate['effective_date'] ?: date('Y-m-d'),
+      ];
+      $isRateEdit = true;
+    } else {
+      $flash = ['type' => 'error', 'msg' => 'Employee not found.'];
+    }
+  }
+}
+
+/* ---------------- individual payslip print view ---------------- */
+if (isset($_GET['print_payslip'])) {
+  $printId = filter_var($_GET['print_payslip'], FILTER_VALIDATE_INT);
+  if (!$printId || $printId < 1) {
+    http_response_code(400);
+    exit('Invalid payslip.');
+  }
+
+  $printQuery = $pdo->prepare(
+    'SELECT p.*, e.first_name, e.middle_name, e.last_name, e.employee_number,
+            e.position_title
+       FROM payslips p
+       JOIN employees e ON e.id = p.employee_id
+      WHERE p.id = ?
+      LIMIT 1'
+  );
+  $printQuery->execute([$printId]);
+  $printPayslip = $printQuery->fetch();
+
+  if (!$printPayslip) {
+    http_response_code(404);
+    exit('Payslip not found.');
+  }
+
+  $itemQuery = $pdo->prepare(
+    'SELECT item_type, item_name, amount
+       FROM payslip_items
+      WHERE payslip_id = ?
+      ORDER BY id ASC'
+  );
+  $itemQuery->execute([$printId]);
+  $printItems = $itemQuery->fetchAll();
+
+  ?><!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Payslip <?= e($printPayslip['payslip_number']) ?></title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 32px; color: #17233d; font: 14px/1.5 Arial, sans-serif; background: #f4f6fb; }
+      .payslip { max-width: 760px; margin: 0 auto; padding: 36px; background: #fff; border: 1px solid #dce3ef; }
+      .top { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; border-bottom:2px solid #243b68; padding-bottom:20px; }
+      h1 { margin:0 0 5px; font-size:25px; }
+      h2 { margin:26px 0 12px; font-size:16px; }
+      p { margin:3px 0; color:#52617b; }
+      .number { text-align:right; }
+      .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 28px; margin-top:22px; }
+      .label { display:block; color:#68758d; font-size:12px; }
+      .value { font-weight:700; }
+      table { width:100%; border-collapse:collapse; }
+      th, td { padding:11px 9px; border-bottom:1px solid #e5eaf2; text-align:left; }
+      th:last-child, td:last-child { text-align:right; }
+      .totals { width:min(100%, 330px); margin:18px 0 0 auto; }
+      .totals td { border:0; padding:7px 9px; }
+      .net { border-top:2px solid #243b68 !important; font-size:18px; font-weight:700; }
+      .actions { max-width:760px; margin:16px auto; display:flex; gap:10px; }
+      button, a { border:0; border-radius:8px; padding:10px 16px; background:#326bfa; color:white; text-decoration:none; cursor:pointer; font:inherit; }
+      a { background:#e8eefb; color:#244b9b; }
+      .foot { margin-top:40px; padding-top:15px; border-top:1px solid #dce3ef; color:#68758d; font-size:12px; }
+      @media print {
+        body { padding:0; background:#fff; }
+        .payslip { max-width:none; border:0; padding:0; }
+        .actions { display:none !important; }
+        @page { size:A4; margin:16mm; }
+      }
+      @media(max-width:600px) {
+        body { padding:12px; }
+        .payslip { padding:20px; }
+        .top { display:block; }
+        .number { text-align:left; margin-top:15px; }
+        .grid { grid-template-columns:1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="actions">
+      <button type="button" onclick="window.print()">Print / Save as PDF</button>
+      <a href="<?= e(basename(__FILE__)) ?>">Back to Payroll</a>
+    </div>
+    <main class="payslip">
+      <header class="top">
+        <div>
+          <h1>DNSC SMART HRMS</h1>
+          <p>Employee Payroll Payslip</p>
+        </div>
+        <div class="number">
+          <strong><?= e($printPayslip['payslip_number']) ?></strong>
+          <p>Generated: <?= e(date('F j, Y', strtotime($printPayslip['generated_at']))) ?></p>
+        </div>
+      </header>
+      <section class="grid">
+        <div><span class="label">Employee Name</span><span class="value"><?= e(trim($printPayslip['first_name'] . ' ' . ($printPayslip['middle_name'] ?? '') . ' ' . $printPayslip['last_name'])) ?></span></div>
+        <div><span class="label">Employee Number</span><span class="value"><?= e($printPayslip['employee_number']) ?></span></div>
+        <div><span class="label">Position</span><span class="value"><?= e($printPayslip['position_title']) ?></span></div>
+        <div><span class="label">Pay Period</span><span class="value"><?= e(date('M j, Y', strtotime($printPayslip['period_start_date']))) ?> – <?= e(date('M j, Y', strtotime($printPayslip['period_end_date']))) ?></span></div>
+        <div><span class="label">Days Worked</span><span class="value"><?= (int)$printPayslip['total_days_worked'] ?></span></div>
+        <div><span class="label">Daily Rate Applied</span><span class="value"><?= e(money($printPayslip['daily_rate_applied'])) ?></span></div>
+      </section>
+      <h2>Earnings and Deductions</h2>
+      <table>
+        <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+          <?php if ($printItems): ?>
+            <?php foreach ($printItems as $item): ?>
+              <tr><td><?= e(ucfirst($item['item_type']) . ': ' . $item['item_name']) ?></td><td><?= e(money($item['amount'])) ?></td></tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr><td>Basic pay</td><td><?= e(money($printPayslip['gross_salary'])) ?></td></tr>
+            <tr><td>Deductions</td><td><?= e(money($printPayslip['deductions'])) ?></td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+      <table class="totals">
+        <tr><td>Gross Salary</td><td><?= e(money($printPayslip['gross_salary'])) ?></td></tr>
+        <tr><td>Total Deductions</td><td><?= e(money($printPayslip['deductions'])) ?></td></tr>
+        <tr class="net"><td>NET PAY</td><td><?= e(money($printPayslip['net_salary'])) ?></td></tr>
+      </table>
+      <div class="foot">This payslip was generated by DNSC SMART HRMS. Please contact Human Resources if you have questions about this record.</div>
+    </main>
+    <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));</script>
+  </body>
+  </html><?php
+  exit;
+}
+
 /* ---------------- data for the page ---------------- */
 $employees = $pdo->query('SELECT id, employee_number, first_name, last_name FROM employees ORDER BY last_name, first_name')->fetchAll();
 
@@ -187,6 +399,21 @@ $payslips = $pdo->query(
        FROM payslips p JOIN employees e ON e.id = p.employee_id
       ORDER BY p.period_end_date DESC, p.id DESC
       LIMIT 500'
+)->fetchAll();
+
+$currentRates = $pdo->query(
+  'SELECT e.id AS employee_id, e.employee_number, e.first_name, e.last_name,
+          e.position_title, pr.daily_rate, pr.hourly_rate, pr.effective_date
+     FROM employees e
+     LEFT JOIN pay_rates pr
+       ON pr.id = (
+         SELECT pr2.id
+           FROM pay_rates pr2
+          WHERE pr2.employee_id = e.id
+          ORDER BY pr2.effective_date DESC, pr2.id DESC
+          LIMIT 1
+       )
+    ORDER BY e.last_name, e.first_name'
 )->fetchAll();
 ?>
 
@@ -680,8 +907,10 @@ $payslips = $pdo->query(
       .demo-sidebar,
       .demo-toolbar,
       .demo-actions,
-      .demo-toast {
-        display: none
+      .demo-toast,
+      .demo-panel form,
+      .demo-panel a.demo-button {
+        display: none !important
       }
 
       body,
@@ -4307,6 +4536,63 @@ $payslips = $pdo->query(
         <p>Payslips use recorded attendance and the applicable daily rate. Generating a payslip does not transfer funds.</p>
       </header>
       <section class="demo-panel">
+        <h2>Employee Pay Rates</h2>
+        <p>Current rates are shown below. Updating a rate creates a new effective-dated record and keeps previous rates for historical payslips. Hourly rate is calculated as daily rate ÷ 8 hours.</p>
+        <div class="demo-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Employee</th>
+                <th scope="col">Position</th>
+                <th scope="col">Daily Rate</th>
+                <th scope="col">Hourly Rate</th>
+                <th scope="col">Effective Date</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($currentRates as $rateRow): ?>
+                <tr>
+                  <td><?= e($rateRow['first_name'] . ' ' . $rateRow['last_name']) ?><br><small><?= e($rateRow['employee_number']) ?></small></td>
+                  <td><?= e($rateRow['position_title']) ?></td>
+                  <td><?= $rateRow['daily_rate'] !== null ? e(money($rateRow['daily_rate'])) : 'Not assigned' ?></td>
+                  <td><?= $rateRow['hourly_rate'] !== null ? e(money($rateRow['hourly_rate'])) : 'Not assigned' ?></td>
+                  <td><?= $rateRow['effective_date'] ? e(date('M j, Y', strtotime($rateRow['effective_date']))) : '—' ?></td>
+                  <td><a class="demo-button" href="<?= e(basename(__FILE__)) ?>?edit_rate=<?= (int)$rateRow['employee_id'] ?>#rate-form">Edit</a></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+        <h3 id="rate-form"><?= $isRateEdit ? 'Edit Employee Rate' : 'Change Employee Rate' ?></h3>
+        <form class="demo-form" method="post" action="<?= e(basename(__FILE__)) ?>#rate-form">
+          <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+          <input type="hidden" name="action" value="update_rate">
+          <label>Employee
+            <select name="rate_employee_id" required>
+              <option value="">Select an employee</option>
+              <?php foreach ($employees as $emp): ?>
+                <option value="<?= (int)$emp['id'] ?>"<?= $rateForm['employee_id'] === (string)$emp['id'] ? ' selected' : '' ?>><?= e($emp['first_name'] . ' ' . $emp['last_name'] . ' — ' . $emp['employee_number']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label>New Daily Rate (PHP)
+            <input type="number" name="daily_rate" min="0.01" max="9999999" step="0.01" value="<?= e($rateForm['daily_rate']) ?>" placeholder="e.g. 900.00" required>
+          </label>
+          <label>Effective Date
+            <input type="date" name="effective_date" value="<?= e($rateForm['effective_date']) ?>" required>
+          </label>
+          <p class="demo-muted">The system automatically computes the hourly rate using 8 working hours per day. Saving a change adds a new effective-dated rate and preserves previous rate history.</p>
+          <div>
+            <button class="demo-button primary" type="submit"><?= $isRateEdit ? 'Save Rate Changes' : 'Save New Rate' ?></button>
+            <?php if ($isRateEdit): ?>
+              <a class="demo-button" href="<?= e(basename(__FILE__)) ?>#rate-form">Cancel</a>
+            <?php endif; ?>
+          </div>
+        </form>
+      </section>
+
+      <section class="demo-panel">
         <h2>Payslips</h2>
         <div class="demo-table-wrap">
           <table>
@@ -4320,12 +4606,13 @@ $payslips = $pdo->query(
                 <th scope="col">Gross</th>
                 <th scope="col">Deductions</th>
                 <th scope="col">Net</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
               <?php if (!$payslips): ?>
               <tr>
-                <td colspan="8">No records to display.</td>
+                <td colspan="9">No records to display.</td>
               </tr>
               <?php endif; ?>
               <?php foreach ($payslips as $p): ?>
@@ -4338,6 +4625,7 @@ $payslips = $pdo->query(
                 <td><?= e(money($p['gross_salary'])) ?></td>
                 <td><?= e(money($p['deductions'])) ?></td>
                 <td><?= e(money($p['net_salary'])) ?></td>
+                <td><a class="demo-button" href="<?= e(basename(__FILE__)) ?>?print_payslip=<?= (int)$p['id'] ?>" target="_blank" rel="noopener">Print Payslip</a></td>
               </tr>
               <?php endforeach; ?>
             </tbody>
