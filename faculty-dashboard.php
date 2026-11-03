@@ -647,6 +647,23 @@ if (
         .payslip-sheet{border:1px solid #000;border-radius:0;background:#fff;color:#000;break-inside:avoid}
         .payslip-sheet *{color:#000!important;background:transparent!important}
       }
+
+      /* Leave Request Improvements */
+      #leave-form label{
+          align-self:start;
+      }
+      #leave-form input,
+      #leave-form select{
+          resize:none;
+      }
+      #leave-reason{
+          resize:vertical;
+          min-height:120px;
+          max-height:210px;
+          width:100%;
+          overflow-y:auto;
+      }
+
     </style>
     <link rel="stylesheet" href="assets/ui-flow.css" />
     <script defer src="assets/ui-model.js"></script>
@@ -868,8 +885,17 @@ if (
                   <option>Sick Leave</option>
                   <option>Vacation Leave</option>
                   <option>Emergency Leave</option>
-                  <option>Other</option>
+                  <<option value="Other">Other</option>
                 </select>
+              </label>
+              <label for="leave-other-type" id="leave-other-wrapper" hidden> Specify Leave Type
+              <input
+                  type="text"
+                  id="leave-other-type"
+                  name="other_leave_type"
+                  maxlength="100"
+                  placeholder="Enter leave type">
+
               </label>
               <div class="leave-dates">
                 <label for="leave-start"
@@ -1435,6 +1461,28 @@ if (
           leaveNotice = document.getElementById("leave-notice"),
           leaveStart = document.getElementById("leave-start"),
           leaveEnd = document.getElementById("leave-end");
+        const leaveType = document.getElementById("leave-type");
+        const leaveOtherWrapper = document.getElementById("leave-other-wrapper");
+        const leaveOtherInput = document.getElementById("leave-other-type");
+          
+            if (leaveType && leaveOtherWrapper) {
+              const toggleOtherLeaveType = () => {
+                  const isOther = leaveType.value === "Other";
+                  leaveOtherWrapper.hidden = !isOther;
+                  leaveOtherInput.required = isOther;
+                  if (!isOther) {
+                      leaveOtherInput.value = "";
+                  }
+              };
+              leaveType.addEventListener(
+                  "change",
+                  toggleOtherLeaveType
+              );
+              toggleOtherLeaveType();
+           }
+
+
+
         const leaveMessage = (text) => {
           if (!leaveNotice) return;
           leaveNotice.hidden = false;
