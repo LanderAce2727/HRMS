@@ -30,11 +30,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
   if (!hash_equals($_SESSION['csrf'], (string)($_POST['csrf'] ?? ''))) {
     $flash['msg'] = 'Session expired. Please try again.';
   } else {
-    $period = trim((string)($_POST['academic_period'] ?? ''));
-    $late   = trim((string)($_POST['late_after'] ?? ''));
+    $evStart = trim((string)($_POST['evaluation_start'] ?? ''));
+    $evEnd   = trim((string)($_POST['evaluation_end'] ?? ''));
+    $late    = trim((string)($_POST['late_after'] ?? ''));
+    $isDate  = static fn(string $d): bool => (bool)preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && strtotime($d) !== false && date('Y-m-d', strtotime($d)) === $d;
 
-    if (mb_strlen($period) > 30) {
-      $flash['msg'] = 'Evaluation period must be 30 characters or fewer.';
+    // Calendar dates -> label stored in academic_period (blank = evaluations closed)
+    $period = '';
+    $dateError = null;
+    if ($evStart === '' && $evEnd === '') {
+      $period = '';
+    } elseif (!$isDate($evStart) || !$isDate($evEnd)) {
+      $dateError = 'Pick both the start and end dates from the calendar (or clear both to close evaluations).';
+    } elseif ($evEnd < $evStart) {
+      $dateError = 'Evaluation end date cannot be earlier than the start date.';
+    } else {
+      $period = date('M j, Y', strtotime($evStart)) . ' - ' . date('M j, Y', strtotime($evEnd));
+    }
+
+    if ($dateError !== null) {
+      $flash['msg'] = $dateError;
     } elseif (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $late)) {
       $flash['msg'] = 'Work start time must be a valid time (HH:MM).';
     } else {
@@ -46,6 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                      ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)"
         );
         $up->execute(['academic_period', $period]);
+        $up->execute(['evaluation_start', $evStart]);
+        $up->execute(['evaluation_end', $evEnd]);
         $up->execute(['late_after', $late]);
 
         $log = $pdo->prepare(
@@ -116,9 +133,11 @@ $recentApps = $pdo->query("SELECT full_name, position_applied, status FROM appli
 $activity   = $pdo->query("SELECT action_type, target_table, details, created_at FROM audit_logs ORDER BY created_at DESC, id DESC LIMIT 5")->fetchAll();
 
 /* Settings (with defaults if rows are missing) */
-$settings = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('academic_period','late_after')")->fetchAll(PDO::FETCH_KEY_PAIR);
+$settings = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('academic_period','late_after','evaluation_start','evaluation_end')")->fetchAll(PDO::FETCH_KEY_PAIR);
 $academicPeriod = $settings['academic_period'] ?? '';
 $lateAfter      = $settings['late_after'] ?? '08:00';
+$evalStart      = $settings['evaluation_start'] ?? '';
+$evalEnd        = $settings['evaluation_end'] ?? '';
 
 $statusClass = [
   'submitted'    => 'pending',
@@ -4239,7 +4258,7 @@ $statusLabel = [
   <header class="hrms-header has-sidebar-menu"><button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16" />
       </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
-    <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../index.html">Home</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
+    <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
   </header>
 
   <?php if ($flash): ?>
@@ -4377,9 +4396,21 @@ $statusLabel = [
         <form class="demo-form" method="post" action="HR_Admin_Dashboard.php" aria-label="System settings">
           <input type="hidden" name="action" value="save_settings">
           <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
-          <label>Open evaluation period (leave blank to close evaluations)
-            <input name="academic_period" type="text" value="<?= e($academicPeriod) ?>" maxlength="30" placeholder="2026-2027 First Semester">
+          <label>Evaluation opens (calendar)
+            <input name="evaluation_start" id="evaluation_start" type="date" value="<?= e($evalStart) ?>">
           </label>
+          <label>Evaluation closes (calendar)
+            <input name="evaluation_end" id="evaluation_end" type="date" value="<?= e($evalEnd) ?>" min="<?= e($evalStart) ?>">
+          </label>
+          <p class="demo-muted">Current open period: <strong><?= e($academicPeriod !== '' ? $academicPeriod : 'Closed') ?></strong>. Clear both dates to close evaluations.
+            <button type="button" class="demo-button" id="clear-eval-dates">Clear dates</button></p>
+          <script>
+            (function() {
+              const s = document.getElementById('evaluation_start'), e = document.getElementById('evaluation_end');
+              s.addEventListener('change', () => { e.min = s.value; if (e.value && e.value < s.value) e.value = s.value; });
+              document.getElementById('clear-eval-dates').addEventListener('click', () => { s.value = ''; e.value = ''; e.min = ''; });
+            })();
+          </script>
           <label>Work start time (PHT)
             <input name="late_after" type="time" value="<?= e($lateAfter) ?>" required>
           </label>

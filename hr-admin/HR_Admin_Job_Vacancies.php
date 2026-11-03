@@ -202,13 +202,13 @@ $isEdit = $form['id'] !== '';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Job Vacancies | DNSC Smart HRMS</title>
+    <script>
+        try {
+            document.documentElement.dataset.theme =
+                localStorage.getItem('dnsc-theme') === 'dark' ? 'dark' : 'light';
+        } catch (e) {}
+    </script>
     <style>
-        500;
-        600;
-        700&family=Outfit:wght@500;
-        600;
-
-        700&display=swap');
 :root {
             color-scheme: light;
             --bg: #f5f8fe;
@@ -227,7 +227,6 @@ $isEdit = $form['id'] !== '';
             --glow: #326bfa22;
             --slot-bg: #edf3ff;
             --slot-line: #7ea2ff;
-            --
             --shadow: 0 10px 30px #2144880d;
             --link: #2458cd
         }
@@ -4300,7 +4299,7 @@ $isEdit = $form['id'] !== '';
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
 
-        <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
+        <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../job-vacancies.php">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
     </header>
     <div id="notice" class="system-notice" role="status" tabindex="-1" <?= $flash ? '' : ' hidden' ?>><?= $flash ? e($flash['msg']) : '' ?></div>
     <div class="demo-layout hrms-layout">
@@ -4372,9 +4371,9 @@ $isEdit = $form['id'] !== '';
                                 <?php endforeach; ?>
                             </select></label>
 
-                        <label>Category<select name="category" required>
-                                <?php foreach (CATEGORIES as $c): ?>
-                                    <option value="<?= e($c) ?>" <?= $form['category'] === $c ? ' selected' : '' ?>><?= e(ucfirst($c)) ?></option>
+                        <label>Employment type<select name="employment_type" required>
+                                <?php foreach (EMPLOYMENT_TYPES as $t): ?>
+                                    <option value="<?= e($t) ?>" <?= $form['employment_type'] === $t ? ' selected' : '' ?>><?= e($t) ?></option>
                                 <?php endforeach; ?>
                             </select></label>
 
@@ -4385,7 +4384,6 @@ $isEdit = $form['id'] !== '';
                             </select></label>
 
                         <label>Job description<textarea name="description" required maxlength="30000"><?= e($form['description']) ?></textarea></label>
-                        <label>Qualifications and requirements<textarea name="requirements" maxlength="30000"><?= e($form['requirements']) ?></textarea></label>
 
                         <div>
                             <button class="demo-button primary" type="submit"><?= $isEdit ? 'Update Vacancy' : 'Save Vacancy' ?></button>
@@ -4428,7 +4426,14 @@ $isEdit = $form['id'] !== '';
                 saved = localStorage.getItem('dnsc-theme') === 'dark' ? 'dark' : 'light';
             } catch (e) {}
             theme(saved);
-            document.querySelectorAll('#theme-mode').forEach(b => b.onclick = () => theme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+            window.addEventListener('storage', e => {
+                if (e.key === 'dnsc-theme') theme(e.newValue === 'dark' ? 'dark' : 'light');
+            });
+            document.querySelectorAll('#theme-mode').forEach(b => {
+                b.addEventListener('click', () => {
+                    theme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+                });
+            });
             const menu = document.getElementById('menu-toggle'),
                 side = document.getElementById('portal-sidebar'),
                 layout = document.querySelector('.hrms-layout');

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 session_start();
+date_default_timezone_set('Asia/Manila');
 require_once __DIR__ . '/../config/db.php';
 
 $pdo = db();
@@ -20,6 +21,24 @@ if (!$chk->fetch()) {
     http_response_code(403);
     exit('Access denied.');
 }
+
+/* ---------------- interview settings ---------------- */
+// Google Meet room used for online interviews (no tracking parameters).
+const MEET_LINK = 'https://meet.google.com/aph-kpud-mff';
+// Fixed face-to-face venue (HR can still type another one).
+const FTF_DEFAULT_LOCATION = 'HR Office, DNSC';
+// Fixed 1-hour interview slots (24h value => label). Monday to Friday only.
+const INTERVIEW_SLOTS = [
+    '09:00' => '9:00 AM - 10:00 AM',
+    '10:00' => '10:00 AM - 11:00 AM',
+    '11:00' => '11:00 AM - 12:00 NN',
+    '13:00' => '1:00 PM - 2:00 PM',
+    '14:00' => '2:00 PM - 3:00 PM',
+    '15:00' => '3:00 PM - 4:00 PM',
+    '16:00' => '4:00 PM - 5:00 PM',
+];
+// Sender of applicant emails. Change to a real mailbox/domain of your school.
+const MAIL_FROM = 'no-reply@dnsc.edu.ph';
 
 /* ---------------- helpers ---------------- */
 class UserError extends RuntimeException {}
@@ -45,14 +64,83 @@ function self(): string
 function status_label(string $status, bool $registered): string
 {
     if ($registered) {
-        return 'Registered as Faculty';
+        return 'Registered as Instructor';
     }
     return [
-        'submitted'    => 'Submitted',
-        'under_review' => 'Under Review',
-        'accepted'     => 'Approved',
-        'rejected'     => 'Rejected',
+        'submitted'   => 'Submitted',
+        'reviewing'   => 'Approved for Interview',
+        'interviewed' => 'Interview Passed',
+        'hired'       => 'Hired',
+        'rejected'    => 'Rejected',
     ][$status] ?? $status;
+}
+function is_meet_link(?string $v): bool
+{
+    return $v !== null && strpos($v, 'https://meet.google.com/') === 0;
+}
+function slot_label(string $hhmm): string
+{
+    return INTERVIEW_SLOTS[substr($hhmm, 0, 5)] ?? date('g:i A', strtotime($hhmm));
+}
+/**
+ * Email the applicant and record it in email_notification_logs.
+ * notification_type in the DB only allows 'accepted' | 'rejected'.
+ * Uses the applicant's Google login email (users.email) when they signed in with Google,
+ * otherwise the email typed on the application.
+ */
+function notify_applicant(PDO $pdo, array $app, string $type, string $subject, string $body): bool
+{
+    $to = (string)$app['email'];
+    try {
+        $u = $pdo->prepare('SELECT email, google_sub FROM users WHERE id = ?');
+        $u->execute([(int)$app['applicant_user_id']]);
+        $ur = $u->fetch();
+        if ($ur && !empty($ur['google_sub']) && filter_var($ur['email'], FILTER_VALIDATE_EMAIL)) {
+            $to = (string)$ur['email'];
+        }
+    } catch (Throwable $ex) {
+    }
+
+    $status = 'failed';
+    $err    = null;
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        $err = 'Invalid recipient email address.';
+    } else {
+        $headers = 'From: DNSC Smart HRMS <' . MAIL_FROM . ">\r\n"
+            . "MIME-Version: 1.0\r\n"
+            . "Content-Type: text/plain; charset=UTF-8\r\n";
+        $ok = @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, $headers);
+        if ($ok) {
+            $status = 'sent';
+        } else {
+            $err = 'mail() failed. Configure SMTP (sendmail_path / PHPMailer) on the server.';
+        }
+    }
+    $pdo->prepare(
+        'INSERT INTO email_notification_logs (application_id, recipient_email, notification_type, delivery_status, error_message, sent_at)
+         VALUES (?,?,?,?,?,?)'
+    )->execute([
+        (int)$app['id'],
+        $to,
+        $type,
+        $status,
+        $err,
+        $status === 'sent' ? date('Y-m-d H:i:s') : null,
+    ]);
+    return $status === 'sent';
+}
+function gcal_link(string $date, string $hhmm, string $where): string
+{
+    $start = date('Ymd\THis', strtotime("$date $hhmm"));
+    $end   = date('Ymd\THis', strtotime("$date $hhmm +1 hour"));
+    return 'https://calendar.google.com/calendar/render?' . http_build_query([
+        'action'   => 'TEMPLATE',
+        'text'     => 'DNSC Job Interview',
+        'dates'    => $start . '/' . $end,
+        'ctz'      => 'Asia/Manila',
+        'location' => $where,
+        'details'  => 'Interview for the DNSC faculty/instructor position.',
+    ]);
 }
 
 if (empty($_SESSION['csrf'])) {
@@ -79,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $app = null;
         if ($appId > 0) {
             $st = $pdo->prepare(
-                'SELECT a.*, v.department_id AS v_department_id, v.job_title AS v_job_title, v.category AS v_category
+                'SELECT a.*, v.department_id AS v_department_id, v.title AS v_job_title, v.employment_type AS v_category
                    FROM applications a LEFT JOIN vacancies v ON v.id = a.vacancy_id
                   WHERE a.id = ?'
             );
@@ -94,80 +182,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'SELECT COUNT(*) FROM employees WHERE user_id = ' . (int)$app['applicant_user_id']
         )->fetchColumn();
 
+        $notify = null; // [type, subject, body] sent after commit
         $pdo->beginTransaction();
 
         switch ($action) {
 
-            /* ----- review: under_review / accepted / rejected ----- */
+            /* ----- step 1: approve for interview / reject ----- */
             case 'set_status':
                 $new = p('status');
-                if (!in_array($new, ['under_review', 'accepted', 'rejected'], true)) {
+                if (!in_array($new, ['reviewing', 'rejected'], true)) {
                     throw new UserError('Invalid status.');
                 }
-                if ($isRegistered && $app['status'] === 'accepted') {
+                if ($app['status'] === 'hired' || $isRegistered) {
                     throw new UserError('This applicant is already registered; status can no longer be changed.');
+                }
+                if ($new === 'reviewing' && !in_array($app['status'], ['submitted', 'rejected'], true)) {
+                    throw new UserError('This application is already approved.');
+                }
+                if ($new === 'rejected' && $app['status'] === 'rejected') {
+                    throw new UserError('This application is already rejected.');
                 }
                 $pdo->prepare(
                     'UPDATE applications SET status = ?, reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ?'
                 )->execute([$new, $userId, $appId]);
 
-                if ($new === 'accepted' || $new === 'rejected') {
-                    // Queue an email; actual sending must be done by your mail script/cron.
-                    $pdo->prepare(
-                        "INSERT INTO email_notification_logs (application_id, recipient_email, notification_type, delivery_status)
-                         VALUES (?, ?, ?, 'pending')"
-                    )->execute([$appId, $app['email'], $new]);
+                if ($new === 'rejected') {
+                    $pdo->prepare("UPDATE interview_schedules SET status = 'cancelled' WHERE application_id = ? AND status = 'scheduled'")
+                        ->execute([$appId]);
+                    $notify = ['rejected', 'Your DNSC application update', "Hello {$app['full_name']},\n\nThank you for applying for {$app['position_applied']} at DNSC. After review, we are unable to move your application forward at this time.\n\nWe appreciate your interest and wish you the best.\n\nDNSC Human Resources"];
+                } else {
+                    $notify = ['accepted', 'Your DNSC application was approved', "Hello {$app['full_name']},\n\nGood news! Your application for {$app['position_applied']} was approved for an interview.\n\nHR will send you the interview date, time and venue/Google Meet link in a separate email.\n\nDNSC Human Resources"];
                 }
                 audit($pdo, $userId, 'set_application_status', 'applications', $appId, $app['status'] . ' -> ' . $new);
-                $msg = 'Application marked as ' . status_label($new, false) . '.';
+                $msg = $new === 'reviewing' ? 'Application approved. You can now schedule the interview.' : 'Application rejected.';
                 break;
 
-            /* ----- schedule interview ----- */
+            /* ----- step 2: schedule interview (fixed time slots; face-to-face or Google Meet) ----- */
             case 'schedule_interview':
+                if ($app['status'] !== 'reviewing') {
+                    throw new UserError('Approve the application first before scheduling an interview.');
+                }
+                $open = $pdo->prepare("SELECT COUNT(*) FROM interview_schedules WHERE application_id = ? AND status = 'scheduled'");
+                $open->execute([$appId]);
+                if ($open->fetchColumn()) {
+                    throw new UserError('This applicant already has a scheduled interview. Cancel it first to set a new one.');
+                }
+
                 $date = p('interview_date');
-                $time = p('interview_time');
+                $slot = p('interview_slot');
+                $mode = p('interview_mode');
                 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !strtotime($date)) {
                     throw new UserError('Please enter a valid interview date.');
                 }
-                if (!preg_match('/^\d{2}:\d{2}$/', $time)) {
-                    throw new UserError('Please enter a valid interview time.');
+                if ($date < date('Y-m-d')) {
+                    throw new UserError('Interview date cannot be in the past.');
                 }
-                $loc   = p('location_or_link');
+                if ((int)date('N', strtotime($date)) > 5) {
+                    throw new UserError('Interviews are held Monday to Friday only.');
+                }
+                if (!isset(INTERVIEW_SLOTS[$slot])) {
+                    throw new UserError('Please choose one of the fixed time slots.');
+                }
+                if ($date === date('Y-m-d') && $slot <= date('H:i')) {
+                    throw new UserError('That time slot has already started. Choose a later slot or date.');
+                }
+                if (!in_array($mode, ['ftf', 'meet'], true)) {
+                    throw new UserError('Choose face-to-face or Google Meet.');
+                }
+                if ($mode === 'meet') {
+                    $where     = MEET_LINK;
+                    $modeLabel = 'Google Meet';
+                } else {
+                    $venue = p('ftf_location') !== '' ? p('ftf_location') : FTF_DEFAULT_LOCATION;
+                    if (mb_strlen($venue) > 200) {
+                        throw new UserError('Venue is too long (max 200).');
+                    }
+                    $where     = 'Face-to-face: ' . $venue;
+                    $modeLabel = 'Face-to-face';
+                }
                 $notes = p('notes');
-                if (mb_strlen($loc) > 255) {
-                    throw new UserError('Location/link is too long (max 255).');
+
+                // One interviewer / one Meet room: a slot can only hold one scheduled interview.
+                $cf = $pdo->prepare(
+                    "SELECT COUNT(*) FROM interview_schedules
+                      WHERE status = 'scheduled' AND interview_date = ? AND interview_time = ?
+                        AND (interviewer_user_id = ? OR location_or_link = ?)"
+                );
+                $cf->execute([$date, $slot . ':00', $userId, $where]);
+                if ($cf->fetchColumn()) {
+                    throw new UserError('That date and time slot is already booked. Please pick another slot.');
                 }
+
                 $pdo->prepare(
                     'INSERT INTO interview_schedules (application_id, interviewer_user_id, interview_date, interview_time, location_or_link, notes)
                      VALUES (?,?,?,?,?,?)'
-                )->execute([$appId, $userId, $date, $time . ':00', $loc !== '' ? $loc : null, $notes !== '' ? $notes : null]);
+                )->execute([$appId, $userId, $date, $slot . ':00', $where, $notes !== '' ? $notes : null]);
                 $newId = (int)$pdo->lastInsertId();
-                if ($app['status'] === 'submitted') {
-                    $pdo->prepare(
-                        "UPDATE applications SET status = 'under_review', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ?"
-                    )->execute([$userId, $appId]);
-                }
-                audit($pdo, $userId, 'schedule_interview', 'interview_schedules', $newId, "$date $time");
+                audit($pdo, $userId, 'schedule_interview', 'interview_schedules', $newId, "$date $slot $modeLabel");
+
+                $when = date('l, F j, Y', strtotime($date)) . ', ' . slot_label($slot);
+                $body = "Hello {$app['full_name']},\n\nYour interview for {$app['position_applied']} at DNSC is scheduled:\n\n"
+                    . "Date & time : $when (Philippine Time)\n"
+                    . "Mode        : $modeLabel\n"
+                    . ($mode === 'meet' ? "Google Meet : " . MEET_LINK . "\n" : "Venue       : " . substr($where, strlen('Face-to-face: ')) . "\n")
+                    . ($notes !== '' ? "Notes       : $notes\n" : '')
+                    . "\nAdd to Google Calendar:\n" . gcal_link($date, $slot, $mode === 'meet' ? MEET_LINK : $where) . "\n\n"
+                    . "Please be on time" . ($mode === 'meet' ? ' and join using the Google account email you applied with.' : '.') . "\n\nDNSC Human Resources";
+                $notify = ['accepted', 'DNSC interview schedule - ' . date('M j, Y', strtotime($date)), $body];
                 $msg = 'Interview scheduled.';
                 break;
 
-            /* ----- update interview result ----- */
+            /* ----- step 3: after the interview - approve (passed) / reject (failed) / cancel ----- */
             case 'update_interview':
                 $iid = (int)($_POST['interview_id'] ?? 0);
                 $new = p('status');
-                if (!in_array($new, ['scheduled', 'completed', 'cancelled', 'passed', 'failed'], true)) {
+                if (!in_array($new, ['passed', 'failed', 'cancelled'], true)) {
                     throw new UserError('Invalid interview status.');
                 }
-                $st = $pdo->prepare('UPDATE interview_schedules SET status = ? WHERE id = ? AND application_id = ?');
-                $st->execute([$new, $iid, $appId]);
+                $cur = $pdo->prepare('SELECT status FROM interview_schedules WHERE id = ? AND application_id = ?');
+                $cur->execute([$iid, $appId]);
+                $curStatus = $cur->fetchColumn();
+                if ($curStatus !== 'scheduled') {
+                    throw new UserError('Only a scheduled interview can be updated.');
+                }
+                $pdo->prepare('UPDATE interview_schedules SET status = ? WHERE id = ? AND application_id = ?')
+                    ->execute([$new, $iid, $appId]);
+
+                if ($new === 'passed') {
+                    $pdo->prepare("UPDATE applications SET status = 'interviewed', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ? AND status = 'reviewing'")
+                        ->execute([$userId, $appId]);
+                    $msg = 'Interview approved. You can now register the applicant as an instructor.';
+                } elseif ($new === 'failed') {
+                    $pdo->prepare("UPDATE applications SET status = 'rejected', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ? AND status IN ('reviewing','interviewed')")
+                        ->execute([$userId, $appId]);
+                    $notify = ['rejected', 'Your DNSC application result', "Hello {$app['full_name']},\n\nThank you for attending the interview for {$app['position_applied']}. After evaluation, we will not be moving forward with your application.\n\nWe appreciate your time and wish you the best.\n\nDNSC Human Resources"];
+                    $msg = 'Interview marked as failed; application rejected.';
+                } else {
+                    $msg = 'Interview cancelled. You can schedule a new one.';
+                }
                 audit($pdo, $userId, 'update_interview', 'interview_schedules', $iid, $new);
-                $msg = 'Interview updated.';
                 break;
 
             /* ----- register accepted applicant as employee ----- */
             case 'register_faculty':
-                if ($app['status'] !== 'accepted') {
-                    throw new UserError('Only approved applicants can be registered.');
+                if ($app['status'] !== 'interviewed') {
+                    throw new UserError('Only applicants who passed the interview can be registered as instructors.');
                 }
                 if ($isRegistered) {
                     throw new UserError('This applicant is already registered.');
@@ -229,10 +388,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([(int)$app['applicant_user_id']]);
 
                 $pdo->prepare(
-                    'INSERT INTO user_profiles (user_id, full_name, contact_number) VALUES (?,?,?)
+                    'INSERT INTO user_profiles (user_id, full_name, contact_number, address, prc_license_number, prc_not_applicable, specialization, highest_education)
+                     VALUES (?,?,?,?,?,?,?,?)
                      ON DUPLICATE KEY UPDATE full_name = VALUES(full_name),
-                                             contact_number = COALESCE(VALUES(contact_number), contact_number)'
-                )->execute([(int)$app['applicant_user_id'], $app['full_name'], $app['contact_number']]);
+                                             contact_number = COALESCE(VALUES(contact_number), contact_number),
+                                             address = COALESCE(VALUES(address), address),
+                                             prc_license_number = COALESCE(VALUES(prc_license_number), prc_license_number),
+                                             prc_not_applicable = VALUES(prc_not_applicable),
+                                             specialization = COALESCE(VALUES(specialization), specialization),
+                                             highest_education = COALESCE(VALUES(highest_education), highest_education)'
+                )->execute([
+                    (int)$app['applicant_user_id'],
+                    $app['full_name'],
+                    $app['contact_number'],
+                    $app['address'],
+                    $app['prc_license_number'],
+                    (int)($app['prc_not_applicable'] ?? 0),
+                    $app['specialization'],
+                    $app['highest_education'],
+                ]);
+
+                $pdo->prepare("UPDATE applications SET status = 'hired', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ?")
+                    ->execute([$userId, $appId]);
 
                 $pdo->prepare(
                     "INSERT INTO employee_status_histories (employee_id, previous_status, new_status, change_reason, changed_by_user_id, effective_date)
@@ -240,7 +417,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([$empId, 'Registered from application #' . $appId, $userId, $hired]);
 
                 audit($pdo, $userId, 'register_employee', 'employees', $empId, $empNo . ' from application #' . $appId);
-                $msg = "Registered as employee $empNo.";
+                $notify = ['accepted', 'Welcome to DNSC - you are now an instructor', "Hello {$app['full_name']},\n\nCongratulations! Your application for {$app['position_applied']} was approved and your account is now an Instructor account (Employee No. $empNo).\n\nPlease log out and sign in again to access your instructor portal.\n\nDNSC Human Resources"];
+                $msg = "Registered as instructor $empNo.";
                 break;
 
             /* ----- assign teaching schedule ----- */
@@ -319,6 +497,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $pdo->commit();
+        if ($notify) {
+            try {
+                $sent = notify_applicant($pdo, $app, $notify[0], $notify[1], $notify[2]);
+                $msg .= $sent ? ' Email sent to the applicant.' : ' Email could not be sent - see the Email notifications log.';
+            } catch (Throwable $ex) {
+                error_log('Applicant email failed: ' . $ex->getMessage());
+                $msg .= ' Email could not be sent.';
+            }
+        }
         $_SESSION['flash'] = ['type' => 'success', 'msg' => $msg];
     } catch (UserError $ex) {
         if ($pdo->inTransaction()) {
@@ -352,19 +539,20 @@ $applicants = $pdo->query($sql)->fetchAll();
 /* ---------------- detail panel ---------------- */
 $detail = null;
 $interviews = $emails = $schedules = $documents = [];
+$takenSlots = [];
 $subjects = $sections = $classrooms = $departments = [];
 
 $viewId = (int)($_GET['id'] ?? 0);
 if ($viewId > 0) {
     $st = $pdo->prepare(
-        'SELECT a.*, v.job_title, v.category, v.department_id AS v_department_id, d.department_name,
+        'SELECT a.*, v.title AS job_title, v.employment_type AS category, v.department_id AS v_department_id, d.department_name,
                 b.branch_name, r.role_name,
                 COALESCE(rp.full_name, ru.username) AS reviewer_name,
                 e.id AS employee_id, e.employee_number, e.is_faculty
            FROM applications a
            LEFT JOIN vacancies v     ON v.id = a.vacancy_id
            LEFT JOIN departments d   ON d.id = v.department_id
-           LEFT JOIN branches b      ON b.id = v.branch_id
+           LEFT JOIN branches b      ON b.id = d.branch_id
            LEFT JOIN users u         ON u.id = a.applicant_user_id
            LEFT JOIN roles r         ON r.id = u.role_id
            LEFT JOIN users ru        ON ru.id = a.reviewed_by_user_id
@@ -399,6 +587,12 @@ if ($viewId > 0) {
         $emails = $s->fetchAll();
 
         $departments = $pdo->query('SELECT id, department_name FROM departments ORDER BY department_name')->fetchAll();
+
+        // Slots already booked (all applicants) so the form can disable them.
+        $takenSlots = [];
+        foreach ($pdo->query("SELECT interview_date, interview_time FROM interview_schedules WHERE status = 'scheduled' AND interview_date >= CURDATE()")->fetchAll() as $t) {
+            $takenSlots[$t['interview_date']][] = substr($t['interview_time'], 0, 5);
+        }
 
         if ($detail['employee_id'] && $detail['is_faculty']) {
             $s = $pdo->prepare(
@@ -4532,7 +4726,7 @@ $total = count($applicants);
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
         <nav class="hrms-public-nav" aria-label="Main navigation">
-            <a href="../index.html">Home</a><a href="../job-vacancies.html">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a>
+            <a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a>
         </nav>
         <button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
     </header>
@@ -4547,7 +4741,7 @@ $total = count($applicants);
         <main class="demo-main" id="main-content">
             <header class="demo-heading">
                 <h1>Applicant Management</h1>
-                <p>Review applications, faculty appointments, and teaching assignments.</p>
+                <p>Flow: view details &rarr; approve or reject &rarr; schedule interview (face-to-face or Google Meet) &rarr; approve after interview &rarr; register as instructor.</p>
             </header>
 
             <section class="demo-panel">
@@ -4560,10 +4754,10 @@ $total = count($applicants);
                     <select id="applicant-filter" aria-label="Filter application status">
                         <option value="">All statuses</option>
                         <option>Submitted</option>
-                        <option>Under Review</option>
-                        <option>Approved</option>
+                        <option>Approved for Interview</option>
+                        <option>Interview Passed</option>
                         <option>Rejected</option>
-                        <option>Registered as Faculty</option>
+                        <option>Registered as Instructor</option>
                     </select>
                 </div>
                 <p id="applicant-count" aria-live="polite"><?= $total ?> applicant(s)</p>
@@ -4586,7 +4780,7 @@ $total = count($applicants);
                                 </tr>
                             <?php endif; ?>
                             <?php foreach ($applicants as $a):
-                                $reg   = $a['status'] === 'accepted' && $a['employee_id'];
+                                $reg   = $a['status'] === 'hired' && $a['employee_id'];
                                 $label = status_label($a['status'], (bool)$reg);
                                 $appNo = 'APP-' . str_pad((string)$a['id'], 4, '0', STR_PAD_LEFT); ?>
                                 <tr data-status="<?= e($label) ?>" data-search="<?= e(strtolower($a['full_name'] . ' ' . $a['email'] . ' ' . ($a['department_name'] ?? '') . ' ' . $a['position_applied'] . ' ' . $appNo)) ?>">
@@ -4614,7 +4808,7 @@ $total = count($applicants);
                     <p>Application not found.</p>
                 </section>
             <?php elseif ($detail):
-                $registered = $detail['status'] === 'accepted' && $detail['employee_id'];
+                $registered = $detail['status'] === 'hired' && $detail['employee_id'];
                 $nameParts  = preg_split('/\s+/', trim($detail['full_name'])) ?: [];
                 $defLast    = count($nameParts) > 1 ? array_pop($nameParts) : '';
                 $defFirst   = implode(' ', $nameParts);
@@ -4655,55 +4849,70 @@ $total = count($applicants);
                     <p><strong>Account role:</strong> <?= e($detail['role_name'] ?? '—') ?>
                         <?php if ($detail['reviewed_at']): ?> &nbsp; <strong>Last reviewed:</strong> <?= e(date('M j, Y g:i A', strtotime($detail['reviewed_at']))) ?> by <?= e($detail['reviewer_name'] ?? '—') ?><?php endif; ?></p>
 
-                    <?php if (!$registered): ?>
-                        <h3>Review decision</h3>
+                    <?php if (!$registered && $detail['status'] !== 'hired'): ?>
+                        <h3>Step 1 - Review decision</h3>
                         <form method="post" action="<?= e(self()) ?>" class="flow-toolbar">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="action" value="set_status">
                             <input type="hidden" name="application_id" value="<?= (int)$detail['id'] ?>">
-                            <?php foreach (['under_review' => 'Mark Under Review', 'accepted' => 'Approve', 'rejected' => 'Reject'] as $val => $label): ?>
-                                <?php if ($detail['status'] !== $val): ?>
-                                    <button type="submit" name="status" value="<?= e($val) ?>" class="demo-button<?= $val === 'accepted' ? ' primary' : '' ?>" <?= $val === 'rejected' ? ' onclick="return confirm(\'Reject this application? An email notification will be queued.\')"' : '' ?>><?= e($label) ?></button>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
+                            <?php if (in_array($detail['status'], ['submitted', 'rejected'], true)): ?>
+                                <button type="submit" name="status" value="reviewing" class="demo-button primary">Approve for Interview</button>
+                            <?php endif; ?>
+                            <?php if ($detail['status'] !== 'rejected'): ?>
+                                <button type="submit" name="status" value="rejected" class="demo-button" onclick="return confirm('Reject this application? The applicant will be emailed.')">Reject</button>
+                            <?php endif; ?>
                         </form>
                     <?php endif; ?>
 
-                    <h3>Interviews</h3>
+                    <h3>Step 2 - Interview</h3>
+                    <?php
+                    $hasScheduled = false;
+                    foreach ($interviews as $iv) {
+                        if ($iv['status'] === 'scheduled') {
+                            $hasScheduled = true;
+                        }
+                    }
+                    ?>
                     <?php if (!$interviews): ?><p>No interviews scheduled.</p><?php else: ?>
                         <div class="demo-table-wrap">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Location / link</th>
+                                        <th>Time slot</th>
+                                        <th>Mode / venue / link</th>
                                         <th>Interviewer</th>
                                         <th>Status</th>
-                                        <th>Update</th>
+                                        <th>Step 3 - After interview</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($interviews as $i): ?>
                                         <tr>
                                             <td><?= e(date('M j, Y', strtotime($i['interview_date']))) ?></td>
-                                            <td><?= e(date('g:i A', strtotime($i['interview_time']))) ?></td>
-                                            <td><?= e($i['location_or_link'] ?? '—') ?><?php if ($i['notes']): ?><br><small><?= e($i['notes']) ?></small><?php endif; ?></td>
-                                            <td><?= e($i['interviewer']) ?></td>
-                                            <td><?= e($i['status']) ?></td>
+                                            <td><?= e(slot_label($i['interview_time'])) ?></td>
                                             <td>
-                                                <form method="post" action="<?= e(self()) ?>" class="flow-toolbar">
-                                                    <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
-                                                    <input type="hidden" name="action" value="update_interview">
-                                                    <input type="hidden" name="application_id" value="<?= (int)$detail['id'] ?>">
-                                                    <input type="hidden" name="interview_id" value="<?= (int)$i['id'] ?>">
-                                                    <select name="status" aria-label="Interview status">
-                                                        <?php foreach (['scheduled', 'completed', 'cancelled', 'passed', 'failed'] as $s): ?>
-                                                            <option value="<?= e($s) ?>" <?= $i['status'] === $s ? ' selected' : '' ?>><?= e($s) ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <button type="submit" class="demo-button">Save</button>
-                                                </form>
+                                                <?php if (is_meet_link($i['location_or_link'])): ?>
+                                                    Google Meet: <a href="<?= e($i['location_or_link']) ?>" target="_blank" rel="noopener"><?= e(preg_replace('#^https://#', '', $i['location_or_link'])) ?></a>
+                                                <?php else: ?>
+                                                    <?= e($i['location_or_link'] ?? '—') ?>
+                                                <?php endif; ?>
+                                                <?php if ($i['notes']): ?><br><small><?= e($i['notes']) ?></small><?php endif; ?>
+                                            </td>
+                                            <td><?= e($i['interviewer']) ?></td>
+                                            <td><?= e(ucfirst($i['status'])) ?></td>
+                                            <td>
+                                                <?php if ($i['status'] === 'scheduled'): ?>
+                                                    <form method="post" action="<?= e(self()) ?>" class="flow-toolbar">
+                                                        <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+                                                        <input type="hidden" name="action" value="update_interview">
+                                                        <input type="hidden" name="application_id" value="<?= (int)$detail['id'] ?>">
+                                                        <input type="hidden" name="interview_id" value="<?= (int)$i['id'] ?>">
+                                                        <button type="submit" name="status" value="passed" class="demo-button primary">Approve (Passed)</button>
+                                                        <button type="submit" name="status" value="failed" class="demo-button" onclick="return confirm('Mark as failed and reject this application?')">Reject (Failed)</button>
+                                                        <button type="submit" name="status" value="cancelled" class="demo-button" onclick="return confirm('Cancel this interview?')">Cancel</button>
+                                                    </form>
+                                                <?php else: ?>—<?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -4712,17 +4921,62 @@ $total = count($applicants);
                         </div>
                     <?php endif; ?>
 
-                    <?php if (!$registered && $detail['status'] !== 'rejected'): ?>
-                        <form method="post" action="<?= e(self()) ?>" class="demo-form" aria-label="Schedule interview">
+                    <?php if ($detail['status'] === 'submitted'): ?>
+                        <p>Approve the application in Step 1 to unlock interview scheduling.</p>
+                    <?php elseif ($detail['status'] === 'reviewing' && !$hasScheduled): ?>
+                        <form method="post" action="<?= e(self()) ?>" class="demo-form" id="schedule-form" aria-label="Schedule interview"
+                            data-taken="<?= e(json_encode($takenSlots, JSON_FORCE_OBJECT)) ?>">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="action" value="schedule_interview">
                             <input type="hidden" name="application_id" value="<?= (int)$detail['id'] ?>">
-                            <label>Interview date<input type="date" name="interview_date" required></label>
-                            <label>Interview time<input type="time" name="interview_time" required></label>
-                            <label>Location or meeting link<input type="text" name="location_or_link" maxlength="255"></label>
-                            <label>Notes<textarea name="notes" maxlength="2000"></textarea></label>
-                            <div><button type="submit" class="demo-button">Schedule Interview</button></div>
+                            <label>Interview date (Mon-Fri)<input type="date" name="interview_date" id="iv-date" min="<?= e(date('Y-m-d')) ?>" required></label>
+                            <label>Time slot<select name="interview_slot" id="iv-slot" required>
+                                    <option value="">Select a time slot</option>
+                                    <?php foreach (INTERVIEW_SLOTS as $val => $lbl): ?>
+                                        <option value="<?= e($val) ?>"><?= e($lbl) ?></option>
+                                    <?php endforeach; ?>
+                                </select></label>
+                            <label>Interview type<select name="interview_mode" id="iv-mode" required>
+                                    <option value="meet">Google Meet</option>
+                                    <option value="ftf">Face-to-face</option>
+                                </select></label>
+                            <label id="iv-meet-wrap">Google Meet link<input type="text" value="<?= e(MEET_LINK) ?>" readonly></label>
+                            <label id="iv-ftf-wrap" hidden>Venue<input type="text" name="ftf_location" value="<?= e(FTF_DEFAULT_LOCATION) ?>" maxlength="200"></label>
+                            <label>Notes for applicant (optional)<textarea name="notes" maxlength="2000"></textarea></label>
+                            <div><button type="submit" class="demo-button primary">Schedule &amp; Email Applicant</button></div>
                         </form>
+                        <script>
+                            (function() {
+                                const f = document.getElementById('schedule-form');
+                                const taken = JSON.parse(f.dataset.taken || '{}');
+                                const date = document.getElementById('iv-date');
+                                const slot = document.getElementById('iv-slot');
+                                const mode = document.getElementById('iv-mode');
+                                const sync = () => {
+                                    const used = taken[date.value] || [];
+                                    [...slot.options].forEach(o => {
+                                        if (!o.value) return;
+                                        o.disabled = used.includes(o.value);
+                                        o.textContent = o.textContent.replace(' (booked)', '') + (o.disabled ? ' (booked)' : '');
+                                    });
+                                    if (slot.selectedOptions[0] && slot.selectedOptions[0].disabled) slot.value = '';
+                                    if (date.value) {
+                                        const d = new Date(date.value + 'T00:00:00').getDay();
+                                        date.setCustomValidity(d === 0 || d === 6 ? 'Interviews are Monday to Friday only.' : '');
+                                    }
+                                };
+                                const toggle = () => {
+                                    const m = mode.value === 'meet';
+                                    document.getElementById('iv-meet-wrap').hidden = !m;
+                                    document.getElementById('iv-ftf-wrap').hidden = m;
+                                };
+                                date.addEventListener('change', sync);
+                                mode.addEventListener('change', toggle);
+                                toggle();
+                            })();
+                        </script>
+                    <?php elseif ($detail['status'] === 'reviewing' && $hasScheduled): ?>
+                        <p>Interview scheduled. After the interview, use <strong>Approve (Passed)</strong> or <strong>Reject (Failed)</strong> above.</p>
                     <?php endif; ?>
 
                     <h3>Email notifications</h3>
@@ -4753,8 +5007,8 @@ $total = count($applicants);
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($detail['status'] === 'accepted' && !$detail['employee_id']): ?>
-                        <h3>Register as employee</h3>
+                    <?php if ($detail['status'] === 'interviewed' && !$detail['employee_id']): ?>
+                        <h3>Step 4 - Final approval: register as instructor</h3>
                         <form method="post" action="<?= e(self()) ?>" class="demo-form" aria-label="Register as employee">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="action" value="register_faculty">
@@ -4769,8 +5023,8 @@ $total = count($applicants);
                                 </select></label>
                             <label>Position title<input type="text" name="position_title" value="<?= e($detail['job_title'] ?? $detail['position_applied']) ?>" required maxlength="100"></label>
                             <label>Date hired<input type="date" name="date_hired" value="<?= e(date('Y-m-d')) ?>" required></label>
-                            <label><input type="checkbox" name="is_faculty" value="1" <?= ($detail['category'] ?? 'teaching') === 'teaching' ? ' checked' : '' ?>> Faculty (can receive teaching assignments)</label>
-                            <div><button type="submit" class="demo-button primary">Register Employee</button></div>
+                            <label><input type="checkbox" name="is_faculty" value="1"  checked> Faculty (can receive teaching assignments)</label>
+                            <div><button type="submit" class="demo-button primary">Approve &amp; Register as Instructor</button></div>
                         </form>
                     <?php endif; ?>
 
