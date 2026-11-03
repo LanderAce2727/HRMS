@@ -585,8 +585,165 @@ body.original-login .static-form input,body.original-login .static-form select{h
 body.original-login .input-wrap input{padding-right:64px}
 .static-links{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
 .static-note{font-size:12px;color:var(--muted)}
-.page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
+
+
+/* All pages directory – 3-column equal button grid */
+.page-directory summary{
+  padding:4px 0 16px;
+  font-size:18px;
+  letter-spacing:.005em;
+}
+.page-directory ul{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  padding:0;
+  margin:0;
+  list-style:none;
+}
+.page-directory li{
+  margin:0;
+  display:flex;
+  min-width:0;
+}
+.page-directory li .demo-button{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  width:100%;
+  min-height:52px;
+  padding:12px 18px;
+  border-radius:12px;
+  line-height:1.35;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  transition:border-color .15s,box-shadow .15s,background .15s,transform .15s;
+}
+.page-directory li .demo-button:hover{
+  border-color:var(--blue);
+  background:var(--slot-bg);
+  box-shadow:0 8px 18px -10px var(--glow);
+}
+.page-directory li .demo-button:active{
+  transform:translateY(1px);
+}
+
+/* Graceful fallbacks for narrower screens */
+@media (max-width:960px){
+  .page-directory ul{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media (max-width:620px){
+  .page-directory ul{grid-template-columns:1fr;gap:10px;}
+  .page-directory li .demo-button{min-height:46px;padding:10px 14px;}
+}
+
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
+
+/* nav menu - spacing between the buttons */
+.hrms-header .hrms-public-nav {
+    gap: 16px !important; 
+}
+
+/* nav menu - remove outlines and default backgrounds for nav buttons */
+.hrms-header .hrms-public-nav a.demo-button {
+    border: none !important;            /* Removes the outline */
+    background: transparent !important; /* Removes the default box background */
+    box-shadow: none !important;
+    padding: 8px 18px !important;       /* Comfortable padding inside the button */
+    border-radius: 12px !important;     /* Smooth rounded corners */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* nav menu - hover & Active effect */
+.hrms-header .hrms-public-nav a.demo-button:hover,
+.hrms-header .hrms-public-nav a.demo-button[aria-current="page"] {
+    /* Creates that soft, translucent highlight effect over the dark green header */
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: none !important;
+}
+
+/* nav menu - safety fallback for Light Mode */
+html[data-theme="light"] .hrms-header .hrms-public-nav a.demo-button:hover,
+html[data-theme="light"] .hrms-header .hrms-public-nav a.demo-button[aria-current="page"] {
+    background: var(--slot-bg) !important; /* Soft mint green */
+    color: var(--blue) !important;         /* Dark forest green text */
+}
+
+/* Keep buttons heading consistent */
+.page-directory summary{
+  padding:4px 0 16px;
+  font:700 20px/1.2 Outfit,'Segoe UI',sans-serif;
+  color:var(--ink);
+}
+.page-directory summary::marker{
+  color:var(--muted);
+}
+
+/* Button colors — grey hover */
+:root{
+  --open-bg:#ffffff;
+  --open-bg-hover:#e3e6ea;    /* soft grey */
+  --open-border:#c2c8ce;
+  --open-border-hover:#9aa1a9; /* darker grey for definition */
+}
+:root[data-theme=dark]{
+  --open-bg:var(--panel);
+  --open-bg-hover:#2f3946;    /* muted slate grey */
+  --open-border:#3d4754;
+  --open-border-hover:#5e6b7a; /* lighter grey so hover stays visible */
+}
+
+/* compact main page panels */
+.demo-grid section.demo-panel{
+  display:flex !important;
+  flex-direction:column;
+  min-height:128px !important;
+  padding:18px 20px !important;
+  background:var(--panel) !important;
+}
+.demo-grid section.demo-panel h2{
+  margin:0 0 12px !important;
+}
+
+/* The button: "Open" */
+.demo-grid section.demo-panel > a.demo-button{
+  font-size:0 !important;
+  margin-top:auto !important;
+  align-self:center !important;
+
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+
+  min-height:40px !important;
+  padding:8px 26px !important;
+
+  background:var(--open-bg) !important;
+  color:var(--blue) !important;
+  border:1px solid var(--open-border) !important;
+  border-radius:10px !important;
+  box-shadow:none !important;
+
+  font-weight:500 !important;
+  text-decoration:none;
+  transition:background-color .15s ease,border-color .15s ease;
+}
+
+.demo-grid section.demo-panel > a.demo-button::after{
+  content:"Open";
+  font:500 14px/1 'DM Sans','Segoe UI',sans-serif;
+}
+
+/* Hover - grey fill and grey border */
+.demo-grid section.demo-panel > a.demo-button:hover{
+  background:var(--open-bg-hover) !important;
+  border-color:var(--open-border-hover) !important;
+}
+.demo-grid section.demo-panel > a.demo-button:active{
+  transform:translateY(1px);
+}
 
 </style>
 <link rel="stylesheet" href="assets/ui-flow.css"><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"></head>

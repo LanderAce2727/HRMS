@@ -1,7 +1,12 @@
 <?php
 session_start();
-if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
-    header('Location: Campus_Sign_In.php');
+
+if (
+    !isset($_SESSION['user_id']) ||
+    !isset($_SESSION['role_id']) ||
+    (int) $_SESSION['role_id'] !== 2
+) {
+    header('Location: login.php');
     exit;
 }
 ?>
@@ -606,6 +611,42 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
       .sidebar-panel-view>.sidebar-panel-active{margin-top:0}
       .hrms-sidebar nav a[aria-current=location]{background:var(--slot-bg);color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
       @media(prefers-reduced-motion:reduce){.sidebar-panel-view{scroll-behavior:auto}}
+
+      /* ===== Leave Request + My Payslip (static UI; reuses existing theme tokens) ===== */
+      .leave-dates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px}
+      .leave-status{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+      .leave-status.pending{color:#9a6a08;background:#fff5dc}
+      .leave-status.approved{color:#0b7a56;background:#e4f8f0}
+      .leave-status.rejected{color:#b4303f;background:#ffebef}
+      :root[data-theme=dark] .leave-status.pending{color:#ffd98a;background:#4a3a14}
+      :root[data-theme=dark] .leave-status.approved{color:#8fe3bd;background:#14392b}
+      :root[data-theme=dark] .leave-status.rejected{color:#ffb3bf;background:#47202a}
+      .leave-table-action{min-height:36px;padding:6px 12px;font-size:13px}
+      .payslip-sheet{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:clamp(18px,3vw,32px);margin-bottom:18px}
+      .payslip-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:18px;border-bottom:2px solid var(--blue)}
+      .payslip-head h3{margin:0;font-size:22px;color:var(--blue)}
+      .payslip-head p{margin:2px 0 0;font-size:12px}
+      .sample-tag{display:inline-block;padding:4px 10px;border-radius:20px;border:1px dashed var(--slot-line);background:var(--slot-bg);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+      .payslip-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 20px;margin:0 0 22px}
+      .payslip-meta div{min-width:0}
+      .payslip-meta dt{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+      .payslip-meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+      .payslip-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+      .payslip-block h4{margin:0 0 8px;font:600 16px Outfit,'Segoe UI',sans-serif}
+      .payslip-lines{width:100%;white-space:normal}
+      .payslip-lines td:last-child,.payslip-lines th:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+      .payslip-lines .subtotal td{color:var(--muted);font-style:italic}
+      .payslip-lines .total td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+      .payslip-net{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding:16px 18px;border-radius:12px;background:var(--slot-bg);border:1px solid var(--slot-line)}
+      .payslip-net span{font-weight:700}
+      .payslip-net strong{font:700 clamp(22px,4vw,30px) Outfit,'Segoe UI',sans-serif;color:var(--blue)}
+      .payslip-foot{margin:16px 0 0;font-size:12px}
+      @media print{
+        .no-print{display:none!important}
+        #payslips.demo-panel{border:0;box-shadow:none;padding:0}
+        .payslip-sheet{border:1px solid #000;border-radius:0;background:#fff;color:#000;break-inside:avoid}
+        .payslip-sheet *{color:#000!important;background:transparent!important}
+      }
     </style>
     <link rel="stylesheet" href="assets/ui-flow.css" />
     <script defer src="assets/ui-model.js"></script>
@@ -646,7 +687,7 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
       >
       <nav class="hrms-public-nav" aria-label="Main navigation">
         <a href="index.html">Home</a
-        ><a href="logout.php" aria-label="Log out and return to sign in"
+        ><a href="authentication/logout.php" aria-label="Log out and return to sign in"
           >Log Out</a
         >
       </nav>
@@ -666,6 +707,8 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
           ><a href="#subjects">Assigned Subjects</a
           ><a href="#rooms">Assigned Classrooms</a
           ><a href="#attendance">Attendance Overview</a
+          ><a href="#leave">Leave Request</a
+          ><a href="#payslips">Payslip</a
           ><a href="#announcements">Announcements</a>
         </nav>
       </aside>
@@ -787,6 +830,331 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
             </div>
           </section>
         </section>
+
+        <!-- ============================================================
+             LEAVE REQUEST (STATIC UI ONLY)
+             BACKEND TODO: handle form submission, validation (dates,
+             leave balance, overlapping requests), persistence, request ID
+             generation, approval workflow, and load the history table
+             from the database. Nothing on this panel is saved or sent.
+             ============================================================ -->
+        <section class="demo-panel" id="leave">
+          <header class="demo-heading">
+            <h1>Leave Request</h1>
+            <p>
+              File a leave request and track the status of your previous
+              requests.
+            </p>
+          </header>
+          <p class="hrms-prototype">
+            Static UI preview: the form below does not save or send anything,
+            and the history table shows sample data only. Backend integration
+            is pending.
+          </p>
+          <div
+            class="system-notice"
+            id="leave-notice"
+            role="status"
+            tabindex="-1"
+            hidden
+          ></div>
+          <section class="demo-panel" aria-labelledby="leave-form-title">
+            <h2 id="leave-form-title">New Leave Request</h2>
+            <form class="demo-form" id="leave-form">
+              <label for="leave-type"
+                >Leave Type
+                <select id="leave-type" name="leave_type" required>
+                  <option value="">Select leave type</option>
+                  <option>Sick Leave</option>
+                  <option>Vacation Leave</option>
+                  <option>Emergency Leave</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <div class="leave-dates">
+                <label for="leave-start"
+                  >Start Date
+                  <input
+                    type="date"
+                    id="leave-start"
+                    name="start_date"
+                    required
+                  />
+                </label>
+                <label for="leave-end"
+                  >End Date
+                  <input type="date" id="leave-end" name="end_date" required />
+                </label>
+              </div>
+              <label for="leave-reason"
+                >Reason for Leave
+                <textarea
+                  id="leave-reason"
+                  name="reason"
+                  maxlength="500"
+                  placeholder="Briefly explain the reason for your leave request"
+                  required
+                ></textarea>
+              </label>
+              <div>
+                <button class="demo-button primary" type="submit">
+                  Submit Request
+                </button>
+              </div>
+            </form>
+          </section>
+          <section class="demo-panel" aria-labelledby="leave-history-title">
+            <h2 id="leave-history-title">Leave Request History</h2>
+            <div class="demo-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Request ID</th>
+                    <th scope="col">Leave Type</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Date Filed</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- SAMPLE DATA: replace with records from the database. -->
+                  <tr>
+                    <td>LR-2026-0003 (sample)</td>
+                    <td>Vacation Leave</td>
+                    <td>November 17, 2026</td>
+                    <td>November 19, 2026</td>
+                    <td>October 28, 2026</td>
+                    <td><span class="leave-status pending">Pending</span></td>
+                    <td>
+                      <button
+                        class="demo-button leave-table-action"
+                        type="button"
+                        data-leave-action="cancel"
+                      >
+                        Cancel Request
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>LR-2026-0002 (sample)</td>
+                    <td>Sick Leave</td>
+                    <td>October 12, 2026</td>
+                    <td>October 13, 2026</td>
+                    <td>October 12, 2026</td>
+                    <td>
+                      <span class="leave-status approved">Approved</span>
+                    </td>
+                    <td>
+                      <button
+                        class="demo-button leave-table-action"
+                        type="button"
+                        data-leave-action="view"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>LR-2026-0001 (sample)</td>
+                    <td>Emergency Leave</td>
+                    <td>September 3, 2026</td>
+                    <td>September 3, 2026</td>
+                    <td>September 2, 2026</td>
+                    <td>
+                      <span class="leave-status rejected">Rejected</span>
+                    </td>
+                    <td>
+                      <button
+                        class="demo-button leave-table-action"
+                        type="button"
+                        data-leave-action="view"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <!-- ============================================================
+             MY PAYSLIP (STATIC UI ONLY)
+             BACKEND TODO: fill every [placeholder] and amount from payroll
+             data (attendance x daily rate, allowances, deductions), generate
+             payslip numbers, list real payslips in the history table, and
+             provide server-side PDF generation if a true PDF download is
+             required. All figures below are SAMPLE DATA.
+             ============================================================ -->
+        <section class="demo-panel" id="payslips">
+    <header class="demo-heading">
+        <h1>My Payslip</h1>
+        <p>
+            Payslips use recorded attendance and the applicable daily rate.
+            Generating a payslip does not transfer funds.
+        </p>
+    </header>
+        <p class="hrms-prototype no-print">
+            Sample data only: all names, numbers and amounts below are
+            placeholders for design purposes and are not real payroll records.
+        </p>
+        <article class="payslip-sheet" id="payslip-sheet" aria-label="Payslip">
+            <div class="payslip-head">
+                <div>
+                    <h3>DNSC Smart HRMS</h3>
+                    <p>Official Payslip &middot; Faculty</p>
+                </div>
+                <span class="sample-tag">Sample Data</span>
+            </div>
+            <dl class="payslip-meta">
+                <div>
+                    <dt>Faculty Name</dt>
+                    <dd data-payslip-field="faculty-name">[Faculty Name]</dd>
+                </div>
+                <div>
+                    <dt>Employee ID</dt>
+                    <dd data-payslip-field="employee-id">[Employee ID]</dd>
+                </div>
+                <div>
+                    <dt>Payslip Number</dt>
+                    <dd data-payslip-field="payslip-number">PS-2026-10-0001</dd>
+                </div>
+                <div>
+                    <dt>Payroll Period</dt>
+                    <dd data-payslip-field="payroll-period">October 1 &ndash; 31, 2026</dd>
+                </div>
+            </dl>
+            <div class="payslip-columns">
+                <div class="payslip-block">
+                    <h4>Earnings</h4>
+                    <table class="payslip-lines" aria-label="Earnings">
+                        <thead>
+                            <tr>
+                                <th scope="col">Description</th>
+                                <th scope="col">Amount (PHP)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Basic Salary</td>
+                                <td>30,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>Representation Allowance</td>
+                                <td>2,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>Transportation Allowance</td>
+                                <td>1,500.00</td>
+                            </tr>
+                            <tr class="subtotal">
+                                <td>Total Allowances</td>
+                                <td>3,500.00</td>
+                            </tr>
+                            <tr class="total">
+                                <td>Gross Salary</td>
+                                <td>33,500.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="payslip-block">
+                    <h4>Deductions</h4>
+                    <table class="payslip-lines" aria-label="Deductions">
+                        <thead>
+                            <tr>
+                                <th scope="col">Description</th>
+                                <th scope="col">Amount (PHP)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Withholding Tax</td>
+                                <td>2,500.00</td>
+                            </tr>
+                            <tr>
+                                <td>GSIS Premium</td>
+                                <td>2,700.00</td>
+                            </tr>
+                            <tr>
+                                <td>PhilHealth</td>
+                                <td>500.00</td>
+                            </tr>
+                            <tr>
+                                <td>Pag-IBIG</td>
+                                <td>200.00</td>
+                            </tr>
+                            <tr class="total">
+                                <td>Total Deductions</td>
+                                <td>5,900.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="payslip-net">
+                <span>Net Salary</span>
+                <strong>&#8369;27,600.00</strong>
+            </div>
+            <p class="payslip-foot">
+                This is a computer-generated sample payslip layout. Amounts are
+                placeholders pending payroll integration.
+            </p>
+        </article>
+        <div class="demo-actions no-print">
+            <button class="demo-button primary" type="button" data-print>
+                Print Payslip
+            </button>
+            <button
+                class="demo-button"
+                type="button"
+                data-print
+                title="Opens the print dialog. Choose Save as PDF as the destination."
+            >
+                Download as PDF
+            </button>
+        </div>
+        <p class="static-note no-print">
+            Both buttons open the browser print dialog; choose &ldquo;Save as
+            PDF&rdquo; to download. Server-generated PDFs are a backend task.
+        </p>
+        <section class="demo-panel no-print">
+            <h2>Payslip History</h2>
+            <div class="demo-table-wrap">
+                <table>
+                   <thead>
+                      <tr>
+                          <th scope="col">Payslip Number</th>
+                          <th scope="col">Faculty</th>
+                          <th scope="col">Period</th>
+                          <th scope="col">Days</th>
+                          <th scope="col">Daily Rate</th>
+                          <th scope="col">Gross</th>
+                          <th scope="col">Deductions</th>
+                          <th scope="col">Net</th>
+                      </tr>
+                    </thead>
+                        <tbody>
+                            <!-- SAMPLE DATA: replace with payslip records from the database. -->
+                            <tr>
+                                <td>PS-2026-10-0001 (sample)</td>
+                                <td>[Faculty Name]</td>
+                                <td>October 1 &ndash; 31, 2026</td>
+                                <td>20</td>
+                                <td>&#8369;1,500.00</td>
+                                <td>&#8369;33,500.00</td>
+                                <td>&#8369;5,900.00</td>
+                                <td>&#8369;27,600.00</td>
+                            </tr>
+                        </tbody>
+                  </table>
+            </div>
+        </section>
+        </section>
+                
         <section class="demo-panel" id="announcements">
           <h2>Announcements</h2>
           <ul class="announcements">
@@ -1060,6 +1428,37 @@ if (empty($_SESSION['user_id']) || $_SESSION['role_id'] !== 2) {
             });
           }
         }
+
+        // Leave Request page: UI demonstration only. Nothing is saved or sent.
+        // BACKEND TODO: replace these handlers with real submit/cancel/view logic.
+        const leaveForm = document.getElementById("leave-form"),
+          leaveNotice = document.getElementById("leave-notice"),
+          leaveStart = document.getElementById("leave-start"),
+          leaveEnd = document.getElementById("leave-end");
+        const leaveMessage = (text) => {
+          if (!leaveNotice) return;
+          leaveNotice.hidden = false;
+          leaveNotice.textContent = text;
+          leaveNotice.focus();
+        };
+        if (leaveStart && leaveEnd)
+          leaveStart.addEventListener("change", () => {
+            leaveEnd.min = leaveStart.value;
+          });
+        if (leaveForm)
+          leaveForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            leaveMessage(
+              "Demo only: this request was not saved or submitted. Backend integration is pending.",
+            );
+          });
+        document.querySelectorAll("[data-leave-action]").forEach((b) =>
+          b.addEventListener("click", () =>
+            leaveMessage(
+              "Demo only: this action is not connected yet. Backend integration is pending.",
+            ),
+          ),
+        );
 
         document
           .querySelectorAll("[data-static-submit]")

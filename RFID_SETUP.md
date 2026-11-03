@@ -1,7 +1,8 @@
 # RFID scanner attendance
 
 Open `Attendance.html` directly in your browser or through Live Server.
-`Attendance.php` serves the same page if you use XAMPP. No database, card
+`Attendance.php` contains the full design for XAMPP; it does not load or copy
+`Attendance.html`. No database, card
 registration, PHP API, or network connection is needed for scanning.
 
 Keep the page active, connect the 13.56 MHz keyboard-type USB reader, and tap
@@ -20,9 +21,10 @@ visible. Records exist only in page memory and reset on refresh or closing.
 
 Run `node tests/attendance-kiosk.test.cjs` to verify scan handling.
 
-For collaborators preparing real registered-card attendance, see
-`RFID_DATABASE_GUIDE.php`: Part 1 contains disabled PHP code; Part 2 contains
-separate step-by-step Bisaya instructions for the database and activation.
+For collaborators preparing real registered-card attendance, open `Attendance.php`.
+Simple Bisaya steps are at the top, followed by the commented PHP RFID code.
+The highlighted `handleRfidScannerRequest()` function receives scanned UIDs.
+The complete attendance design is in the same PHP file.
 The matching DATABASE CLIENT and DATABASE SCAN HOOK blocks in
 `assets/attendance-kiosk.js` are also commented out. Enable all three blocks
 together only after the database is ready. The current demo is unchanged.

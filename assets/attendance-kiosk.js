@@ -17,14 +17,14 @@
   // ========================================================================
   // DATABASE CLIENT: FUTURE CODE ONLY (DISABLED)
   // Tangtanga ang /* ug */ niini ug sa DATABASE SCAN HOOK kung ready na ang DB.
-  // Full PHP code + lahi nga Bisaya steps: ../RFID_DATABASE_GUIDE.php.
+  // Full PHP function + simple Bisaya steps: Attendance.php (project root).
   // ========================================================================
   /*
   let databaseBusy = false;
   let databaseToken = '';
   const databaseEndpoint = new URL(
     /\/dist\/Attendance\.(html|php)$/.test(location.pathname)
-      ? '../RFID_DATABASE_GUIDE.php' : 'RFID_DATABASE_GUIDE.php', document.baseURI);
+      ? '../Attendance.php' : 'Attendance.php', document.baseURI);
 
   async function databaseRequest(action, options = {}) {
     const url = new URL(databaseEndpoint);
@@ -38,6 +38,7 @@
     return data;
   }
 
+  // >>> RFID SCANNER CONNECTION: sends the typed UID to Attendance.php. <<<
   async function recordRegisteredRfid(uid) {
     if (databaseBusy) {
       feedback.textContent = 'Please wait for the current scan, then tap again.';
