@@ -92,5 +92,23 @@ body[data-flow=vacancies]>.hrms-header .vacancy-search-button{padding:0}
 
 /* Selected sidebar panels occupy the same content area instead of stacking down the page. */
 .sidebar-panel-view>.sidebar-panel-active{margin-top:0}
+body[data-flow=faculty] #profile{max-width:1080px;padding:0;overflow:hidden;border-radius:24px}
+.faculty-profile-cover{position:relative;display:flex;justify-content:flex-end;overflow:hidden;height:165px;padding:22px 28px;background:linear-gradient(115deg,#b8d7d5 0%,#c7d9d2 48%,#d9d3e0 100%)}
+.faculty-profile-cover::before,.faculty-profile-cover::after{content:"";position:absolute;border:1px solid #ffffff80;border-radius:50%}
+.faculty-profile-cover::before{width:330px;height:330px;left:-90px;top:-200px;box-shadow:0 0 0 55px #ffffff26}
+.faculty-profile-cover::after{width:210px;height:210px;right:15%;bottom:-165px;box-shadow:0 0 0 40px #ffffff24}
+.faculty-profile-cover span{z-index:1;color:#245c4b;font-size:11px;font-weight:800;letter-spacing:.16em}
+.faculty-profile-heading{position:relative;display:flex;align-items:flex-end;gap:17px;margin:-52px 30px 25px}
+.faculty-profile-avatar{display:grid;place-items:center;flex:none;width:102px;height:102px;border:5px solid var(--panel);border-radius:50%;background:linear-gradient(135deg,#17613f,#6cbba5);color:#fff;font:800 29px Outfit,'Segoe UI',sans-serif;box-shadow:0 8px 24px #103b242a}
+.faculty-profile-identity{min-width:0;padding-bottom:4px}
+body[data-flow=faculty] #profile .faculty-profile-identity h2{margin:0 0 3px;overflow-wrap:anywhere}
+.faculty-profile-identity p{margin:0;color:var(--muted);font-size:14px}
+.faculty-profile-section-title{margin:0 30px 14px;color:var(--ink);font-size:16px}
+body[data-flow=faculty] #profile .profile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 30px 30px;padding:0;border:0;background:transparent;box-shadow:none}
+body[data-flow=faculty] #profile .profile-grid>div{min-width:0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 6px 16px #153d2814}
+body[data-flow=faculty] #profile .profile-grid dt{margin-bottom:6px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+body[data-flow=faculty] #profile .profile-grid dd{margin:0;font-size:14px;font-weight:700;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:800px){body[data-flow=faculty] #profile .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.faculty-profile-cover{height:140px}.faculty-profile-heading{margin:-42px 20px 22px}.faculty-profile-avatar{width:84px;height:84px;font-size:24px}.faculty-profile-section-title{margin-inline:20px}body[data-flow=faculty] #profile .profile-grid{grid-template-columns:minmax(0,1fr);margin:0 20px 24px}}
 .hrms-sidebar nav a[aria-current=location]{background:var(--slot-bg);color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
 @media(prefers-reduced-motion:reduce){.sidebar-panel-view{scroll-behavior:auto}}

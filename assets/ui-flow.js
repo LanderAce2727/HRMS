@@ -81,6 +81,14 @@ if(page==='management'){
 if(page==='faculty'){
  const faculty=model.getFaculty(new URL(location.href).searchParams.get('faculty'));
  document.getElementById('faculty-name').textContent=faculty.name;document.getElementById('faculty-id').textContent=faculty.id;document.getElementById('faculty-department').textContent=faculty.department;document.getElementById('faculty-position').textContent=faculty.position;document.getElementById('faculty-status').textContent=faculty.status;
+ const profileCard=document.getElementById('profile');profileCard.classList.add('faculty-profile-card');
+ const cover=document.createElement('div');cover.className='faculty-profile-cover';const brand=document.createElement('span');brand.textContent='DNSC SMART HRMS';cover.append(brand);profileCard.prepend(cover);
+ const heading=profileCard.querySelector('h2');heading.textContent=faculty.name;
+ const identity=document.createElement('div');identity.className='faculty-profile-identity';identity.append(heading);
+ const role=document.createElement('p');role.textContent=faculty.position;identity.append(role);
+ const avatar=document.createElement('span');avatar.className='faculty-profile-avatar';avatar.setAttribute('role','img');avatar.setAttribute('aria-label',faculty.name+' profile image');avatar.textContent=faculty.name.trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase();
+ const profileHeading=document.createElement('div');profileHeading.className='faculty-profile-heading';profileHeading.append(avatar,identity);profileCard.insertBefore(profileHeading,profileCard.querySelector('dl'));
+ const detailsHeading=document.createElement('h3');detailsHeading.className='faculty-profile-section-title';detailsHeading.textContent='Profile details';profileCard.insertBefore(detailsHeading,profileCard.querySelector('dl'));
  const schedule=[...faculty.assignments].sort((a,b)=>model.days.indexOf(a.day)-model.days.indexOf(b.day)||a.start.localeCompare(b.start));
  document.getElementById('schedule-rows').innerHTML=schedule.map(s=>`<tr><td>${esc(s.day)}</td><td>${esc(s.subjectCode)}<small class="cell-secondary">${esc(s.subjectName)}</small></td><td>${esc(s.start+' – '+s.end)}</td><td>${esc(s.section)}</td><td>${esc(s.room)}</td></tr>`).join('');
  const subjects=new Map();for(const s of schedule){const key=s.subjectCode+'|'+s.section;if(!subjects.has(key))subjects.set(key,{...s,times:[]});subjects.get(key).times.push(s.day+' '+s.start+'–'+s.end);}

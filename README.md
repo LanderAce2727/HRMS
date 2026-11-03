@@ -1,5 +1,9 @@
 # DNSC Smart HRMS - Frontend Walkthrough
 
+RFID attendance works directly in `Attendance.html`, with green TIME IN and
+orange TIME OUT cards. It accepts any scanned UID without a database. Records
+reset when the page reloads. See [RFID setup](RFID_SETUP.md) for scanner usage.
+
 Open **login.html** in your browser or through VS Code Live Server. No PHP, database, API, or Google OAuth setup is used.
 
 ## Demo accounts
@@ -34,7 +38,7 @@ A faculty registration is only a UI simulation; it does not activate an account 
 
 ## Faculty flow
 
-The faculty demo account opens faculty-dashboard.html with a sample faculty profile, weekly teaching schedule, assigned subjects/classrooms, mock attendance/history, and announcements. The HR preview link can display newly assigned mock faculty as well.
+The faculty demo account opens faculty-dashboard.html, which forwards to the static dashboard in dist/. The PHP-backed dashboard remains at faculty-dashboard.php. Both use the same employee-style profile presentation, with the sample teaching schedule, assigned subjects/classrooms, attendance/history, and announcements. The separate employee dashboard views and payslips tab have been removed. The old employee profile URL remains only as a redirect for the existing PHP login.
 
 ## Storage and deployment
 
