@@ -10,14 +10,90 @@
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
   const ALLOWED_EXT = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg'];
 
-  function notify(text, isError) {
-    const box = document.getElementById('flow-message');
-    if (!box) return;
+  /* ---------- per-field errors: red border + message under the field ---------- */
+
+  const RULES = {
+    contactNumber: {
+      test: (v) => /^[+\d ()-]{7,20}$/.test(v),
+      message: 'Enter a valid contact number (digits, +, spaces or dashes).',
+    },
+    prcNumber: {
+      test: (v) => /^[A-Za-z0-9][A-Za-z0-9 \-\/]{0,39}$/.test(v),
+      message: 'Enter a valid PRC license number, or tick Not Applicable.',
+    },
+    experience: {
+      test: (v) => /^\d{1,2}$/.test(v) && Number(v) <= 60,
+      message: 'Enter whole years of experience, from 0 to 60.',
+    },
+  };
+
+  function fieldKey(control) {
+    return control.name.replace('[]', '');
+  }
+
+  function messageBox(control, create) {
+    const label = control.closest('label');
+    if (!label) return null;
+    let box = label.querySelector('.field-error');
+    if (!box && create) {
+      box = document.createElement('small');
+      box.className = 'field-error';
+      box.id = 'err-' + fieldKey(control);
+      box.setAttribute('role', 'alert');
+      label.appendChild(box);
+    }
+    return box;
+  }
+
+  function showError(control, message) {
+    const label = control.closest('label');
+    const box = messageBox(control, true);
+    if (!label || !box) return;
+    label.classList.add('has-error');
+    control.setAttribute('aria-invalid', 'true');
+    control.setAttribute('aria-describedby', box.id);
+    box.textContent = message;
     box.hidden = false;
-    box.classList.toggle('flow-error', !!isError);
-    box.setAttribute('role', isError ? 'alert' : 'status');
-    box.textContent = text;
-    box.focus();
+  }
+
+  function clearError(control) {
+    const label = control.closest('label');
+    const box = messageBox(control, false);
+    if (label) label.classList.remove('has-error');
+    control.removeAttribute('aria-invalid');
+    if (box) {
+      box.textContent = '';
+      box.hidden = true;
+    }
+  }
+
+  /* Returns an error message for the control, or '' when it is fine. */
+  function problemFor(control) {
+    if (control.disabled || control.readOnly || control.type === 'hidden' || control.type === 'checkbox') {
+      return '';
+    }
+
+    if (control.type === 'file') {
+      if (control.required && control.files.length === 0) return 'Please attach this file.';
+      for (const file of control.files) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_EXT.includes(ext)) {
+          return file.name + ' is not supported. Use PDF, DOC, DOCX, PNG or JPG.';
+        }
+        if (file.size > MAX_FILE_BYTES) return file.name + ' is larger than 5 MB.';
+      }
+      return '';
+    }
+
+    const value = control.value.trim();
+    if (value === '') {
+      if (!control.required) return '';
+      if (control.name === 'prcNumber') return 'Enter your PRC license number, or tick Not Applicable.';
+      return control.tagName === 'SELECT' ? 'Please choose an option.' : 'This field is required.';
+    }
+    const rule = RULES[control.name];
+    if (rule && !rule.test(value)) return rule.message;
+    return '';
   }
 
   /* "Not Applicable" disables the PRC number field. */
@@ -28,7 +104,10 @@
     const update = () => {
       input.disabled = check.checked;
       input.required = !check.checked;
-      if (check.checked) input.value = '';
+      if (check.checked) {
+        input.value = '';
+        clearError(input);
+      }
     };
     check.addEventListener('change', update);
     update();
@@ -38,53 +117,55 @@
   function setupFileLists(form) {
     form.querySelectorAll('input[type=file]').forEach((input) => {
       input.addEventListener('change', () => {
-        const out = form.querySelector('[data-file-list="' + input.name.replace('[]', '') + '"]');
+        const out = form.querySelector('[data-file-list="' + fieldKey(input) + '"]');
         if (out) out.textContent = [...input.files].map((f) => f.name).join(', ');
       });
     });
-  }
-
-  /* Quick client-side file check (the server checks again). */
-  function filesProblem(form) {
-    for (const input of form.querySelectorAll('input[type=file]')) {
-      for (const file of input.files) {
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!ALLOWED_EXT.includes(ext)) {
-          return file.name + ' is not a supported file type (PDF, DOC, DOCX, PNG, JPG).';
-        }
-        if (file.size > MAX_FILE_BYTES) {
-          return file.name + ' is larger than 5 MB.';
-        }
-      }
-    }
-    return '';
   }
 
   document.querySelectorAll('form[data-flow-form]').forEach((form) => {
     setupLicense(form);
     setupFileLists(form);
 
+    // Typing / choosing clears that field's error straight away.
+    const fields = 'input, select, textarea';
+    form.addEventListener('input', (e) => { if (e.target.matches(fields)) clearError(e.target); });
+    form.addEventListener('change', (e) => { if (e.target.matches(fields)) clearError(e.target); });
+
     form.addEventListener('submit', (event) => {
-      if (!form.reportValidity()) {
+      let first = null;
+      form.querySelectorAll(fields).forEach((control) => {
+        const message = problemFor(control);
+        if (message) {
+          showError(control, message);
+          if (!first) first = control;
+        } else {
+          clearError(control);
+        }
+      });
+
+      if (first) {
         event.preventDefault();
-        notify('Complete the required fields before continuing.', true);
+        first.focus();
         return;
       }
-      const problem = filesProblem(form);
-      if (problem) {
-        event.preventDefault();
-        notify(problem, true);
-        return;
-      }
+
       // Prevent double submission; the form still submits normally.
       const button = form.querySelector('button[type=submit]');
       if (button) setTimeout(() => { button.disabled = true; }, 0);
     });
   });
 
-  /* Server-side error message: bring it into view / focus. */
+  /* After a server-side validation failure: jump to the first bad field. */
+  const firstBad = document.querySelector(
+    '.has-error input:not([type=checkbox]), .has-error select, .has-error textarea'
+  );
   const flash = document.getElementById('flow-message');
-  if (flash && !flash.hidden) flash.focus();
+  if (firstBad) {
+    firstBad.focus();
+  } else if (flash && !flash.hidden) {
+    flash.focus();
+  }
 
   /* Log Out button (job-vacancies.php header). */
   const logout = document.getElementById('vacancy-logout');

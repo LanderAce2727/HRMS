@@ -1,0 +1,31 @@
+/* Field-level validation: red border + message directly under the field. */
+:root {
+  --field-err: #d92d20;
+  --field-err-ink: #b42318;
+  --field-err-ring: rgba(217, 45, 32, .18);
+}
+html[data-theme="dark"] {
+  --field-err: #ff6b6b;
+  --field-err-ink: #ff9d9d;
+  --field-err-ring: rgba(255, 107, 107, .25);
+}
+
+.flow-form label.has-error input:not([type="checkbox"]),
+.flow-form label.has-error select,
+.flow-form label.has-error textarea {
+  border-color: var(--field-err) !important;
+  box-shadow: 0 0 0 3px var(--field-err-ring);
+}
+
+.field-error { display: none; }
+.field-error:not([hidden]) {
+  display: block;
+  margin-top: 6px;
+  font-size: .86rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--field-err-ink);
+}
+
+/* "Not Applicable" greys out the PRC number box. */
+.flow-form input:disabled { opacity: .55; cursor: not-allowed; }
