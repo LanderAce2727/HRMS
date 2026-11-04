@@ -1,6 +1,17 @@
 <?php
 session_start();
 header('Cache-Control: no-store, no-cache, must-revalidate');
+// Prevent the browser from caching this page
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: 0');
+
+// Block access if not logged in or not HR admin
+if (empty($_SESSION['user_id']) || ($_SESSION['role_id'] ?? null) !== 1) {
+  header('Location: ../login.php');
+  exit;
+}
 
 if (empty($_SESSION['user_id']) || (int)($_SESSION['role_id'] ?? 0) !== 1) {
   header('Location: ../login.php');
@@ -4403,12 +4414,21 @@ $statusLabel = [
             <input name="evaluation_end" id="evaluation_end" type="date" value="<?= e($evalEnd) ?>" min="<?= e($evalStart) ?>">
           </label>
           <p class="demo-muted">Current open period: <strong><?= e($academicPeriod !== '' ? $academicPeriod : 'Closed') ?></strong>. Clear both dates to close evaluations.
-            <button type="button" class="demo-button" id="clear-eval-dates">Clear dates</button></p>
+            <button type="button" class="demo-button" id="clear-eval-dates">Clear dates</button>
+          </p>
           <script>
             (function() {
-              const s = document.getElementById('evaluation_start'), e = document.getElementById('evaluation_end');
-              s.addEventListener('change', () => { e.min = s.value; if (e.value && e.value < s.value) e.value = s.value; });
-              document.getElementById('clear-eval-dates').addEventListener('click', () => { s.value = ''; e.value = ''; e.min = ''; });
+              const s = document.getElementById('evaluation_start'),
+                e = document.getElementById('evaluation_end');
+              s.addEventListener('change', () => {
+                e.min = s.value;
+                if (e.value && e.value < s.value) e.value = s.value;
+              });
+              document.getElementById('clear-eval-dates').addEventListener('click', () => {
+                s.value = '';
+                e.value = '';
+                e.min = '';
+              });
             })();
           </script>
           <label>Work start time (PHT)
@@ -4681,6 +4701,13 @@ $statusLabel = [
       tick();
       if (document.getElementById('live-clock')) setInterval(tick, 1000);
     })();
+  </script>
+  <script>
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted) {
+        window.location.reload();
+      }
+    });
   </script>
 </body>
 
