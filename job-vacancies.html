@@ -583,7 +583,19 @@ body.original-login .input-wrap input{padding-right:64px}
 .page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
 
-</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/ui-model.js"></script><script defer src="assets/ui-flow.js?v=20261029-vacancy-gallery"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"></head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><div class="vacancy-google-account" id="vacancy-google-account" hidden><button type="button" id="vacancy-logout" class="vacancy-logout" aria-label="Log out and return to sign in"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span id="vacancy-google-name"></span></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"></div></main></div><script>
+</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/ui-model.js"></script><script defer src="assets/ui-flow.js?v=20261029-vacancy-gallery"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee">
+<!-- Job vacancies popup cards: design only, no data connections. -->
+<style>
+.hrms-header .vacancy-preview-trigger{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:8px 12px;border:1px solid #91b49e;border-radius:10px;background:#235f46;color:#fff;font-weight:600;cursor:pointer}
+.vacancy-preview-trigger:hover,.vacancy-preview-trigger[aria-expanded=true]{background:#307754}.vacancy-preview-trigger:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.vacancy-preview-avatar{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#e8f2eb;color:#17613f;font-weight:700;flex:none}
+.vacancy-preview-card{position:fixed;z-index:300;width:min(330px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:22px;border:1px solid var(--line,#d9e5de);border-top:4px solid #17613f;border-radius:15px;background:var(--panel,#fff);color:var(--ink,#17372c);box-shadow:0 14px 40px #102b1b33;text-align:left;line-height:1.5}
+.vacancy-preview-card[hidden]{display:none!important}.vacancy-preview-card h2{font-size:18px;margin:0 28px 14px 0;color:inherit}.vacancy-preview-card p{font-size:13px;margin:8px 0;color:var(--muted,#5b7066)}
+.vacancy-preview-close{position:absolute;top:8px;right:8px;width:32px;height:32px;padding:0;border:0;border-radius:7px;background:transparent;color:inherit;font-size:24px;cursor:pointer}
+.vacancy-preview-close:focus-visible{outline:3px solid #17613f;outline-offset:2px}.vacancy-preview-card dl{display:grid;gap:13px;margin:18px 0 0}.vacancy-preview-card dt{color:var(--muted,#5b7066);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}.vacancy-preview-card dd{margin:3px 0 0;font-size:14px;overflow-wrap:anywhere}
+.vacancy-preview-identity{display:flex;align-items:center;gap:12px;padding-bottom:15px;border-bottom:1px solid var(--line,#d9e5de)}.vacancy-preview-identity .vacancy-preview-avatar{width:46px;height:46px;font-size:21px}
+</style>
+</head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><button type="button" class="vacancy-preview-trigger" id="vacancy-notification-button" aria-label="Interview notification" aria-expanded="false" aria-controls="vacancy-notification-card"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button><button type="button" class="vacancy-preview-trigger" id="vacancy-signout-preview" aria-label="Sign out" title="Sign out"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></button><div class="vacancy-google-account" id="vacancy-google-account" hidden><button type="button" id="vacancy-logout" class="vacancy-logout" aria-label="Log out and return to sign in"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><button type="button" class="vacancy-preview-trigger" id="vacancy-google-name" aria-label="View applicant information" aria-expanded="false" aria-controls="vacancy-profile-card"></button></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"></div></main></div><script>
 /* Browser-only controls. No requests, authentication, uploads, or record storage. */
 (() => {
 'use strict';
@@ -659,4 +671,64 @@ document.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>window.print(
 const tick=()=>{const clock=document.getElementById('live-clock'),date=document.getElementById('live-date');if(clock)clock.textContent=new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());if(date)date.textContent=new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',dateStyle:'full'}).format(new Date());};tick();if(document.getElementById('live-clock'))setInterval(tick,1000);
 })();
 
-</script><noscript><p>Enable JavaScript to use this page.</p></noscript></body></html>
+</script><noscript><p>Enable JavaScript to use this page.</p></noscript>
+<!-- Static placeholders for design review; no account, HR or database data is loaded. -->
+<section class="vacancy-preview-card" id="vacancy-notification-card" aria-labelledby="vacancy-notification-title" hidden>
+<button type="button" class="vacancy-preview-close" aria-label="Close interview notification">&times;</button>
+<h2 id="vacancy-notification-title">Interview notification</h2><p><strong>From HR Office</strong></p><p>Your interview message, schedule, and meeting address will appear here.</p>
+<dl><div><dt>Date</dt><dd>To be announced</dd></div><div><dt>Time</dt><dd>To be announced</dd></div><div><dt>Address</dt><dd>To be confirmed by HR</dd></div></dl>
+</section>
+<section class="vacancy-preview-card" id="vacancy-profile-card" aria-labelledby="vacancy-profile-title" hidden>
+<button type="button" class="vacancy-preview-close" aria-label="Close applicant information">&times;</button>
+<h2 id="vacancy-profile-title">Applicant information</h2><div class="vacancy-preview-identity"><span id="vacancy-profile-initial" class="vacancy-preview-avatar" aria-hidden="true">A</span><strong id="vacancy-profile-name">Applicant Name</strong></div>
+<dl><div><dt>Email address</dt><dd>Not provided</dd></div><div><dt>PRC license</dt><dd>Not provided</dd></div><div><dt>Degree / Specialization</dt><dd>Not provided</dd></div><div><dt>Educational attainment</dt><dd>Not provided</dd></div></dl>
+</section>
+<script>
+// Job vacancies design only: show/hide the two static cards. No data connection.
+(() => {
+  const entries = [
+    ['vacancy-notification-button', 'vacancy-notification-card'],
+    ['vacancy-google-name', 'vacancy-profile-card']
+  ].map(([button, card]) => ({ button: document.getElementById(button), card: document.getElementById(card) }));
+  let opened = null;
+  function close(focus = false) {
+    if (!opened) return;
+    const entry = opened;
+    entry.card.hidden = true;
+    entry.button.setAttribute('aria-expanded', 'false');
+    opened = null;
+    if (focus) entry.button.focus();
+  }
+  function position(entry) {
+    const rect = entry.button.getBoundingClientRect();
+    const width = entry.card.getBoundingClientRect().width;
+    entry.card.style.left = Math.max(16, Math.min(rect.right - width, window.innerWidth - width - 16)) + 'px';
+    entry.card.style.top = rect.bottom + 10 + 'px';
+    entry.card.style.maxHeight = Math.max(100, window.innerHeight - rect.bottom - 26) + 'px';
+  }
+  for (const entry of entries) {
+    entry.button.addEventListener('click', () => {
+      if (opened === entry) { close(); return; }
+      close();
+      if (entry.button.id === 'vacancy-google-name') {
+        const name = entry.button.textContent.trim() || 'Applicant Name';
+        document.getElementById('vacancy-profile-name').textContent = name;
+        document.getElementById('vacancy-profile-initial').textContent = Array.from(name)[0].toUpperCase();
+      }
+      opened = entry;
+      entry.card.hidden = false;
+      entry.button.setAttribute('aria-expanded', 'true');
+      position(entry);
+      entry.card.querySelector('.vacancy-preview-close').focus({ preventScroll: true });
+    });
+    entry.card.querySelector('.vacancy-preview-close').addEventListener('click', () => close(true));
+  }
+  document.addEventListener('click', event => {
+    if (opened && !opened.button.contains(event.target) && !opened.card.contains(event.target)) close();
+  });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') close(true); });
+  window.addEventListener('resize', () => { if (opened) position(opened); });
+  window.addEventListener('scroll', () => { if (opened) position(opened); }, true);
+})();
+</script>
+</body></html>
