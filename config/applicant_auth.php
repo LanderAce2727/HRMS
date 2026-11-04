@@ -161,3 +161,26 @@ function applied_vacancy_ids(PDO $pdo, int $userId): array
     $stmt->execute(['u' => $userId]);
     return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
 }
+
+/* ---------- field-level validation display ---------- */
+
+/** ' class="..."' for a <label>; adds has-error when this field failed validation. */
+function label_class(array $fieldErrors, string $name, string $extra = ''): string
+{
+    $classes = trim($extra . (isset($fieldErrors[$name]) ? ' has-error' : ''));
+    return $classes === '' ? '' : ' class="' . e($classes) . '"';
+}
+
+/** aria attributes for the control, so screen readers announce the message. */
+function invalid_attrs(array $fieldErrors, string $name): string
+{
+    return (isset($fieldErrors[$name]) ? ' aria-invalid="true"' : '') . ' aria-describedby="err-' . e($name) . '"';
+}
+
+/** The message element shown directly under the field (empty + hidden when valid). */
+function field_error(array $fieldErrors, string $name): string
+{
+    $has = isset($fieldErrors[$name]);
+    return '<small class="field-error" id="err-' . e($name) . '" role="alert"' . ($has ? '' : ' hidden') . '>'
+         . ($has ? e($fieldErrors[$name]) : '') . '</small>';
+}
