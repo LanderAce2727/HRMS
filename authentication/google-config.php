@@ -20,7 +20,7 @@ return $local + [
     'role_redirects'  => [
         1 => '../hr-admin/HR_Admin_Dashboard.php',
         2 => '../faculty-dashboard.php',
-        3 => '../applicant-verification.html', // keep in sync with applicant_role_id
+        3 => '../applicant-verification.php', // keep in sync with applicant_role_id
     ],
     'fallback_redirect' => '../login.php',
 ];
