@@ -73,6 +73,11 @@ try {
         exit;
     }
 
+    if ((int) $user['role_id'] === 3) {
+        header('Location: ../student/Student_Verification_Status.php');
+        exit;
+    }
+
     session_unset();
     session_destroy();
 

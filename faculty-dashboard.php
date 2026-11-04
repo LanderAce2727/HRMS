@@ -9,6 +9,270 @@ if (
     header('Location: login.php');
     exit;
 }
+
+require_once __DIR__ . '/config/db.php';
+$pdo = db();
+
+function e($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
+function money($v): string { return number_format((float) $v, 2); }
+function fdate($v): string { return date('F j, Y', strtotime((string) $v)); }
+function ftime($v): string { return date('h:i A', strtotime((string) $v)); }
+
+$userId = (int) $_SESSION['user_id'];
+
+/* ---- Logged-in faculty member ---- */
+$st = $pdo->prepare(
+    'SELECT e.*, d.department_name
+       FROM employees e
+       JOIN departments d ON d.id = e.department_id
+      WHERE e.user_id = ? LIMIT 1'
+);
+$st->execute([$userId]);
+$emp = $st->fetch();
+if (!$emp) {
+    http_response_code(403);
+    exit('No employee record is linked to this account.');
+}
+$empId    = (int) $emp['id'];
+$fullName = trim($emp['first_name'] . ' ' . ($emp['middle_name'] ? $emp['middle_name'] . ' ' : '') . $emp['last_name']);
+$statusLabel = ucwords(str_replace('_', ' ', $emp['current_status']));
+
+/* ---- Individual payslip print view (same design as HR; own payslips only) ---- */
+if (isset($_GET['print_payslip'])) {
+    $printId = filter_var($_GET['print_payslip'], FILTER_VALIDATE_INT);
+    if (!$printId || $printId < 1) {
+        http_response_code(400);
+        exit('Invalid payslip.');
+    }
+
+    $printQuery = $pdo->prepare(
+        'SELECT p.*, e.first_name, e.middle_name, e.last_name, e.employee_number,
+                e.position_title
+           FROM payslips p
+           JOIN employees e ON e.id = p.employee_id
+          WHERE p.id = ? AND p.employee_id = ?
+          LIMIT 1'
+    );
+    $printQuery->execute([$printId, $empId]);
+    $printPayslip = $printQuery->fetch();
+
+    if (!$printPayslip) {
+        http_response_code(404);
+        exit('Payslip not found.');
+    }
+
+    $itemQuery = $pdo->prepare(
+        'SELECT item_type, item_name, amount
+           FROM payslip_items
+          WHERE payslip_id = ?
+          ORDER BY id ASC'
+    );
+    $itemQuery->execute([$printId]);
+    $printItems = $itemQuery->fetchAll();
+
+    ?><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Payslip <?= e($printPayslip['payslip_number']) ?></title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; color: #17233d; font: 14px/1.5 Arial, sans-serif; background: #f4f6fb; }
+    .payslip { max-width: 760px; margin: 0 auto; padding: 36px; background: #fff; border: 1px solid #dce3ef; }
+    .top { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; border-bottom:2px solid #243b68; padding-bottom:20px; }
+    h1 { margin:0 0 5px; font-size:25px; }
+    h2 { margin:26px 0 12px; font-size:16px; }
+    p { margin:3px 0; color:#52617b; }
+    .number { text-align:right; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 28px; margin-top:22px; }
+    .label { display:block; color:#68758d; font-size:12px; }
+    .value { font-weight:700; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:11px 9px; border-bottom:1px solid #e5eaf2; text-align:left; }
+    th:last-child, td:last-child { text-align:right; }
+    .totals { width:min(100%, 330px); margin:18px 0 0 auto; }
+    .totals td { border:0; padding:7px 9px; }
+    .net { border-top:2px solid #243b68 !important; font-size:18px; font-weight:700; }
+    .actions { max-width:760px; margin:16px auto; display:flex; gap:10px; }
+    button, a { border:0; border-radius:8px; padding:10px 16px; background:#326bfa; color:white; text-decoration:none; cursor:pointer; font:inherit; }
+    a { background:#e8eefb; color:#244b9b; }
+    .foot { margin-top:40px; padding-top:15px; border-top:1px solid #dce3ef; color:#68758d; font-size:12px; }
+    @media print {
+      body { padding:0; background:#fff; }
+      .payslip { max-width:none; border:0; padding:0; }
+      .actions { display:none !important; }
+      @page { size:A4; margin:16mm; }
+    }
+    @media(max-width:600px) {
+      body { padding:12px; }
+      .payslip { padding:20px; }
+      .top { display:block; }
+      .number { text-align:left; margin-top:15px; }
+      .grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="actions">
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <a href="<?= e(basename(__FILE__)) ?>#payslips">Back to Dashboard</a>
+  </div>
+  <main class="payslip">
+    <header class="top">
+      <div>
+        <h1>DNSC SMART HRMS</h1>
+        <p>Employee Payroll Payslip</p>
+      </div>
+      <div class="number">
+        <strong><?= e($printPayslip['payslip_number']) ?></strong>
+        <p>Generated: <?= e(date('F j, Y', strtotime($printPayslip['generated_at']))) ?></p>
+      </div>
+    </header>
+    <section class="grid">
+      <div><span class="label">Employee Name</span><span class="value"><?= e(trim($printPayslip['first_name'] . ' ' . ($printPayslip['middle_name'] ?? '') . ' ' . $printPayslip['last_name'])) ?></span></div>
+      <div><span class="label">Employee Number</span><span class="value"><?= e($printPayslip['employee_number']) ?></span></div>
+      <div><span class="label">Position</span><span class="value"><?= e($printPayslip['position_title']) ?></span></div>
+      <div><span class="label">Pay Period</span><span class="value"><?= e(date('M j, Y', strtotime($printPayslip['period_start_date']))) ?> – <?= e(date('M j, Y', strtotime($printPayslip['period_end_date']))) ?></span></div>
+      <div><span class="label">Days Worked</span><span class="value"><?= (int) $printPayslip['total_days_worked'] ?></span></div>
+      <div><span class="label">Daily Rate Applied</span><span class="value">&#8369;<?= e(money($printPayslip['daily_rate_applied'])) ?></span></div>
+    </section>
+    <h2>Earnings and Deductions</h2>
+    <table>
+      <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+      <tbody>
+        <?php if ($printItems): ?>
+          <?php foreach ($printItems as $item): ?>
+            <tr><td><?= e(ucfirst($item['item_type']) . ': ' . $item['item_name']) ?></td><td>&#8369;<?= e(money($item['amount'])) ?></td></tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr><td>Basic pay</td><td>&#8369;<?= e(money($printPayslip['gross_salary'])) ?></td></tr>
+          <tr><td>Deductions</td><td>&#8369;<?= e(money($printPayslip['deductions'])) ?></td></tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+    <table class="totals">
+      <tr><td>Gross Salary</td><td>&#8369;<?= e(money($printPayslip['gross_salary'])) ?></td></tr>
+      <tr><td>Total Deductions</td><td>&#8369;<?= e(money($printPayslip['deductions'])) ?></td></tr>
+      <tr class="net"><td>NET PAY</td><td>&#8369;<?= e(money($printPayslip['net_salary'])) ?></td></tr>
+    </table>
+    <div class="foot">This payslip was generated by DNSC SMART HRMS. Please contact Human Resources if you have questions about this record.</div>
+  </main>
+  <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));</script>
+</body>
+</html><?php
+    exit;
+}
+
+/* ---- Leave request actions (submit / cancel) ---- */
+if (empty($_SESSION['csrf'])) { $_SESSION['csrf'] = bin2hex(random_bytes(16)); }
+$leaveFlash = $_SESSION['leave_flash'] ?? '';
+unset($_SESSION['leave_flash']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_action'])) {
+    $msg = 'Invalid request.';
+    if (hash_equals($_SESSION['csrf'], (string) ($_POST['csrf'] ?? ''))) {
+        if ($_POST['leave_action'] === 'submit') {
+            $type   = trim((string) ($_POST['leave_type'] ?? ''));
+            if ($type === 'Other') { $type = trim((string) ($_POST['other_leave_type'] ?? '')); }
+            $start  = (string) ($_POST['start_date'] ?? '');
+            $end    = (string) ($_POST['end_date'] ?? '');
+            $reason = trim((string) ($_POST['reason'] ?? ''));
+            $d1 = DateTime::createFromFormat('Y-m-d', $start);
+            $d2 = DateTime::createFromFormat('Y-m-d', $end);
+
+            if ($type === '' || mb_strlen($type) > 50 || $reason === '' || mb_strlen($reason) > 500) {
+                $msg = 'Please complete all fields correctly.';
+            } elseif (!$d1 || !$d2 || $d1->format('Y-m-d') !== $start || $d2->format('Y-m-d') !== $end) {
+                $msg = 'Please provide valid dates.';
+            } elseif ($end < $start) {
+                $msg = 'End date cannot be earlier than the start date.';
+            } else {
+                $chk = $pdo->prepare(
+                    "SELECT COUNT(*) FROM leave_requests
+                      WHERE employee_id = ? AND status IN ('pending','approved')
+                        AND start_date <= ? AND end_date >= ?"
+                );
+                $chk->execute([$empId, $end, $start]);
+                if ((int) $chk->fetchColumn() > 0) {
+                    $msg = 'You already have a pending or approved leave request overlapping these dates.';
+                } else {
+                    $ins = $pdo->prepare(
+                        'INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason)
+                         VALUES (?, ?, ?, ?, ?)'
+                    );
+                    $ins->execute([$empId, $type, $start, $end, $reason]);
+                    $msg = 'Your leave request was submitted and is pending review.';
+                }
+            }
+        } elseif ($_POST['leave_action'] === 'cancel') {
+            $del = $pdo->prepare("DELETE FROM leave_requests WHERE id = ? AND employee_id = ? AND status = 'pending'");
+            $del->execute([(int) ($_POST['request_id'] ?? 0), $empId]);
+            $msg = $del->rowCount() ? 'Your pending leave request was cancelled.' : 'That request can no longer be cancelled.';
+        }
+    }
+    $_SESSION['leave_flash'] = $msg;
+    header('Location: faculty-dashboard.php#leave');
+    exit;
+}
+
+/* ---- Teaching schedule ---- */
+$st = $pdo->prepare(
+    "SELECT ts.*, sb.subject_code, sb.subject_name, sb.units,
+            sc.section_code, sc.section_name,
+            cr.room_code, cr.room_name, cr.building, cr.room_type, cr.capacity
+       FROM teaching_schedules ts
+       JOIN subjects   sb ON sb.id = ts.subject_id
+       JOIN sections   sc ON sc.id = ts.section_id
+       JOIN classrooms cr ON cr.id = ts.classroom_id
+      WHERE ts.instructor_id = ? AND ts.status = 'active'
+      ORDER BY FIELD(ts.day,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'), ts.start_time"
+);
+$st->execute([$empId]);
+$schedules = $st->fetchAll();
+
+$subjectsList = [];
+$roomsList    = [];
+foreach ($schedules as $r) {
+    $subjectsList[$r['subject_id']] ??= $r;
+    $roomsList[$r['classroom_id']]  ??= $r;
+}
+
+/* ---- Attendance ---- */
+$st = $pdo->prepare('SELECT * FROM attendance_logs WHERE employee_id = ? AND work_date = CURDATE() LIMIT 1');
+$st->execute([$empId]);
+$today = $st->fetch();
+
+$st = $pdo->prepare(
+    "SELECT COUNT(*) FROM attendance_logs
+      WHERE employee_id = ? AND status IN ('present','late','corrected')
+        AND YEAR(work_date) = YEAR(CURDATE()) AND MONTH(work_date) = MONTH(CURDATE())"
+);
+$st->execute([$empId]);
+$daysPresent = (int) $st->fetchColumn();
+
+$st = $pdo->prepare('SELECT * FROM attendance_logs WHERE employee_id = ? ORDER BY work_date DESC LIMIT 10');
+$st->execute([$empId]);
+$attendanceHistory = $st->fetchAll();
+
+/* ---- Leave history ---- */
+$st = $pdo->prepare('SELECT * FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC, id DESC');
+$st->execute([$empId]);
+$leaves = $st->fetchAll();
+
+/* ---- Payslips ---- */
+$st = $pdo->prepare('SELECT * FROM payslips WHERE employee_id = ? ORDER BY period_end_date DESC, id DESC');
+$st->execute([$empId]);
+$payslips = $st->fetchAll();
+$latestPayslip = $payslips[0] ?? null;
+$earnings = $deductionItems = [];
+if ($latestPayslip) {
+    $st = $pdo->prepare('SELECT * FROM payslip_items WHERE payslip_id = ? ORDER BY id');
+    $st->execute([$latestPayslip['id']]);
+    foreach ($st->fetchAll() as $it) {
+        if ($it['item_type'] === 'earning') { $earnings[] = $it; } else { $deductionItems[] = $it; }
+    }
+}
 ?>
 
 <!doctype html>
@@ -666,8 +930,6 @@ if (
 
     </style>
     <link rel="stylesheet" href="assets/ui-flow.css" />
-    <script defer src="assets/ui-model.js"></script>
-    <script defer src="assets/ui-flow.js"></script>
     <link rel="stylesheet" href="assets/navigation.css" />
     <link
       rel="stylesheet"
@@ -703,8 +965,7 @@ if (
         ><span>Human Resource Management System</span></a
       >
       <nav class="hrms-public-nav" aria-label="Main navigation">
-        <a href="index.html">Home</a
-        ><a href="authentication/logout.php" aria-label="Log out and return to sign in"
+        <a href="authentication/logout.php" aria-label="Log out and return to sign in"
           >Log Out</a
         >
       </nav>
@@ -742,27 +1003,27 @@ if (
           <p>Teaching assignments and faculty information.</p>
         </header>
         <section class="demo-panel" id="profile">
-          <h2>Faculty Profile</h2>
+          <h2>&nbsp;&nbsp;&nbsp;</h2>
           <dl class="profile-grid">
             <div>
               <dt>Faculty Name</dt>
-              <dd id="faculty-name">—</dd>
+              <dd id="faculty-name"><?= e($fullName) ?></dd>
             </div>
             <div>
               <dt>Faculty ID</dt>
-              <dd id="faculty-id">—</dd>
+              <dd id="faculty-id"><?= e($emp['employee_number']) ?></dd>
             </div>
             <div>
               <dt>Department</dt>
-              <dd id="faculty-department">—</dd>
+              <dd id="faculty-department"><?= e($emp['department_name']) ?></dd>
             </div>
             <div>
               <dt>Position</dt>
-              <dd id="faculty-position">—</dd>
+              <dd id="faculty-position"><?= e($emp['position_title']) ?></dd>
             </div>
             <div>
               <dt>Employment Status</dt>
-              <dd id="faculty-status">—</dd>
+              <dd id="faculty-status"><?= e($statusLabel) ?></dd>
             </div>
           </dl>
         </section>
@@ -779,36 +1040,54 @@ if (
                   <th scope="col">Assigned Room</th>
                 </tr>
               </thead>
-              <tbody id="schedule-rows"></tbody>
+              <tbody id="schedule-rows"><?php foreach ($schedules as $r): ?>
+                <tr>
+                  <td><?= e($r['day']) ?></td>
+                  <td><?= e($r['subject_code'] . ' – ' . $r['subject_name']) ?></td>
+                  <td><?= e(ftime($r['start_time']) . ' – ' . ftime($r['end_time'])) ?></td>
+                  <td><?= e($r['section_code']) ?></td>
+                  <td><?= e($r['room_code'] . ($r['room_name'] ? ' – ' . $r['room_name'] : '')) ?></td>
+                </tr>
+              <?php endforeach; ?></tbody>
             </table>
           </div>
         </section>
         <section class="demo-panel" id="subjects">
           <h2>Assigned Subjects</h2>
-          <div class="subject-cards" id="subject-cards"></div>
+          <div class="subject-cards" id="subject-cards"><?php foreach ($subjectsList as $r): ?>
+            <article>
+              <h3><?= e($r['subject_code']) ?></h3>
+              <p><?= e($r['subject_name']) ?><br /><?= (int) $r['units'] ?> units</p>
+            </article>
+          <?php endforeach; ?></div>
         </section>
         <section class="demo-panel" id="rooms">
           <h2>Assigned Classrooms</h2>
-          <div class="subject-cards" id="room-cards"></div>
+          <div class="subject-cards" id="room-cards"><?php foreach ($roomsList as $r): ?>
+            <article>
+              <h3><?= e($r['room_code']) ?></h3>
+              <p><?= e($r['room_name']) ?><?= $r['building'] ? '<br />' . e($r['building']) : '' ?><br /><?= e(ucfirst($r['room_type'])) ?> · Capacity <?= (int) $r['capacity'] ?></p>
+            </article>
+          <?php endforeach; ?></div>
         </section>
         <section id="attendance">
           <h2>Attendance Overview</h2>
           <div class="faculty-overview">
             <section class="demo-panel">
               <h2>Today’s Attendance</h2>
-              <strong>Present</strong>
+              <strong><?= $today ? e(ucfirst($today['status'])) : 'Not yet logged' ?></strong>
             </section>
             <section class="demo-panel">
               <h2>Time In</h2>
-              <strong>08:02 AM</strong>
+              <strong><?= $today ? e(ftime($today['check_in_time'])) : '—' ?></strong>
             </section>
             <section class="demo-panel">
               <h2>Time Out</h2>
-              <strong>Pending</strong>
+              <strong><?= $today ? ($today['check_out_time'] ? e(ftime($today['check_out_time'])) : 'Pending') : '—' ?></strong>
             </section>
             <section class="demo-panel">
               <h2>Days Present</h2>
-              <strong>18</strong>
+              <strong><?= $daysPresent ?></strong>
             </section>
           </div>
           <section class="demo-panel">
@@ -824,24 +1103,14 @@ if (
                   </tr>
                 </thead>
                 <tbody>
+                  <?php foreach ($attendanceHistory as $r): ?>
                   <tr>
-                    <td>October 26, 2026</td>
-                    <td>07:55 AM</td>
-                    <td>05:02 PM</td>
-                    <td>Present</td>
+                    <td><?= e(fdate($r['work_date'])) ?></td>
+                    <td><?= e(ftime($r['check_in_time'])) ?></td>
+                    <td><?= $r['check_out_time'] ? e(ftime($r['check_out_time'])) : '—' ?></td>
+                    <td><?= e(ucfirst($r['status'])) ?></td>
                   </tr>
-                  <tr>
-                    <td>October 23, 2026</td>
-                    <td>08:01 AM</td>
-                    <td>05:00 PM</td>
-                    <td>Present</td>
-                  </tr>
-                  <tr>
-                    <td>October 22, 2026</td>
-                    <td>07:50 AM</td>
-                    <td>05:05 PM</td>
-                    <td>Present</td>
-                  </tr>
+                  <?php endforeach; ?>
                 </tbody>
               </table>
             </div>
@@ -863,21 +1132,18 @@ if (
               requests.
             </p>
           </header>
-          <p class="hrms-prototype">
-            Static UI preview: the form below does not save or send anything,
-            and the history table shows sample data only. Backend integration
-            is pending.
-          </p>
           <div
             class="system-notice"
             id="leave-notice"
             role="status"
             tabindex="-1"
-            hidden
-          ></div>
+            <?= $leaveFlash === '' ? 'hidden' : '' ?>
+          ><?= e($leaveFlash) ?></div>
           <section class="demo-panel" aria-labelledby="leave-form-title">
             <h2 id="leave-form-title">New Leave Request</h2>
-            <form class="demo-form" id="leave-form">
+            <form class="demo-form" id="leave-form" method="post" action="faculty-dashboard.php#leave">
+              <input type="hidden" name="leave_action" value="submit" />
+              <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>" />
               <label for="leave-type"
                 >Leave Type
                 <select id="leave-type" name="leave_type" required>
@@ -885,7 +1151,7 @@ if (
                   <option>Sick Leave</option>
                   <option>Vacation Leave</option>
                   <option>Emergency Leave</option>
-                  <<option value="Other">Other</option>
+                  <option value="Other">Other</option>
                 </select>
               </label>
               <label for="leave-other-type" id="leave-other-wrapper" hidden> Specify Leave Type
@@ -945,62 +1211,28 @@ if (
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- SAMPLE DATA: replace with records from the database. -->
+                  <?php foreach ($leaves as $r): ?>
                   <tr>
-                    <td>LR-2026-0003 (sample)</td>
-                    <td>Vacation Leave</td>
-                    <td>November 17, 2026</td>
-                    <td>November 19, 2026</td>
-                    <td>October 28, 2026</td>
-                    <td><span class="leave-status pending">Pending</span></td>
+                    <td>LR-<?= e(date('Y', strtotime($r['created_at']))) ?>-<?= str_pad((string) $r['id'], 4, '0', STR_PAD_LEFT) ?></td>
+                    <td><?= e($r['leave_type']) ?></td>
+                    <td><?= e(fdate($r['start_date'])) ?></td>
+                    <td><?= e(fdate($r['end_date'])) ?></td>
+                    <td><?= e(fdate($r['created_at'])) ?></td>
+                    <td><span class="leave-status <?= e($r['status']) ?>"><?= e(ucfirst($r['status'])) ?></span></td>
                     <td>
-                      <button
-                        class="demo-button leave-table-action"
-                        type="button"
-                        data-leave-action="cancel"
-                      >
-                        Cancel Request
-                      </button>
+                      <?php if ($r['status'] === 'pending'): ?>
+                      <form method="post" action="faculty-dashboard.php#leave" style="display:inline">
+                        <input type="hidden" name="leave_action" value="cancel" />
+                        <input type="hidden" name="request_id" value="<?= (int) $r['id'] ?>" />
+                        <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>" />
+                        <button class="demo-button leave-table-action" type="submit">Cancel Request</button>
+                      </form>
+                      <?php else: ?>
+                      <span class="demo-muted" title="<?= e($r['review_notes'] ?? '') ?>"><?= $r['review_notes'] ? e($r['review_notes']) : '—' ?></span>
+                      <?php endif; ?>
                     </td>
                   </tr>
-                  <tr>
-                    <td>LR-2026-0002 (sample)</td>
-                    <td>Sick Leave</td>
-                    <td>October 12, 2026</td>
-                    <td>October 13, 2026</td>
-                    <td>October 12, 2026</td>
-                    <td>
-                      <span class="leave-status approved">Approved</span>
-                    </td>
-                    <td>
-                      <button
-                        class="demo-button leave-table-action"
-                        type="button"
-                        data-leave-action="view"
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>LR-2026-0001 (sample)</td>
-                    <td>Emergency Leave</td>
-                    <td>September 3, 2026</td>
-                    <td>September 3, 2026</td>
-                    <td>September 2, 2026</td>
-                    <td>
-                      <span class="leave-status rejected">Rejected</span>
-                    </td>
-                    <td>
-                      <button
-                        class="demo-button leave-table-action"
-                        type="button"
-                        data-leave-action="view"
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
+                  <?php endforeach; ?>
                 </tbody>
               </table>
             </div>
@@ -1023,34 +1255,29 @@ if (
             Generating a payslip does not transfer funds.
         </p>
     </header>
-        <p class="hrms-prototype no-print">
-            Sample data only: all names, numbers and amounts below are
-            placeholders for design purposes and are not real payroll records.
-        </p>
         <article class="payslip-sheet" id="payslip-sheet" aria-label="Payslip">
             <div class="payslip-head">
                 <div>
                     <h3>DNSC Smart HRMS</h3>
                     <p>Official Payslip &middot; Faculty</p>
                 </div>
-                <span class="sample-tag">Sample Data</span>
             </div>
             <dl class="payslip-meta">
                 <div>
                     <dt>Faculty Name</dt>
-                    <dd data-payslip-field="faculty-name">[Faculty Name]</dd>
+                    <dd data-payslip-field="faculty-name"><?= e($fullName) ?></dd>
                 </div>
                 <div>
                     <dt>Employee ID</dt>
-                    <dd data-payslip-field="employee-id">[Employee ID]</dd>
+                    <dd data-payslip-field="employee-id"><?= e($emp['employee_number']) ?></dd>
                 </div>
                 <div>
                     <dt>Payslip Number</dt>
-                    <dd data-payslip-field="payslip-number">PS-2026-10-0001</dd>
+                    <dd data-payslip-field="payslip-number"><?= $latestPayslip ? e($latestPayslip['payslip_number']) : '—' ?></dd>
                 </div>
                 <div>
                     <dt>Payroll Period</dt>
-                    <dd data-payslip-field="payroll-period">October 1 &ndash; 31, 2026</dd>
+                    <dd data-payslip-field="payroll-period"><?= $latestPayslip ? e(fdate($latestPayslip['period_start_date']) . ' – ' . fdate($latestPayslip['period_end_date'])) : '—' ?></dd>
                 </div>
             </dl>
             <div class="payslip-columns">
@@ -1064,25 +1291,26 @@ if (
                             </tr>
                         </thead>
                         <tbody>
+                            <?php
+                            $allow = 0.0;
+                            foreach ($earnings as $it):
+                                $isBasic = stripos($it['item_name'], 'basic') !== false;
+                                if (!$isBasic) { $allow += (float) $it['amount']; }
+                            ?>
                             <tr>
-                                <td>Basic Salary</td>
-                                <td>30,000.00</td>
+                                <td><?= e($it['item_name']) ?></td>
+                                <td><?= money($it['amount']) ?></td>
                             </tr>
-                            <tr>
-                                <td>Representation Allowance</td>
-                                <td>2,000.00</td>
-                            </tr>
-                            <tr>
-                                <td>Transportation Allowance</td>
-                                <td>1,500.00</td>
-                            </tr>
+                            <?php endforeach; ?>
+                            <?php if ($allow > 0): ?>
                             <tr class="subtotal">
                                 <td>Total Allowances</td>
-                                <td>3,500.00</td>
+                                <td><?= money($allow) ?></td>
                             </tr>
+                            <?php endif; ?>
                             <tr class="total">
                                 <td>Gross Salary</td>
-                                <td>33,500.00</td>
+                                <td><?= $latestPayslip ? money($latestPayslip['gross_salary']) : '0.00' ?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1097,25 +1325,15 @@ if (
                             </tr>
                         </thead>
                         <tbody>
+                            <?php foreach ($deductionItems as $it): ?>
                             <tr>
-                                <td>Withholding Tax</td>
-                                <td>2,500.00</td>
+                                <td><?= e($it['item_name']) ?></td>
+                                <td><?= money($it['amount']) ?></td>
                             </tr>
-                            <tr>
-                                <td>GSIS Premium</td>
-                                <td>2,700.00</td>
-                            </tr>
-                            <tr>
-                                <td>PhilHealth</td>
-                                <td>500.00</td>
-                            </tr>
-                            <tr>
-                                <td>Pag-IBIG</td>
-                                <td>200.00</td>
-                            </tr>
+                            <?php endforeach; ?>
                             <tr class="total">
                                 <td>Total Deductions</td>
-                                <td>5,900.00</td>
+                                <td><?= $latestPayslip ? money($latestPayslip['deductions']) : '0.00' ?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1123,30 +1341,19 @@ if (
             </div>
             <div class="payslip-net">
                 <span>Net Salary</span>
-                <strong>&#8369;27,600.00</strong>
+                <strong>&#8369;<?= $latestPayslip ? money($latestPayslip['net_salary']) : '0.00' ?></strong>
             </div>
             <p class="payslip-foot">
-                This is a computer-generated sample payslip layout. Amounts are
-                placeholders pending payroll integration.
+                This is a computer-generated payslip.
             </p>
         </article>
         <div class="demo-actions no-print">
-            <button class="demo-button primary" type="button" data-print>
-                Print Payslip
-            </button>
-            <button
-                class="demo-button"
-                type="button"
-                data-print
-                title="Opens the print dialog. Choose Save as PDF as the destination."
-            >
-                Download as PDF
-            </button>
+            <?php if ($latestPayslip): ?>
+            <a class="demo-button primary" href="<?= e(basename(__FILE__)) ?>?print_payslip=<?= (int) $latestPayslip['id'] ?>" target="_blank" rel="noopener">
+                Print / Save as PDF
+            </a>
+            <?php endif; ?>
         </div>
-        <p class="static-note no-print">
-            Both buttons open the browser print dialog; choose &ldquo;Save as
-            PDF&rdquo; to download. Server-generated PDFs are a backend task.
-        </p>
         <section class="demo-panel no-print">
             <h2>Payslip History</h2>
             <div class="demo-table-wrap">
@@ -1161,20 +1368,23 @@ if (
                           <th scope="col">Gross</th>
                           <th scope="col">Deductions</th>
                           <th scope="col">Net</th>
+                          <th scope="col">Action</th>
                       </tr>
                     </thead>
                         <tbody>
-                            <!-- SAMPLE DATA: replace with payslip records from the database. -->
+                            <?php foreach ($payslips as $p): ?>
                             <tr>
-                                <td>PS-2026-10-0001 (sample)</td>
-                                <td>[Faculty Name]</td>
-                                <td>October 1 &ndash; 31, 2026</td>
-                                <td>20</td>
-                                <td>&#8369;1,500.00</td>
-                                <td>&#8369;33,500.00</td>
-                                <td>&#8369;5,900.00</td>
-                                <td>&#8369;27,600.00</td>
+                                <td><?= e($p['payslip_number']) ?></td>
+                                <td><?= e($fullName) ?></td>
+                                <td><?= e(fdate($p['period_start_date']) . ' – ' . fdate($p['period_end_date'])) ?></td>
+                                <td><?= (int) $p['total_days_worked'] ?></td>
+                                <td>&#8369;<?= money($p['daily_rate_applied']) ?></td>
+                                <td>&#8369;<?= money($p['gross_salary']) ?></td>
+                                <td>&#8369;<?= money($p['deductions']) ?></td>
+                                <td>&#8369;<?= money($p['net_salary']) ?></td>
+                                <td><a class="demo-button" href="<?= e(basename(__FILE__)) ?>?print_payslip=<?= (int) $p['id'] ?>" target="_blank" rel="noopener">Print Payslip</a></td>
                             </tr>
+                            <?php endforeach; ?>
                         </tbody>
                   </table>
             </div>
@@ -1493,21 +1703,6 @@ if (
           leaveStart.addEventListener("change", () => {
             leaveEnd.min = leaveStart.value;
           });
-        if (leaveForm)
-          leaveForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            leaveMessage(
-              "Demo only: this request was not saved or submitted. Backend integration is pending.",
-            );
-          });
-        document.querySelectorAll("[data-leave-action]").forEach((b) =>
-          b.addEventListener("click", () =>
-            leaveMessage(
-              "Demo only: this action is not connected yet. Backend integration is pending.",
-            ),
-          ),
-        );
-
         document
           .querySelectorAll("[data-static-submit]")
           .forEach((b) => b.addEventListener("click", show));
