@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -19,24 +20,30 @@ if ($identity === '' || $password === '') {
 try {
     $pdo = db();
 
+    // Identify login attempt using IP address
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     $attemptKey = hash('sha256', $ip);
 
+    // Check failed login attempts within the last 15 minutes
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) FROM login_attempts
-         WHERE attempt_key = :key AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)'
+         WHERE attempt_key = :key
+         AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)'
     );
+
     $stmt->execute(['key' => $attemptKey]);
+
     if ((int) $stmt->fetchColumn() >= 5) {
         header('Location: ../login.php?error=invalid');
         exit;
     }
 
+    // Allow HR Admin, Faculty, and Student accounts
     $stmt = $pdo->prepare(
         "SELECT id, username, email, password_hash, role_id, branch_id
          FROM users
          WHERE (username = :username OR email = :email)
-           AND role_id IN (1, 2)
+           AND role_id IN (1, 2, 4)
            AND is_active = 1
          LIMIT 1"
     );
@@ -48,21 +55,28 @@ try {
 
     $user = $stmt->fetch();
 
+    // Verify account and password
     if (!$user || !password_verify($password, $user['password_hash'])) {
-        $pdo->prepare('INSERT INTO login_attempts (attempt_key) VALUES (:key)')
-            ->execute(['key' => $attemptKey]);
+
+        $pdo->prepare(
+            'INSERT INTO login_attempts (attempt_key) VALUES (:key)'
+        )->execute(['key' => $attemptKey]);
+
         header('Location: ../login.php?error=invalid');
         exit;
     }
 
+    // Regenerate session ID after successful login
     session_regenerate_id(true);
 
+    // Store user session
     $_SESSION['user_id'] = (int) $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['role_id'] = (int) $user['role_id'];
     $_SESSION['branch_id'] = $user['branch_id'];
 
+    // Redirect according to account role
     if ((int) $user['role_id'] === 1) {
         header('Location: ../hr-admin/HR_Admin_Dashboard.php');
         exit;
@@ -73,11 +87,12 @@ try {
         exit;
     }
 
-    if ((int) $user['role_id'] === 3) {
+    if ((int) $user['role_id'] === 4) {
         header('Location: ../student/Student_Verification_Status.php');
         exit;
     }
 
+    // Reject unsupported roles
     session_unset();
     session_destroy();
 
@@ -85,7 +100,8 @@ try {
     exit('Access denied.');
 
 } catch (Throwable $e) {
-    error_log($e->getMessage());
+    error_log('Login error: ' . $e->getMessage());
+
     http_response_code(500);
     exit('A server error occurred during login. Check the PHP error log.');
 }
