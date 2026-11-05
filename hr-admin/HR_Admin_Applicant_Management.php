@@ -5,6 +5,8 @@ declare(strict_types=1);
 session_start();
 date_default_timezone_set('Asia/Manila');
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../api/mailer.php';
+require_once __DIR__ . '/../config/applicant_notifications.php';
 
 $pdo = db();
 $userId = (int)($_SESSION['user_id'] ?? 0);
@@ -83,8 +85,22 @@ function slot_label(string $hhmm): string
     return INTERVIEW_SLOTS[substr($hhmm, 0, 5)] ?? date('g:i A', strtotime($hhmm));
 }
 /**
+ * Wrap an email's main content with the standard greeting and sign-off.
+ * $lines: array of paragraphs (strings). Use "\n" inside a paragraph for line breaks.
+ */
+function email_body(array $app, array $lines): string
+{
+    $ref = 'APP-' . str_pad((string)$app['id'], 4, '0', STR_PAD_LEFT);
+    return "Dear {$app['full_name']},\n\n"
+        . implode("\n\n", $lines)
+        . "\n\nApplication reference: $ref"
+        . "\n\nFor application-related inquiries, please visit the DNSC Human Resources Office."
+        . "\n\nThis is an automated notification from the DNSC Smart HRMS. Please do not reply to this email."
+        . "\n\n- DNSC HR Management";
+}
+/**
  * Email the applicant and record it in email_notification_logs.
- * notification_type in the DB only allows 'accepted' | 'rejected'.
+ * notification_type in the DB must allow 'accepted' | 'rejected' | 'cancelled' (see the ALTER TABLE note).
  * Uses the applicant's Google login email (users.email) when they signed in with Google,
  * otherwise the email typed on the application.
  */
@@ -106,27 +122,31 @@ function notify_applicant(PDO $pdo, array $app, string $type, string $subject, s
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
         $err = 'Invalid recipient email address.';
     } else {
-        $headers = 'From: DNSC Smart HRMS <' . MAIL_FROM . ">\r\n"
-            . "MIME-Version: 1.0\r\n"
-            . "Content-Type: text/plain; charset=UTF-8\r\n";
-        $ok = @mail($to, mb_encode_mimeheader($subject, 'UTF-8'), $body, $headers);
-        if ($ok) {
+        if (send_email($to, $subject, $body)) {
             $status = 'sent';
         } else {
-            $err = 'mail() failed. Configure SMTP (sendmail_path / PHPMailer) on the server.';
+            $err = 'SMTP send failed. Check the PHP error log for details.';
         }
     }
-    $pdo->prepare(
-        'INSERT INTO email_notification_logs (application_id, recipient_email, notification_type, delivery_status, error_message, sent_at)
-         VALUES (?,?,?,?,?,?)'
-    )->execute([
-        (int)$app['id'],
-        $to,
-        $type,
-        $status,
-        $err,
-        $status === 'sent' ? date('Y-m-d H:i:s') : null,
-    ]);
+    try {
+        $pdo->prepare(
+            'INSERT INTO email_notification_logs (application_id, recipient_email, notification_type, delivery_status, error_message, sent_at)
+             VALUES (?,?,?,?,?,?)'
+        )->execute([
+            (int)$app['id'],
+            $to,
+            $type,
+            $status,
+            $err,
+            $status === 'sent' ? date('Y-m-d H:i:s') : null,
+        ]);
+    } catch (Throwable $ex) {
+        // The email result must not be hidden by a logging problem.
+        error_log('Email log insert failed: ' . $ex->getMessage());
+    }
+    // Web notification for the applicant's bell: same title and text as the email,
+    // created even when the email itself failed, so the applicant still sees it on the site.
+    notif_create($pdo, (int)($app['applicant_user_id'] ?? 0), (int)$app['id'], $type, $subject, $body);
     return $status === 'sent';
 }
 function gcal_link(string $date, string $hhmm, string $where): string
@@ -209,9 +229,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($new === 'rejected') {
                     $pdo->prepare("UPDATE interview_schedules SET status = 'cancelled' WHERE application_id = ? AND status = 'scheduled'")
                         ->execute([$appId]);
-                    $notify = ['rejected', 'Your DNSC application update', "Hello {$app['full_name']},\n\nThank you for applying for {$app['position_applied']} at DNSC. After review, we are unable to move your application forward at this time.\n\nWe appreciate your interest and wish you the best.\n\nDNSC Human Resources"];
+                    $notify = ['rejected', 'Update on your DNSC application', email_body($app, [
+                        "Thank you for your interest in the position of {$app['position_applied']} at Davao del Norte State College (DNSC), and for the time you took to prepare your application.",
+                        "After carefully reviewing all applications, we regret to inform you that we are unable to move your application forward to the interview stage at this time. This decision reflects the number of applicants and the specific requirements of the position, and is not a judgment of your potential.",
+                        "We encourage you to keep an eye on our future job vacancies and to apply again for any position that matches your qualifications.",
+                        "We sincerely appreciate your interest in joining DNSC and wish you every success in your career.",
+                    ])];
                 } else {
-                    $notify = ['accepted', 'Your DNSC application was approved', "Hello {$app['full_name']},\n\nGood news! Your application for {$app['position_applied']} was approved for an interview.\n\nHR will send you the interview date, time and venue/Google Meet link in a separate email.\n\nDNSC Human Resources"];
+                    $notify = ['accepted', 'Congratulations! Your DNSC application was approved', email_body($app, [
+                        "Congratulations! We are pleased to inform you that your application for the position of {$app['position_applied']} at Davao del Norte State College (DNSC) has been reviewed and approved for an interview.",
+                        "What happens next:\n"
+                        . "1. HR will send you a separate email with your interview date, time, and venue or Google Meet link.\n"
+                        . "2. Please check your email regularly, including your spam or junk folder.\n"
+                        . "3. Prepare your valid ID and copies of your credentials and documents, in case they are requested during the interview.",
+                        "Thank you for your interest in joining DNSC. We look forward to meeting you.",
+                    ])];
                 }
                 audit($pdo, $userId, 'set_application_status', 'applications', $appId, $app['status'] . ' -> ' . $new);
                 $msg = $new === 'reviewing' ? 'Application approved. You can now schedule the interview.' : 'Application rejected.';
@@ -281,13 +313,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit($pdo, $userId, 'schedule_interview', 'interview_schedules', $newId, "$date $slot $modeLabel");
 
                 $when = date('l, F j, Y', strtotime($date)) . ', ' . slot_label($slot);
-                $body = "Hello {$app['full_name']},\n\nYour interview for {$app['position_applied']} at DNSC is scheduled:\n\n"
-                    . "Date & time : $when (Philippine Time)\n"
-                    . "Mode        : $modeLabel\n"
-                    . ($mode === 'meet' ? "Google Meet : " . MEET_LINK . "\n" : "Venue       : " . substr($where, strlen('Face-to-face: ')) . "\n")
-                    . ($notes !== '' ? "Notes       : $notes\n" : '')
-                    . "\nAdd to Google Calendar:\n" . gcal_link($date, $slot, $mode === 'meet' ? MEET_LINK : $where) . "\n\n"
-                    . "Please be on time" . ($mode === 'meet' ? ' and join using the Google account email you applied with.' : '.') . "\n\nDNSC Human Resources";
+                $details = "Position     : {$app['position_applied']}\n"
+                    . "Date & time  : $when (Philippine Time)\n"
+                    . "Mode         : $modeLabel\n"
+                    . ($mode === 'meet'
+                        ? "Google Meet  : " . MEET_LINK . "\n"
+                        : "Venue        : " . substr($where, strlen('Face-to-face: ')) . "\n")
+                    . ($notes !== '' ? "Notes        : $notes\n" : '');
+                $tips = $mode === 'meet'
+                    ? "Reminders for your online interview:\n"
+                        . "- Join using the Google account email you applied with.\n"
+                        . "- Test your camera, microphone, and internet connection beforehand.\n"
+                        . "- Choose a quiet, well-lit place and join 5 to 10 minutes early."
+                    : "Reminders for your face-to-face interview:\n"
+                        . "- Arrive at least 10 minutes before your scheduled time.\n"
+                        . "- Bring a valid ID and copies of your resume and credentials.\n"
+                        . "- Dress appropriately for a professional interview.";
+                $body = email_body($app, [
+                    "Your interview for the position of {$app['position_applied']} at Davao del Norte State College (DNSC) has been scheduled. Please find the details below.",
+                    "INTERVIEW DETAILS\n" . rtrim($details),
+                    $tips,
+                    "Add this interview to your Google Calendar:\n" . gcal_link($date, $slot, $mode === 'meet' ? MEET_LINK : $where),
+                    "If you cannot attend at the scheduled time, please inform HR as early as possible so we can arrange a new schedule.",
+                ]);
                 $notify = ['accepted', 'DNSC interview schedule - ' . date('M j, Y', strtotime($date)), $body];
                 $msg = 'Interview scheduled.';
                 break;
@@ -299,10 +347,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!in_array($new, ['passed', 'failed', 'cancelled'], true)) {
                     throw new UserError('Invalid interview status.');
                 }
-                $cur = $pdo->prepare('SELECT status FROM interview_schedules WHERE id = ? AND application_id = ?');
+                $cur = $pdo->prepare('SELECT status, interview_date, interview_time, location_or_link FROM interview_schedules WHERE id = ? AND application_id = ?');
                 $cur->execute([$iid, $appId]);
-                $curStatus = $cur->fetchColumn();
-                if ($curStatus !== 'scheduled') {
+                $curIv = $cur->fetch();
+                if (!$curIv || $curIv['status'] !== 'scheduled') {
                     throw new UserError('Only a scheduled interview can be updated.');
                 }
                 $pdo->prepare('UPDATE interview_schedules SET status = ? WHERE id = ? AND application_id = ?')
@@ -315,9 +363,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($new === 'failed') {
                     $pdo->prepare("UPDATE applications SET status = 'rejected', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ? AND status IN ('reviewing','interviewed')")
                         ->execute([$userId, $appId]);
-                    $notify = ['rejected', 'Your DNSC application result', "Hello {$app['full_name']},\n\nThank you for attending the interview for {$app['position_applied']}. After evaluation, we will not be moving forward with your application.\n\nWe appreciate your time and wish you the best.\n\nDNSC Human Resources"];
+                    $notify = ['rejected', 'Result of your DNSC application', email_body($app, [
+                        "Thank you for taking the time to attend your interview for the position of {$app['position_applied']} at Davao del Norte State College (DNSC). We truly appreciate the effort you put into the process.",
+                        "After a careful evaluation of all candidates, we regret to inform you that we will not be moving forward with your application for this position.",
+                        "We encourage you to apply again for future openings that match your qualifications. Thank you for your interest in DNSC, and we wish you the very best in your career.",
+                    ])];
                     $msg = 'Interview marked as failed; application rejected.';
                 } else {
+                    $ivWhen  = date('l, F j, Y', strtotime((string)$curIv['interview_date'])) . ', ' . slot_label((string)$curIv['interview_time']);
+                    $ivWhere = (string)$curIv['location_or_link'];
+                    $ivMode  = strpos($ivWhere, 'Face-to-face: ') === 0 ? 'Face-to-face' : 'Google Meet';
+                    $notify = ['cancelled', 'Your DNSC interview has been cancelled', email_body($app, [
+                        "We would like to inform you that your scheduled interview for the position of {$app['position_applied']} at Davao del Norte State College (DNSC) has been cancelled.",
+                        "CANCELLED INTERVIEW\n"
+                        . "Date & time : $ivWhen (Philippine Time)\n"
+                        . "Mode        : $ivMode",
+                        "Your application is still active. This cancellation does not affect your application status. HR will send you a new interview schedule in a separate email.",
+                        "Please do not attend or join the cancelled schedule above. We apologize for any inconvenience this may cause and thank you for your patience and understanding.",
+                    ])];
                     $msg = 'Interview cancelled. You can schedule a new one.';
                 }
                 audit($pdo, $userId, 'update_interview', 'interview_schedules', $iid, $new);
@@ -417,7 +480,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([$empId, 'Registered from application #' . $appId, $userId, $hired]);
 
                 audit($pdo, $userId, 'register_employee', 'employees', $empId, $empNo . ' from application #' . $appId);
-                $notify = ['accepted', 'Welcome to DNSC - you are now an instructor', "Hello {$app['full_name']},\n\nCongratulations! Your application for {$app['position_applied']} was approved and your account is now an Instructor account (Employee No. $empNo).\n\nPlease log out and sign in again to access your instructor portal.\n\nDNSC Human Resources"];
+                $notify = ['accepted', 'Welcome to DNSC! Your instructor account is ready', email_body($app, [
+                    "Congratulations and welcome to Davao del Norte State College (DNSC)! We are delighted to inform you that your application for {$app['position_applied']} has been approved, and you have been registered as an Instructor.",
+                    "Your Employee No. is: $empNo",
+                    "To get started:\n"
+                    . "1. Log out of the DNSC Smart HRMS if you are currently signed in.\n"
+                    . "2. Sign in again to access your instructor portal.\n"
+                    . "3. Review your profile details and contact HR if anything needs to be corrected.",
+                    "We look forward to working with you.",
+                ])];
                 $msg = "Registered as instructor $empNo.";
                 break;
 
