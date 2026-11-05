@@ -15,6 +15,7 @@ $errors      = [];   // general problems (shown in the banner)
 $fieldErrors = [];   // field name => message (shown under that field)
 $old = [
     'fullName'         => (string) ($profile['full_name'] ?? $user['name']),
+    'age'              => ((int) ($profile['age'] ?? 0)) > 0 ? (string) (int) $profile['age'] : '',
     'prcNumber'        => (string) ($profile['prc_license_number'] ?? ''),
     'prcNotApplicable' => !empty($profile['prc_not_applicable']),
     'specialization'   => (string) ($profile['specialization'] ?? ''),
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Your session expired. Please try again.';
     } else {
         $old['fullName']         = trim((string) ($_POST['fullName'] ?? ''));
+        $old['age']              = trim((string) ($_POST['age'] ?? ''));
         $old['prcNotApplicable'] = isset($_POST['prcNotApplicable']);
         $old['prcNumber']        = $old['prcNotApplicable'] ? '' : trim((string) ($_POST['prcNumber'] ?? ''));
         $old['specialization']   = trim((string) ($_POST['specialization'] ?? ''));
@@ -33,6 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($old['fullName'] === '' || mb_strlen($old['fullName']) > 150) {
             $fieldErrors['fullName'] = 'Enter your full name (up to 150 characters).';
+        }
+        if (!preg_match('/^\d{1,3}$/', $old['age'])) {
+            $fieldErrors['age'] = 'Enter your age in whole years.';
+        } elseif ((int) $old['age'] < MIN_APPLICANT_AGE) {
+            $fieldErrors['age'] = 'You must be at least ' . MIN_APPLICANT_AGE . ' years old to apply.';
+        } elseif ((int) $old['age'] > 100) {
+            $fieldErrors['age'] = 'Enter a valid age.';
         }
         if (!$old['prcNotApplicable'] && !preg_match('/^[A-Za-z0-9][A-Za-z0-9 \-\/]{0,39}$/', $old['prcNumber'])) {
             $fieldErrors['prcNumber'] = 'Enter a valid PRC license number, or tick Not Applicable.';
@@ -48,10 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $pdo->prepare(
                     'INSERT INTO user_profiles
-                        (user_id, full_name, prc_license_number, prc_not_applicable, specialization, highest_education, profile_completed_at)
-                     VALUES (:uid, :name, :prc, :na, :spec, :edu, NOW())
+                        (user_id, full_name, age, prc_license_number, prc_not_applicable, specialization, highest_education, profile_completed_at)
+                     VALUES (:uid, :name, :age, :prc, :na, :spec, :edu, NOW())
                      ON DUPLICATE KEY UPDATE
                         full_name = VALUES(full_name),
+                        age = VALUES(age),
                         prc_license_number = VALUES(prc_license_number),
                         prc_not_applicable = VALUES(prc_not_applicable),
                         specialization = VALUES(specialization),
@@ -60,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([
                     'uid'  => $user['id'],
                     'name' => $old['fullName'],
+                    'age'  => (int) $old['age'],
                     'prc'  => $old['prcNotApplicable'] ? null : $old['prcNumber'],
                     'na'   => $old['prcNotApplicable'] ? 1 : 0,
                     'spec' => $old['specialization'],
@@ -665,7 +676,14 @@ body.original-login .input-wrap input{padding-right:64px}
 .page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
 
-</style><link rel="stylesheet" href="assets/ui-flow.css"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="verification"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button></header><div class="public-layout"><main class="demo-main" id="main-content"><?php if ($errors): ?><div class="flow-message flow-error" id="flow-message" role="alert" tabindex="-1"><?= e(implode(' ', $errors)) ?></div><?php else: ?><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><?php endif; ?><header class="demo-heading"><h1>Instructor Verification</h1><p>Complete your applicant profile before choosing a vacancy.</p></header><section class="demo-panel verification-card"><h2>Applicant Information</h2><form id="verification-form" class="demo-form flow-form" method="post" action="applicant-verification.php<?= isset($_GET['edit']) ? '?edit=1' : '' ?>" data-flow-form novalidate><?= csrf_field() ?><fieldset><div class="form-grid"><label<?= label_class($fieldErrors, 'fullName', '') ?>>Full Name<input name="fullName" type="text" required maxlength="150" autocomplete="name" value="<?= e($old['fullName']) ?>" <?= invalid_attrs($fieldErrors, 'fullName') ?>><?= field_error($fieldErrors, 'fullName') ?></label><label>Email Address<input name="email" type="email" maxlength="150" value="<?= e($user['email']) ?>" readonly aria-readonly="true"></label><label<?= label_class($fieldErrors, 'prcNumber', '') ?>>PRC License Number<input name="prcNumber" type="text" maxlength="40" required value="<?= e($old['prcNumber']) ?>" <?= invalid_attrs($fieldErrors, 'prcNumber') ?>><?= field_error($fieldErrors, 'prcNumber') ?></label><label class="checkline"><input type="checkbox" name="prcNotApplicable"<?= $old['prcNotApplicable'] ? ' checked' : '' ?>>Not Applicable — I do not hold a PRC license</label><label<?= label_class($fieldErrors, 'specialization', '') ?>>Profession / Specialization<input name="specialization" type="text" required maxlength="150" value="<?= e($old['specialization']) ?>" <?= invalid_attrs($fieldErrors, 'specialization') ?>><?= field_error($fieldErrors, 'specialization') ?></label><label<?= label_class($fieldErrors, 'education', '') ?>>Educational Attainment<select name="education" required <?= invalid_attrs($fieldErrors, 'education') ?>><option value="">Choose educational attainment</option><?php foreach (EDUCATION_LEVELS as $level): ?><option value="<?= e($level) ?>"<?= $old['education'] === $level ? ' selected' : '' ?>><?= e($level) ?></option><?php endforeach; ?></select><?= field_error($fieldErrors, 'education') ?></label></div><div><button type="submit" class="demo-button primary">Submit and Continue</button></div></fieldset></form></section></main></div><script>
+</style><link rel="stylesheet" href="assets/ui-flow.css"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="verification"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button></header><div class="public-layout"><main class="demo-main" id="main-content"><?php if ($errors): ?><div class="flow-message flow-error" id="flow-message" role="alert" tabindex="-1"><?= e(implode(' ', $errors)) ?></div><?php else: ?><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><?php endif; ?><header class="demo-heading"><h1>Instructor Verification</h1><p>Complete your applicant profile before choosing a vacancy.</p></header><section class="demo-panel verification-card"><h2>Applicant Information</h2><style>#verification-form .form-grid{align-items:start}#verification-form .prc-field{display:grid;gap:10px}</style><form id="verification-form" class="demo-form flow-form" method="post" action="applicant-verification.php<?= isset($_GET['edit']) ? '?edit=1' : '' ?>" data-flow-form novalidate><?= csrf_field() ?><fieldset><div class="form-grid">
+<label<?= label_class($fieldErrors, 'fullName', '') ?>>Full Name<input name="fullName" type="text" required maxlength="150" autocomplete="name" value="<?= e($old['fullName']) ?>" <?= invalid_attrs($fieldErrors, 'fullName') ?>><?= field_error($fieldErrors, 'fullName') ?></label>
+<label>Email Address<input name="email" type="email" maxlength="150" value="<?= e($user['email']) ?>" readonly aria-readonly="true"></label>
+<label<?= label_class($fieldErrors, 'age', '') ?>>Age<input name="age" type="number" inputmode="numeric" required min="<?= (int) MIN_APPLICANT_AGE ?>" max="100" step="1" value="<?= e($old['age']) ?>" <?= invalid_attrs($fieldErrors, 'age') ?>><?= field_error($fieldErrors, 'age') ?></label>
+<div class="prc-field"><label<?= label_class($fieldErrors, 'prcNumber', '') ?>>PRC License Number<input name="prcNumber" type="text" maxlength="40" required value="<?= e($old['prcNumber']) ?>" <?= invalid_attrs($fieldErrors, 'prcNumber') ?>><?= field_error($fieldErrors, 'prcNumber') ?></label><label class="checkline"><input type="checkbox" name="prcNotApplicable"<?= $old['prcNotApplicable'] ? ' checked' : '' ?>>Not Applicable — I do not hold a PRC license</label></div>
+<label<?= label_class($fieldErrors, 'education', '') ?>>Educational Attainment<select name="education" required <?= invalid_attrs($fieldErrors, 'education') ?>><option value="">Choose educational attainment</option><?php foreach (EDUCATION_LEVELS as $level): ?><option value="<?= e($level) ?>"<?= $old['education'] === $level ? ' selected' : '' ?>><?= e($level) ?></option><?php endforeach; ?></select><?= field_error($fieldErrors, 'education') ?></label>
+<label<?= label_class($fieldErrors, 'specialization', '') ?>>Profession / Specialization<input name="specialization" type="text" required maxlength="150" value="<?= e($old['specialization']) ?>" <?= invalid_attrs($fieldErrors, 'specialization') ?>><?= field_error($fieldErrors, 'specialization') ?></label>
+</div><div><button type="submit" class="demo-button primary">Submit and Continue</button></div></fieldset></form></section></main></div><script>
 /* Browser-only controls. No requests, authentication, uploads, or record storage. */
 (() => {
 'use strict';
