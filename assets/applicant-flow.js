@@ -12,6 +12,8 @@
 
   /* ---------- per-field errors: red border + message under the field ---------- */
 
+  const MIN_AGE = 18;
+
   const RULES = {
     contactNumber: {
       test: (v) => /^[+\d ()-]{7,20}$/.test(v),
@@ -88,11 +90,26 @@
     const value = control.value.trim();
     if (value === '') {
       if (!control.required) return '';
-      if (control.name === 'prcNumber') return 'Enter your PRC license number, or tick Not Applicable.';
+      if (control.name === 'prcNumber') {
+        return control.form && control.form.elements.prcNotApplicable
+          ? 'Enter your PRC license number, or tick Not Applicable.'
+          : 'A PRC license number is required for this position.';
+      }
       return control.tagName === 'SELECT' ? 'Please choose an option.' : 'This field is required.';
     }
+    if (control.name === 'age') {
+      if (!/^\d{1,3}$/.test(value)) return 'Enter your age in whole years.';
+      if (Number(value) < MIN_AGE) return 'You must be at least ' + MIN_AGE + ' years old to apply.';
+      if (Number(value) > 100) return 'Enter a valid age.';
+      return '';
+    }
     const rule = RULES[control.name];
-    if (rule && !rule.test(value)) return rule.message;
+    if (rule && !rule.test(value)) {
+      if (control.name === 'prcNumber' && !(control.form && control.form.elements.prcNotApplicable)) {
+        return 'Enter a valid PRC license number.';
+      }
+      return rule.message;
+    }
     return '';
   }
 

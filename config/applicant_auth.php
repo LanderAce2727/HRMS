@@ -17,6 +17,7 @@ require_once __DIR__ . '/db.php';
 
 const APPLICANT_ROLE_ID = 3;
 const EDUCATION_LEVELS  = ['Bachelor’s Degree', 'Master’s Degree', 'Doctorate', 'Other'];
+const MIN_APPLICANT_AGE = 18;   // applicants must be at least this old
 
 /** HTML-escape for output. */
 function e($value): string
@@ -82,9 +83,12 @@ function get_profile(int $userId): ?array
     return $row ?: null;
 }
 
+/** Verified profile = details filled in AND an age of at least MIN_APPLICANT_AGE on file. */
 function profile_is_complete(?array $profile): bool
 {
-    return $profile !== null && !empty($profile['profile_completed_at']);
+    return $profile !== null
+        && !empty($profile['profile_completed_at'])
+        && (int) ($profile['age'] ?? 0) >= MIN_APPLICANT_AGE;
 }
 
 /* ---------- CSRF ---------- */
@@ -132,7 +136,7 @@ function application_reference(int $id): string
 function list_open_vacancies(PDO $pdo): array
 {
     return $pdo->query(
-        "SELECT v.id, v.title, v.employment_type, v.description, v.closing_date, d.department_name
+        "SELECT v.id, v.title, v.employment_type, v.is_teaching, v.description, v.closing_date, d.department_name
            FROM vacancies v
            JOIN departments d ON d.id = v.department_id
           WHERE v.status = 'open' AND v.closing_date >= CURDATE()
@@ -140,10 +144,19 @@ function list_open_vacancies(PDO $pdo): array
     )->fetchAll();
 }
 
+/**
+ * Teaching vacancies always require a PRC license; non-teaching vacancies never do.
+ * (vacancies.is_teaching = 1 for teaching posts.)
+ */
+function vacancy_requires_prc(array $vacancy): bool
+{
+    return (int) ($vacancy['is_teaching'] ?? 1) === 1;
+}
+
 function find_open_vacancy(PDO $pdo, int $id): ?array
 {
     $stmt = $pdo->prepare(
-        "SELECT v.id, v.title, v.employment_type, v.description, v.closing_date, d.department_name
+        "SELECT v.id, v.title, v.employment_type, v.is_teaching, v.description, v.closing_date, d.department_name
            FROM vacancies v
            JOIN departments d ON d.id = v.department_id
           WHERE v.id = :id AND v.status = 'open' AND v.closing_date >= CURDATE()
