@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 session_start();
+date_default_timezone_set('Asia/Manila');
 require_once __DIR__ . '/../config/db.php';
 
 $pdo = db();
@@ -46,6 +47,8 @@ $form = [
     'title'           => '',
     'department_id'   => '',
     'employment_type' => 'Full-time',
+    'is_teaching'     => '1',
+    'closing_date'    => '',
     'status'          => 'open',
     'description'     => '',
 ];
@@ -57,6 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'title'           => trim((string)($_POST['title'] ?? '')),
         'department_id'   => trim((string)($_POST['department_id'] ?? '')),
         'employment_type' => (string)($_POST['employment_type'] ?? 'Full-time'),
+        'is_teaching'     => (string)($_POST['is_teaching'] ?? ''),
+        'closing_date'    => trim((string)($_POST['closing_date'] ?? '')),
         'status'          => (string)($_POST['status'] ?? 'open'),
         'description'     => trim((string)($_POST['description'] ?? '')),
     ];
@@ -78,6 +83,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($form['status'], STATUSES, true)) {
         $errors[] = 'Invalid publication status.';
     }
+    if (!in_array($form['is_teaching'], ['0', '1'], true)) {
+        $errors[] = 'Please choose whether this is a teaching or a non-teaching position.';
+    }
+    $closing = DateTimeImmutable::createFromFormat('!Y-m-d', $form['closing_date']);
+    if (!$closing || $closing->format('Y-m-d') !== $form['closing_date']) {
+        $errors[] = 'Closing date is required.';
+    } elseif ($form['status'] === 'open' && $closing < new DateTimeImmutable('today')) {
+        $errors[] = 'An open vacancy needs a closing date of today or later.';
+    }
 
     if (!ctype_digit($form['department_id'])) {
         $errors[] = 'Please select a valid department.';
@@ -96,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $st = $pdo->prepare(
                     'UPDATE vacancies
                         SET department_id = ?, title = ?, description = ?,
-                            employment_type = ?, status = ?
+                            employment_type = ?, is_teaching = ?, closing_date = ?, status = ?
                       WHERE id = ?'
                 );
                 $st->execute([
@@ -104,6 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $form['title'],
                     $form['description'],
                     $form['employment_type'],
+                    (int)$form['is_teaching'],
+                    $form['closing_date'],
                     $form['status'],
                     $editId,
                 ]);
@@ -112,14 +128,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $st = $pdo->prepare(
                     'INSERT INTO vacancies
-                        (department_id, title, description, employment_type, status)
-                     VALUES (?, ?, ?, ?, ?)'
+                        (department_id, title, description, employment_type, is_teaching, closing_date, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
                 );
                 $st->execute([
                     (int)$form['department_id'],
                     $form['title'],
                     $form['description'],
                     $form['employment_type'],
+                    (int)$form['is_teaching'],
+                    $form['closing_date'],
                     $form['status'],
                 ]);
                 $recordId = (int)$pdo->lastInsertId();
@@ -135,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $action . '_vacancy',
                 'vacancies',
                 $recordId,
-                $form['title'] . ' [' . $form['status'] . ']',
+                $form['title'] . ' [' . $form['status'] . ', ' . ($form['is_teaching'] === '1' ? 'teaching' : 'non-teaching') . ', closes ' . $form['closing_date'] . ']',
             ]);
 
             $pdo->commit();
@@ -166,6 +184,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'title'           => $row['title'],
             'department_id'   => (string)$row['department_id'],
             'employment_type' => $row['employment_type'],
+            'is_teaching'     => (string)(int)($row['is_teaching'] ?? 1),
+            'closing_date'    => ($row['closing_date'] ?? '') === '0000-00-00' ? '' : (string)($row['closing_date'] ?? ''),
             'status'          => $row['status'],
             'description'     => $row['description'],
         ];
@@ -183,7 +203,7 @@ $departments = $pdo->query(
 )->fetchAll();
 
 $vacancies = $pdo->query(
-    'SELECT v.id, v.title, v.description, v.employment_type, v.status, v.created_at,
+    'SELECT v.id, v.title, v.description, v.employment_type, v.is_teaching, v.closing_date, v.status, v.created_at,
             d.department_name, b.branch_name,
             (SELECT COUNT(*) FROM applications a WHERE a.vacancy_id = v.id) AS applicants
        FROM vacancies v
@@ -193,6 +213,7 @@ $vacancies = $pdo->query(
 )->fetchAll();
 
 $isEdit = $form['id'] !== '';
+$today  = date('Y-m-d');
 ?>
 
 <!doctype html>
@@ -4325,7 +4346,9 @@ $isEdit = $form['id'] !== '';
                                     <th scope="col">Position</th>
                                     <th scope="col">Department</th>
                                     <th scope="col">Employment Type</th>
+                                    <th scope="col">Position Type</th>
                                     <th scope="col">Status</th>
+                                    <th scope="col">Closes</th>
                                     <th scope="col">Applicants</th>
                                     <th scope="col">Posted</th>
                                     <th scope="col">Action</th>
@@ -4343,7 +4366,21 @@ $isEdit = $form['id'] !== '';
                                             <div><small><?= e($v['branch_name'] ?? 'Main Campus') ?></small></div>
                                         </td>
                                         <td><?= e(ucfirst($v['employment_type'] ?? 'Full-time')) ?></td>
+                                        <td>
+                                            <div><?= (int)($v['is_teaching'] ?? 1) === 1 ? 'Teaching' : 'Non-teaching' ?></div>
+                                            <div><small><?= (int)($v['is_teaching'] ?? 1) === 1 ? 'PRC license required' : 'No PRC license' ?></small></div>
+                                        </td>
                                         <td><span class="demo-badge"><?= e(ucfirst($v['status'] ?? 'open')) ?></span></td>
+                                        <?php $cd = (string)($v['closing_date'] ?? ''); $cdOk = $cd !== '' && $cd !== '0000-00-00'; ?>
+                                        <td>
+                                            <?php if (!$cdOk): ?>
+                                                <div>Not set</div>
+                                                <div><small>Hidden from applicants</small></div>
+                                            <?php else: ?>
+                                                <div><?= e(date('F j, Y', strtotime($cd))) ?></div>
+                                                <?php if (($v['status'] ?? '') === 'open' && $cd < $today): ?><div><small>Expired — hidden from applicants</small></div><?php endif; ?>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?= (int)($v['applicants'] ?? 0) ?></td>
                                         <td><?= e(date('F j, Y', strtotime($v['created_at'] ?? 'now'))) ?></td>
                                         <td><a class="demo-button" href="?edit=<?= (int)$v['id'] ?>#vacancy-form">Edit</a></td>
@@ -4376,6 +4413,13 @@ $isEdit = $form['id'] !== '';
                                     <option value="<?= e($t) ?>" <?= $form['employment_type'] === $t ? ' selected' : '' ?>><?= e($t) ?></option>
                                 <?php endforeach; ?>
                             </select></label>
+
+                        <label>Position type<select name="is_teaching" required>
+                                <option value="1" <?= $form['is_teaching'] === '1' ? ' selected' : '' ?>>Teaching — PRC license required</option>
+                                <option value="0" <?= $form['is_teaching'] === '0' ? ' selected' : '' ?>>Non-teaching — no PRC license required</option>
+                            </select></label>
+
+                        <label>Closing date<input name="closing_date" type="date" required value="<?= e($form['closing_date']) ?>"<?= $isEdit ? '' : ' min="' . e($today) . '"' ?>></label>
 
                         <label>Publication status<select name="status" required>
                                 <?php foreach (STATUSES as $s): ?>

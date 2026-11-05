@@ -94,8 +94,8 @@ function email_body(array $app, array $lines): string
     return "Dear {$app['full_name']},\n\n"
         . implode("\n\n", $lines)
         . "\n\nApplication reference: $ref"
-        . "\n\nFor application-related inquiries, please visit the DNSC Human Resources Office."
-        . "\n\nThis is an automated notification from the DNSC Smart HRMS. Please do not reply to this email."
+        . "\n\nFor questions about your application, please visit the DNSC Human Resources Office. This mailbox is not monitored, so replies to this email will not be read."
+        . "\n\nThis is an automated message from the DNSC Smart HRMS."
         . "\n\n- DNSC HR Management";
 }
 /**
@@ -618,6 +618,7 @@ if ($viewId > 0) {
     $st = $pdo->prepare(
         'SELECT a.*, v.title AS job_title, v.employment_type AS category, v.department_id AS v_department_id, d.department_name,
                 b.branch_name, r.role_name,
+                up.age AS profile_age,
                 COALESCE(rp.full_name, ru.username) AS reviewer_name,
                 e.id AS employee_id, e.employee_number, e.is_faculty
            FROM applications a
@@ -628,6 +629,7 @@ if ($viewId > 0) {
            LEFT JOIN roles r         ON r.id = u.role_id
            LEFT JOIN users ru        ON ru.id = a.reviewed_by_user_id
            LEFT JOIN user_profiles rp ON rp.user_id = a.reviewed_by_user_id
+           LEFT JOIN user_profiles up ON up.user_id = a.applicant_user_id
            LEFT JOIN employees e     ON e.user_id = a.applicant_user_id
           WHERE a.id = ?'
     );
@@ -4897,7 +4899,7 @@ $total = count($applicants);
                     <h3>Application details</h3>
                     <p><strong>Position applied:</strong> <?= e($detail['position_applied']) ?>
                         <?php if ($detail['job_title']): ?>(<?= e($detail['job_title']) ?>, <?= e($detail['department_name']) ?> — <?= e($detail['branch_name']) ?>, <?= e($detail['category']) ?>)<?php endif; ?></p>
-                    <p><strong>Email:</strong> <?= e($detail['email']) ?> &nbsp; <strong>Contact:</strong> <?= e($detail['contact_number'] ?? '—') ?> &nbsp; <strong>Age:</strong> <?= e($detail['age'] ?? '—') ?></p>
+                    <p><strong>Email:</strong> <?= e($detail['email']) ?> &nbsp; <strong>Contact:</strong> <?= e($detail['contact_number'] ?? '—') ?> &nbsp; <strong>Age:</strong> <?= e($detail['age'] ?? $detail['profile_age'] ?? '—') ?></p>
                     <p><strong>Highest education:</strong> <?= e($detail['highest_education'] ?? '—') ?> &nbsp; <strong>Experience:</strong> <?= e($detail['years_experience'] ?? '—') ?> year(s)</p>
                     <p><strong>Experience details:</strong> <?= nl2br(e($detail['experience_details'] ?? '—')) ?></p>
                     <p><strong>Cover letter:</strong><br><?= nl2br(e($detail['cover_letter'] ?? '—')) ?></p>
