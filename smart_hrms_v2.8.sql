@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 03, 2026 at 06:26 PM
+-- Generation Time: Nov 05, 2026 at 08:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,9 +24,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `applicant_notifications`
+--
+
+DROP TABLE IF EXISTS `applicant_notifications`;
+CREATE TABLE `applicant_notifications` (
+  `id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `application_id` bigint(20) DEFAULT NULL,
+  `category` enum('accepted','rejected','cancelled','general') NOT NULL DEFAULT 'general',
+  `title` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `applications`
 --
 
+DROP TABLE IF EXISTS `applications`;
 CREATE TABLE `applications` (
   `id` bigint(20) NOT NULL,
   `vacancy_id` bigint(20) DEFAULT NULL,
@@ -58,6 +77,7 @@ CREATE TABLE `applications` (
 -- Table structure for table `application_documents`
 --
 
+DROP TABLE IF EXISTS `application_documents`;
 CREATE TABLE `application_documents` (
   `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
@@ -75,6 +95,7 @@ CREATE TABLE `application_documents` (
 -- Table structure for table `attendance_logs`
 --
 
+DROP TABLE IF EXISTS `attendance_logs`;
 CREATE TABLE `attendance_logs` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -96,6 +117,7 @@ CREATE TABLE `attendance_logs` (
 -- Table structure for table `audit_logs`
 --
 
+DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE `audit_logs` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -112,6 +134,7 @@ CREATE TABLE `audit_logs` (
 -- Table structure for table `branches`
 --
 
+DROP TABLE IF EXISTS `branches`;
 CREATE TABLE `branches` (
   `id` bigint(20) NOT NULL,
   `branch_code` varchar(20) NOT NULL,
@@ -135,6 +158,7 @@ INSERT INTO `branches` (`id`, `branch_code`, `branch_name`, `address`, `created_
 -- Table structure for table `cache`
 --
 
+DROP TABLE IF EXISTS `cache`;
 CREATE TABLE `cache` (
   `key` varchar(255) NOT NULL,
   `value` mediumtext NOT NULL,
@@ -147,6 +171,7 @@ CREATE TABLE `cache` (
 -- Table structure for table `cache_locks`
 --
 
+DROP TABLE IF EXISTS `cache_locks`;
 CREATE TABLE `cache_locks` (
   `key` varchar(255) NOT NULL,
   `owner` varchar(255) NOT NULL,
@@ -159,6 +184,7 @@ CREATE TABLE `cache_locks` (
 -- Table structure for table `classrooms`
 --
 
+DROP TABLE IF EXISTS `classrooms`;
 CREATE TABLE `classrooms` (
   `id` bigint(20) NOT NULL,
   `room_code` varchar(20) NOT NULL,
@@ -186,6 +212,7 @@ INSERT INTO `classrooms` (`id`, `room_code`, `room_name`, `building`, `capacity`
 -- Table structure for table `departments`
 --
 
+DROP TABLE IF EXISTS `departments`;
 CREATE TABLE `departments` (
   `id` bigint(20) NOT NULL,
   `branch_id` bigint(20) NOT NULL,
@@ -211,11 +238,12 @@ INSERT INTO `departments` (`id`, `branch_id`, `department_name`, `created_at`, `
 -- Table structure for table `email_notification_logs`
 --
 
+DROP TABLE IF EXISTS `email_notification_logs`;
 CREATE TABLE `email_notification_logs` (
   `id` bigint(20) NOT NULL,
-  `application_id` bigint(20) NOT NULL,
+  `application_id` bigint(20) DEFAULT NULL,
   `recipient_email` varchar(100) NOT NULL,
-  `notification_type` enum('accepted','rejected') NOT NULL,
+  `notification_type` enum('accepted','rejected','password_reset','payroll_info','general','cancelled') NOT NULL,
   `delivery_status` enum('pending','sent','failed') DEFAULT 'pending',
   `error_message` text DEFAULT NULL,
   `sent_at` timestamp NULL DEFAULT NULL
@@ -227,6 +255,7 @@ CREATE TABLE `email_notification_logs` (
 -- Table structure for table `employees`
 --
 
+DROP TABLE IF EXISTS `employees`;
 CREATE TABLE `employees` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -260,6 +289,7 @@ INSERT INTO `employees` (`id`, `user_id`, `employee_number`, `rfid_card_number`,
 -- Table structure for table `employee_status_histories`
 --
 
+DROP TABLE IF EXISTS `employee_status_histories`;
 CREATE TABLE `employee_status_histories` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -277,6 +307,7 @@ CREATE TABLE `employee_status_histories` (
 -- Table structure for table `evaluations`
 --
 
+DROP TABLE IF EXISTS `evaluations`;
 CREATE TABLE `evaluations` (
   `id` bigint(20) NOT NULL,
   `student_id` bigint(20) NOT NULL,
@@ -289,7 +320,7 @@ CREATE TABLE `evaluations` (
   `status` enum('draft','submitted') NOT NULL DEFAULT 'submitted',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -297,6 +328,7 @@ CREATE TABLE `evaluations` (
 -- Table structure for table `failed_jobs`
 --
 
+DROP TABLE IF EXISTS `failed_jobs`;
 CREATE TABLE `failed_jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `uuid` varchar(255) NOT NULL,
@@ -313,6 +345,7 @@ CREATE TABLE `failed_jobs` (
 -- Table structure for table `interview_schedules`
 --
 
+DROP TABLE IF EXISTS `interview_schedules`;
 CREATE TABLE `interview_schedules` (
   `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
@@ -332,6 +365,7 @@ CREATE TABLE `interview_schedules` (
 -- Table structure for table `jobs`
 --
 
+DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `queue` varchar(255) NOT NULL,
@@ -348,6 +382,7 @@ CREATE TABLE `jobs` (
 -- Table structure for table `job_batches`
 --
 
+DROP TABLE IF EXISTS `job_batches`;
 CREATE TABLE `job_batches` (
   `id` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -367,6 +402,7 @@ CREATE TABLE `job_batches` (
 -- Table structure for table `leave_requests`
 --
 
+DROP TABLE IF EXISTS `leave_requests`;
 CREATE TABLE `leave_requests` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -387,6 +423,7 @@ CREATE TABLE `leave_requests` (
 -- Table structure for table `login_attempts`
 --
 
+DROP TABLE IF EXISTS `login_attempts`;
 CREATE TABLE `login_attempts` (
   `id` bigint(20) NOT NULL,
   `attempt_key` varchar(64) NOT NULL,
@@ -406,6 +443,7 @@ INSERT INTO `login_attempts` (`id`, `attempt_key`, `created_at`) VALUES
 -- Table structure for table `migrations`
 --
 
+DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE `migrations` (
   `id` int(10) UNSIGNED NOT NULL,
   `migration` varchar(255) NOT NULL,
@@ -428,6 +466,7 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 -- Table structure for table `password_reset_tokens`
 --
 
+DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE `password_reset_tokens` (
   `email` varchar(255) NOT NULL,
   `token` varchar(255) NOT NULL,
@@ -440,6 +479,7 @@ CREATE TABLE `password_reset_tokens` (
 -- Table structure for table `payslips`
 --
 
+DROP TABLE IF EXISTS `payslips`;
 CREATE TABLE `payslips` (
   `id` bigint(20) NOT NULL,
   `payslip_number` varchar(30) NOT NULL,
@@ -461,6 +501,7 @@ CREATE TABLE `payslips` (
 -- Table structure for table `payslip_items`
 --
 
+DROP TABLE IF EXISTS `payslip_items`;
 CREATE TABLE `payslip_items` (
   `id` bigint(20) NOT NULL,
   `payslip_id` bigint(20) NOT NULL,
@@ -476,6 +517,7 @@ CREATE TABLE `payslip_items` (
 -- Table structure for table `pay_rates`
 --
 
+DROP TABLE IF EXISTS `pay_rates`;
 CREATE TABLE `pay_rates` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -492,6 +534,7 @@ CREATE TABLE `pay_rates` (
 -- Table structure for table `roles`
 --
 
+DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
   `id` int(11) NOT NULL,
   `role_name` varchar(30) NOT NULL,
@@ -514,6 +557,7 @@ INSERT INTO `roles` (`id`, `role_name`, `description`) VALUES
 -- Table structure for table `sections`
 --
 
+DROP TABLE IF EXISTS `sections`;
 CREATE TABLE `sections` (
   `id` bigint(20) NOT NULL,
   `section_code` varchar(20) NOT NULL,
@@ -541,6 +585,7 @@ INSERT INTO `sections` (`id`, `section_code`, `section_name`, `program`, `year_l
 -- Table structure for table `sessions`
 --
 
+DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
   `id` varchar(255) NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -563,6 +608,7 @@ INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, 
 -- Table structure for table `students`
 --
 
+DROP TABLE IF EXISTS `students`;
 CREATE TABLE `students` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) DEFAULT NULL,
@@ -605,6 +651,7 @@ INSERT INTO `students` (`id`, `user_id`, `student_number`, `first_name`, `middle
 -- Table structure for table `subjects`
 --
 
+DROP TABLE IF EXISTS `subjects`;
 CREATE TABLE `subjects` (
   `id` bigint(20) NOT NULL,
   `subject_code` varchar(20) NOT NULL,
@@ -633,6 +680,7 @@ INSERT INTO `subjects` (`id`, `subject_code`, `subject_name`, `units`, `departme
 -- Table structure for table `system_settings`
 --
 
+DROP TABLE IF EXISTS `system_settings`;
 CREATE TABLE `system_settings` (
   `setting_key` varchar(50) NOT NULL,
   `setting_value` varchar(255) NOT NULL
@@ -654,6 +702,7 @@ INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 -- Table structure for table `teaching_schedules`
 --
 
+DROP TABLE IF EXISTS `teaching_schedules`;
 CREATE TABLE `teaching_schedules` (
   `id` bigint(20) NOT NULL,
   `instructor_id` bigint(20) NOT NULL,
@@ -668,7 +717,7 @@ CREATE TABLE `teaching_schedules` (
   `status` enum('active','cancelled') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -676,6 +725,7 @@ CREATE TABLE `teaching_schedules` (
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) NOT NULL,
   `branch_id` bigint(20) DEFAULT NULL,
@@ -719,9 +769,11 @@ INSERT INTO `users` (`id`, `branch_id`, `role_id`, `username`, `name`, `email`, 
 -- Table structure for table `user_profiles`
 --
 
+DROP TABLE IF EXISTS `user_profiles`;
 CREATE TABLE `user_profiles` (
   `user_id` bigint(20) NOT NULL,
   `full_name` varchar(150) NOT NULL,
+  `photo_path` varchar(255) DEFAULT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `prc_license_number` varchar(40) DEFAULT NULL,
@@ -737,21 +789,21 @@ CREATE TABLE `user_profiles` (
 -- Dumping data for table `user_profiles`
 --
 
-INSERT INTO `user_profiles` (`user_id`, `full_name`, `contact_number`, `address`, `prc_license_number`, `prc_not_applicable`, `specialization`, `highest_education`, `profile_completed_at`, `created_at`, `updated_at`) VALUES
-(1, 'Maria Santos', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(2, 'Carlos Reyes', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(3, 'Juan Cruz', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(4, 'Ana Garcia', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(5, 'Mark Penduko', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(6, 'Bea Alonzo', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(7, 'Jose Rizal', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(8, 'Luz Macaraeg', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(9, 'Kathryn Bernardo', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(10, 'Coco Martin', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(11, 'Dingdong Dantes', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(12, 'Marian Rivera', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(13, 'Vic Sotto', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(14, 'Joey De Leon', NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32');
+INSERT INTO `user_profiles` (`user_id`, `full_name`, `photo_path`, `contact_number`, `address`, `prc_license_number`, `prc_not_applicable`, `specialization`, `highest_education`, `profile_completed_at`, `created_at`, `updated_at`) VALUES
+(1, 'Maria Santos', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 'Carlos Reyes', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 'Juan Cruz', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 'Ana Garcia', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(5, 'Mark Penduko', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(6, 'Bea Alonzo', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(7, 'Jose Rizal', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(8, 'Luz Macaraeg', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(9, 'Kathryn Bernardo', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(10, 'Coco Martin', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(11, 'Dingdong Dantes', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(12, 'Marian Rivera', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(13, 'Vic Sotto', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(14, 'Joey De Leon', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32');
 
 -- --------------------------------------------------------
 
@@ -759,6 +811,7 @@ INSERT INTO `user_profiles` (`user_id`, `full_name`, `contact_number`, `address`
 -- Table structure for table `vacancies`
 --
 
+DROP TABLE IF EXISTS `vacancies`;
 CREATE TABLE `vacancies` (
   `id` bigint(20) NOT NULL,
   `department_id` bigint(20) NOT NULL,
@@ -784,6 +837,15 @@ INSERT INTO `vacancies` (`id`, `department_id`, `title`, `employment_type`, `des
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `applicant_notifications`
+--
+ALTER TABLE `applicant_notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_created` (`user_id`,`created_at`),
+  ADD KEY `idx_user_unread` (`user_id`,`is_read`),
+  ADD KEY `application_id` (`application_id`);
 
 --
 -- Indexes for table `applications`
@@ -1061,6 +1123,12 @@ ALTER TABLE `vacancies`
 --
 
 --
+-- AUTO_INCREMENT for table `applicant_notifications`
+--
+ALTER TABLE `applicant_notifications`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
@@ -1225,6 +1293,13 @@ ALTER TABLE `vacancies`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `applicant_notifications`
+--
+ALTER TABLE `applicant_notifications`
+  ADD CONSTRAINT `fk_app_notif_app` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_app_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `applications`

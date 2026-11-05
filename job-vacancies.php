@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/config/applicant_auth.php';
+require_once __DIR__ . '/config/applicant_notifications.php';
+require_once __DIR__ . '/config/vacancy_cards.php';
 
 $user    = require_applicant();
 $pdo     = db();
@@ -14,6 +16,12 @@ if (!profile_is_complete($profile)) {
 $displayName = (string) ($profile['full_name'] ?: ($user['name'] ?: $user['email']));
 $vacancies   = list_open_vacancies($pdo);
 $appliedIds  = applied_vacancy_ids($pdo, $user['id']);
+
+// vacancy_id => submitted | reviewing | interviewed | hired | rejected (latest application wins)
+$appStatuses = vacancy_status_map($pdo, (int) $user['id']);
+
+// Notifications for the bell (same title and text as the emails HR sent).
+$initialNotifs = notif_list($pdo, (int) $user['id'], 30);
 ?>
 <!doctype html>
 <html lang="en" data-theme="light" data-ready="true"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Job Vacancies | DNSC Smart HRMS</title><style>
@@ -600,12 +608,7 @@ body.original-login .input-wrap input{padding-right:64px}
 .page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
 
-</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><div class="vacancy-google-account" id="vacancy-google-account"><button type="button" id="vacancy-logout" class="vacancy-logout" aria-label="Log out and return to sign in"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span id="vacancy-google-name" title="<?= e($displayName) ?>"><?= e($displayName) ?></span></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"><?php if (!$vacancies): ?><section class="demo-panel"><h2>No open vacancies right now</h2><p>Please check back later.</p></section><?php endif; ?><?php foreach ($vacancies as $i => $job):
-    $jid      = (int) $job['id'];
-    $dept     = (string) $job['department_name'];
-    $deadline = date('F j, Y', strtotime((string) $job['closing_date']));
-    $search   = $job['title'] . ' ' . $dept . ' ' . $job['employment_type'] . ' ' . $job['description'];
-?><article class="demo-panel vacancy-card" data-job="<?= $jid ?>" data-search="<?= e($search) ?>"><div class="vacancy-card-top"><span class="vacancy-mark" aria-hidden="true">D</span><span class="vacancy-publisher"><small>Posted by</small><strong>DNSC</strong></span><span class="vacancy-index">#<?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span></div><div class="vacancy-media" role="img" aria-label="Image placeholder for <?= e($dept) ?>"><span class="vacancy-media-initials" aria-hidden="true"><?= e(initials($dept)) ?></span><span class="vacancy-media-caption" aria-hidden="true"><?= e($dept) ?></span></div><div class="vacancy-summary"><span class="vacancy-department"><?= e($dept) ?></span><h2 class="vacancy-title"><?= e($job['title']) ?></h2><span class="vacancy-excerpt"><?= e($job['description']) ?></span></div><div class="vacancy-card-bottom"><span class="vacancy-type"><?= e($job['employment_type']) ?></span><span class="vacancy-deadline">Apply by <strong><?= e($deadline) ?></strong></span></div><div class="vacancy-actions"><button type="button" class="vacancy-toggle" id="vacancy-toggle-<?= $jid ?>" aria-expanded="false" aria-controls="vacancy-details-<?= $jid ?>"><span class="vacancy-toggle-label">View details</span><svg class="vacancy-chevron" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><?php if (in_array($jid, $appliedIds, true)): ?><span class="demo-button" aria-disabled="true">Applied</span><?php else: ?><a class="demo-button primary" href="job-application.php?job=<?= $jid ?>">Apply Now</a><?php endif; ?></div><div class="vacancy-details" id="vacancy-details-<?= $jid ?>" role="region" aria-labelledby="vacancy-toggle-<?= $jid ?>" aria-hidden="true" inert><div class="vacancy-details-clip"><div class="vacancy-details-content"><h3>Job Details</h3><dl><dt>Job Description</dt><dd><?= e($job['description']) ?></dd><dt>Employment Type</dt><dd><?= e($job['employment_type']) ?></dd></dl><button type="button" class="demo-button vacancy-close">Close details</button></div></div></div></article><?php endforeach; ?></div></main></div><script>
+</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><div class="vacancy-google-account" id="vacancy-google-account"><button type="button" id="vacancy-profile-toggle" class="vacancy-profile-trigger" aria-label="View applicant profile" aria-expanded="false" aria-controls="vacancy-profile-menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span id="vacancy-google-name" title="<?= e($displayName) ?>"><?= e($displayName) ?></span></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"><section class="demo-panel" id="vacancy-empty"<?= $vacancies ? ' hidden' : '' ?>><h2>No open vacancies right now</h2><p>Please check back later.</p></section><?php foreach ($vacancies as $i => $job): ?><?= vacancy_card_html($job, $i, $appStatuses[(int) $job['id']] ?? null) ?><?php endforeach; ?></div></main></div><script>
 /* Browser-only controls. No requests, authentication, uploads, or record storage. */
 (() => {
 'use strict';
@@ -680,5 +683,201 @@ document.querySelectorAll('.demo-table-wrap').forEach(w=>{if(!w.querySelector('t
 document.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>window.print());
 const tick=()=>{const clock=document.getElementById('live-clock'),date=document.getElementById('live-date');if(clock)clock.textContent=new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());if(date)date.textContent=new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',dateStyle:'full'}).format(new Date());};tick();if(document.getElementById('live-clock'))setInterval(tick,1000);
 })();
+</script>
 
-</script><noscript><p>Enable JavaScript to use this page.</p></noscript></body></html>
+<style>
+.vacancy-profile-trigger{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font-weight:600;cursor:pointer}
+.vacancy-profile-trigger:hover,.vacancy-profile-trigger[aria-expanded=true]{background:var(--slot-bg);color:var(--blue)}
+.vacancy-profile-menu{position:fixed;z-index:302;width:min(320px,calc(100vw - 24px));padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);box-shadow:0 14px 40px #102b1b33}
+.vacancy-profile-menu[hidden]{display:none!important}.vacancy-profile-heading{display:grid;gap:2px;padding-bottom:12px;border-bottom:1px solid var(--line)}.vacancy-profile-heading small,.vacancy-profile-menu dt{color:var(--muted)}
+.vacancy-profile-menu dl{display:grid;gap:10px;margin:14px 0}.vacancy-profile-menu dt{font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}.vacancy-profile-menu dd{margin:2px 0 0;overflow-wrap:anywhere}
+.vacancy-profile-menu .vacancy-logout{width:100%;margin:4px 0 0;padding:10px;border:0;border-radius:9px;background:#d64545;color:#fff;font-weight:700;cursor:pointer}
+</style>
+<script>
+(() => {
+  const account = document.getElementById('vacancy-google-account');
+  const oldProfile = document.getElementById('vacancy-profile-toggle');
+  const name = document.getElementById('vacancy-google-name');
+  if (!account || !oldProfile || !name) return;
+  const displayName = name.textContent.trim();
+  oldProfile.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>' + displayName + '</span><span aria-hidden="true">⌄</span>';
+  oldProfile.id = 'vacancy-google-name';
+  name.remove();
+  const menu = document.createElement('div');
+  menu.className = 'vacancy-profile-menu';
+  menu.id = 'vacancy-profile-menu';
+  menu.hidden = true;
+  menu.innerHTML = '<div class="vacancy-profile-heading"><strong>' + displayName + '</strong><small>Applicant profile</small></div><dl><div><dt>Email</dt><dd><?= e((string) $user['email']) ?></dd></div><div><dt>Contact number</dt><dd><?= e((string) ($profile['contact_number'] ?? 'Not provided')) ?></dd></div><div><dt>Address</dt><dd><?= e((string) ($profile['address'] ?? 'Not provided')) ?></dd></div></dl><button type="button" id="vacancy-logout" class="vacancy-logout">Log Out</button>';
+  account.append(menu);
+  oldProfile.setAttribute('aria-controls', menu.id);
+  const position = () => { const rect = oldProfile.getBoundingClientRect(); menu.style.left = Math.max(12, Math.min(rect.right - menu.offsetWidth, innerWidth - menu.offsetWidth - 12)) + 'px'; menu.style.top = rect.bottom + 10 + 'px'; };
+  const close = () => { menu.hidden = true; oldProfile.setAttribute('aria-expanded', 'false'); };
+  oldProfile.addEventListener('click', event => { event.stopPropagation(); const opening = menu.hidden; close(); if (opening) { menu.hidden = false; oldProfile.setAttribute('aria-expanded', 'true'); position(); } });
+  menu.querySelector('#vacancy-logout').addEventListener('click', () => { location.href = 'authentication/logout.php'; });
+  document.addEventListener('click', event => { if (!account.contains(event.target)) close(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !menu.hidden) { close(); oldProfile.focus(); } });
+  addEventListener('resize', () => { if (!menu.hidden) position(); });
+})();
+</script>
+<style>
+.vacancy-notification-wrap{position:relative}
+.vacancy-notification-button{position:relative;display:inline-flex!important;align-items:center;justify-content:center;width:44px;min-height:42px!important;padding:8px!important;border:1px solid var(--line)!important;border-radius:10px;background:var(--panel)!important;color:var(--blue)!important}
+.vacancy-notification-button:hover,.vacancy-notification-button[aria-expanded=true]{background:var(--slot-bg)!important}
+.vacancy-notification-badge{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#326bfa;box-shadow:0 0 0 2px var(--panel)}
+.vacancy-notification-list{position:fixed;z-index:300;display:block;width:min(390px,calc(100vw - 24px));max-height:calc(100dvh - 30px);overflow:auto;padding:18px 0;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);box-shadow:0 14px 40px #102b1b33}
+.vacancy-notification-list[hidden],.vacancy-notification-detail[hidden]{display:none!important}
+.vacancy-notification-list h2{padding:0 18px;margin:0 0 12px;font-size:20px}
+.vacancy-notification-tabs{display:flex;gap:26px;padding:0 18px 12px;border-bottom:1px solid var(--line)}
+.vacancy-notification-tabs strong{color:var(--blue)}
+.vacancy-notification-item{display:grid;grid-template-columns:42px 1fr 9px;gap:12px;width:100%;padding:14px 18px;border:0;border-bottom:1px solid var(--line);background:transparent;color:inherit;text-align:left;cursor:pointer}
+.vacancy-notification-item:hover,.vacancy-notification-item:focus-visible{background:var(--slot-bg)}
+.vacancy-notification-avatar{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--slot-bg);color:var(--blue);font-weight:700}
+.vacancy-notification-item p{margin:0;color:var(--ink);font-size:13px;line-height:1.4}
+.vacancy-notification-item small{display:block;margin-top:3px;color:var(--muted)}
+.vacancy-notification-unread{align-self:center;width:9px;height:9px;border-radius:50%;background:#58a5ff}
+.vacancy-notification-detail{position:fixed;z-index:301;width:min(360px,calc(100vw - 32px));padding:20px;border:1px solid var(--line);border-top:4px solid var(--blue);border-radius:14px;background:var(--panel);color:var(--ink);box-shadow:0 14px 40px #102b1b33}
+.vacancy-notification-detail[hidden]{display:none!important}.vacancy-notification-detail h2{margin:0 28px 8px 0;font-size:18px}.vacancy-notification-detail p{margin:8px 0;color:var(--muted);font-size:14px}
+.vacancy-notification-detail-close{position:absolute;top:7px;right:8px;width:30px;height:30px;border:0;border-radius:7px;background:transparent;color:inherit;font-size:23px}
+@media(max-width:520px){.vacancy-notification-list{right:12px!important;left:12px!important;width:auto}.vacancy-notification-detail{left:16px!important;right:16px!important;width:auto}}
+</style>
+<style>
+#vacancy-empty[hidden]{display:none!important}
+.application-status{cursor:not-allowed;font-weight:700;opacity:1;pointer-events:none}
+.application-status-submitted{color:#2458cd;background:#edf3ff;border-color:#7ea2ff}
+.application-status-reviewing{color:#8a5a00;background:#fff4d6;border-color:#e3b341}
+.application-status-interviewed{color:#5b3fc4;background:#efeaff;border-color:#a891f0}
+.application-status-hired{color:#0f6b3e;background:#e3f6ec;border-color:#4cb87f}
+.application-status-rejected{color:#a12b2b;background:#fdeaea;border-color:#e08a8a}
+:root[data-theme=dark] .application-status-submitted{color:#a5c5ff;background:#192748;border-color:#567ab5}
+:root[data-theme=dark] .application-status-reviewing{color:#ffd77a;background:#3a2d0c;border-color:#8a6a1c}
+:root[data-theme=dark] .application-status-interviewed{color:#cbbcff;background:#2a2150;border-color:#6b58b8}
+:root[data-theme=dark] .application-status-hired{color:#8fe3b4;background:#0f3322;border-color:#2f7d54}
+:root[data-theme=dark] .application-status-rejected{color:#ffb0b0;background:#401616;border-color:#9a4444}
+.vacancy-notification-tabs button{padding:0;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+.vacancy-notification-tabs button[aria-pressed=true]{color:var(--blue)}
+.vacancy-notification-empty{margin:0;padding:26px 18px;color:var(--muted);text-align:center}
+.vacancy-notification-item strong{display:block}
+.vacancy-notification-snippet{display:block;margin-top:2px;color:var(--muted);font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.vacancy-notification-detail{max-height:min(75dvh,560px);overflow:auto}
+.vacancy-notification-detail p{white-space:pre-line;overflow-wrap:anywhere;color:var(--ink)}
+.vacancy-notification-detail a{color:var(--link)}
+</style>
+<script>
+(() => {
+  const search = document.getElementById('vacancy-search');
+  const account = document.getElementById('vacancy-google-account');
+  if (!search || !account) return;
+  const ENDPOINT = 'api/notifications.php';
+  let items = <?= json_encode($initialNotifs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+  let filter = 'all';
+  let open = false;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'vacancy-notification-wrap';
+  wrap.innerHTML = '<button type="button" class="vacancy-notification-button" id="vacancy-notification-button" aria-label="Notifications" aria-expanded="false" aria-controls="vacancy-notification-list"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="vacancy-notification-badge" hidden></span></button>';
+  search.after(wrap);
+  const button = wrap.querySelector('button');
+  const badge = wrap.querySelector('.vacancy-notification-badge');
+
+  const list = document.createElement('section');
+  list.className = 'vacancy-notification-list';
+  list.id = 'vacancy-notification-list';
+  list.hidden = true;
+  list.setAttribute('aria-label', 'Notifications');
+  list.innerHTML = '<h2>Notifications</h2><div class="vacancy-notification-tabs"><button type="button" data-filter="all" aria-pressed="true">All</button><button type="button" data-filter="unread" aria-pressed="false">Unread</button></div><div class="vacancy-notification-rows"></div>';
+  document.body.append(list);
+  const rows = list.querySelector('.vacancy-notification-rows');
+
+  const detail = document.createElement('section');
+  detail.className = 'vacancy-notification-detail';
+  detail.hidden = true;
+  detail.innerHTML = '<button type="button" class="vacancy-notification-detail-close" aria-label="Close notification">&times;</button><h2></h2><p></p><small></small>';
+  document.body.append(detail);
+
+  const rel = iso => {
+    const d = new Date(iso); if (isNaN(d)) return '';
+    const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
+    if (s < 60) return 'Just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm';
+    if (s < 86400) return Math.floor(s / 3600) + 'h';
+    if (s < 604800) return Math.floor(s / 86400) + 'd';
+    return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' });
+  };
+  const full = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }); };
+
+  // Show the email text as-is (line breaks kept); http(s) links become clickable. Built with DOM nodes, never innerHTML.
+  const fillBody = (el, text) => {
+    el.textContent = '';
+    const re = /https?:\/\/[^\s]+/g; let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) el.append(text.slice(last, m.index));
+      const a = document.createElement('a');
+      a.href = m[0]; a.textContent = m[0]; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      el.append(a); last = m.index + m[0].length;
+    }
+    if (last < text.length) el.append(text.slice(last));
+  };
+
+  const unreadCount = () => items.filter(i => !i.is_read).length;
+
+  const render = () => {
+    const unread = unreadCount();
+    badge.hidden = unread === 0;
+    button.setAttribute('aria-label', unread ? 'Notifications (' + unread + ' unread)' : 'Notifications');
+    list.querySelectorAll('.vacancy-notification-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+    rows.textContent = '';
+    const shown = filter === 'unread' ? items.filter(i => !i.is_read) : items;
+    if (!shown.length) {
+      const p = document.createElement('p'); p.className = 'vacancy-notification-empty';
+      p.textContent = filter === 'unread' ? 'No unread notifications.' : 'No notifications yet.';
+      rows.append(p); return;
+    }
+    for (const n of shown) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'vacancy-notification-item'; b.dataset.id = String(n.id);
+      const av = document.createElement('span'); av.className = 'vacancy-notification-avatar'; av.textContent = 'HR';
+      const mid = document.createElement('span');
+      const t = document.createElement('strong'); t.textContent = n.title;
+      const sn = document.createElement('span'); sn.className = 'vacancy-notification-snippet'; sn.textContent = n.body.replace(/\s+/g, ' ').trim().slice(0, 140);
+      const tm = document.createElement('small'); tm.textContent = rel(n.created_at);
+      mid.append(t, sn, tm);
+      const dot = document.createElement('span');
+      if (!n.is_read) { dot.className = 'vacancy-notification-unread'; dot.setAttribute('aria-label', 'Unread'); }
+      b.append(av, mid, dot); rows.append(b);
+    }
+  };
+
+  const post = payload => fetch(ENDPOINT, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+  const refresh = () => fetch(ENDPOINT, { credentials: 'same-origin', headers: { Accept: 'application/json' }, cache: 'no-store' })
+    .then(r => (r.ok && (r.headers.get('content-type') || '').includes('json')) ? r.json() : null)
+    .then(d => { if (d && Array.isArray(d.items)) { items = d.items; render(); } })
+    .catch(() => {});
+
+  const position = (element, anchor) => { const rect = anchor.getBoundingClientRect(); element.style.left = Math.max(12, Math.min(rect.right - element.offsetWidth, innerWidth - element.offsetWidth - 12)) + 'px'; element.style.top = rect.bottom + 10 + 'px'; };
+  const close = () => { open = false; list.hidden = true; detail.hidden = true; button.setAttribute('aria-expanded', 'false'); };
+
+  button.addEventListener('click', event => { event.stopPropagation(); if (open) { close(); return; } detail.hidden = true; list.hidden = false; open = true; button.setAttribute('aria-expanded', 'true'); render(); position(list, button); refresh(); });
+  list.addEventListener('click', event => {
+    const tab = event.target.closest('.vacancy-notification-tabs button');
+    if (tab) { filter = tab.dataset.filter; render(); return; }
+    const row = event.target.closest('.vacancy-notification-item'); if (!row) return;
+    const n = items.find(i => String(i.id) === row.dataset.id); if (!n) return;
+    detail.querySelector('h2').textContent = n.title;
+    fillBody(detail.querySelector('p'), n.body);
+    detail.querySelector('small').textContent = full(n.created_at);
+    list.hidden = true; detail.hidden = false; position(detail, button);
+    detail.scrollTop = 0;
+    detail.querySelector('.vacancy-notification-detail-close').focus({ preventScroll: true });
+    if (!n.is_read) { n.is_read = true; render(); post({ action: 'read', id: n.id }); }
+  });
+  detail.querySelector('.vacancy-notification-detail-close').addEventListener('click', close);
+  document.addEventListener('click', event => { const path = event.composedPath(); if (open && !path.includes(wrap) && !path.includes(list) && !path.includes(detail)) close(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && open) { close(); button.focus(); } });
+  addEventListener('resize', () => { if (open) position(list.hidden ? detail : list, button); });
+
+  // New notifications appear without reloading the page.
+  setInterval(() => { if (!document.hidden) refresh(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  render();
+})();
+</script>
+<noscript><p>Enable JavaScript to use this page.</p></noscript></body></html>

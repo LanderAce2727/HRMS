@@ -180,12 +180,14 @@
   if (grid) {
     const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    grid.querySelectorAll('.vacancy-card').forEach((card) => {
+    const bindCard = (card) => {
+      if (card.dataset.bound === '1') return;
       const toggle = card.querySelector('.vacancy-toggle');
       const details = card.querySelector('.vacancy-details');
       const label = card.querySelector('.vacancy-toggle-label');
       const close = card.querySelector('.vacancy-close');
       if (!toggle || !details || !label) return;
+      card.dataset.bound = '1';
 
       const setOpen = (open) => {
         card.classList.toggle('is-open', open);
@@ -205,7 +207,8 @@
           toggle.scrollIntoView({ behavior: reduced() ? 'instant' : 'smooth', block: 'nearest' });
         });
       }
-    });
+    };
+    grid.querySelectorAll('.vacancy-card').forEach(bindCard);
 
     /* Header search over the cards already on the page. */
     const search = document.getElementById('vacancy-search');
@@ -213,6 +216,7 @@
     const searchInput = document.getElementById('vacancy-search-input');
     const searchStatus = document.getElementById('vacancy-search-status');
 
+    let applyFilter = () => {};
     if (search && searchToggle && searchInput) {
       let isOpen = false;
 
@@ -232,6 +236,8 @@
             : 'No positions found. Try a different keyword.';
         }
       };
+
+      applyFilter = () => { if (searchInput.value.trim()) filter(); };
 
       const setSearch = (open) => {
         isOpen = open;
@@ -255,5 +261,71 @@
         if (e.key === 'Escape') { e.preventDefault(); setSearch(false); }
       });
     }
+
+    /* Live updates: a vacancy HR just posted appears (and a closed one disappears)
+       without reloading. The server decides which cards exist and in what order. */
+    const VACANCY_ENDPOINT = 'api/vacancies.php';
+    const emptyBox = document.getElementById('vacancy-empty');
+    const toNode = (html) => {
+      const t = document.createElement('template');
+      t.innerHTML = html.trim();
+      return t.content.firstElementChild;
+    };
+
+    const syncVacancies = (items) => {
+      const existing = new Map([...grid.querySelectorAll('.vacancy-card')].map((c) => [c.dataset.job, c]));
+      const seen = new Set();
+      let prev = emptyBox || null;
+      let changed = false;
+
+      items.forEach((item) => {
+        const id = String(item.id);
+        seen.add(id);
+        let card = existing.get(id);
+
+        if (!card) {
+          card = toNode(item.html);
+          bindCard(card);
+          changed = true;
+        } else if (card.dataset.sig !== item.sig) {
+          const fresh = toNode(item.html);
+          card.replaceWith(fresh);
+          bindCard(fresh);
+          card = fresh;
+          changed = true;
+        } else {
+          const idx = card.querySelector('.vacancy-index');
+          if (idx && idx.textContent !== item.index) idx.textContent = item.index;
+          const action = card.querySelector('[data-vacancy-action]');
+          if (action && action.dataset.state !== item.state) action.replaceWith(toNode(item.action));
+        }
+
+        const want = prev ? prev.nextElementSibling : grid.firstElementChild;
+        if (card !== want) {
+          if (prev) prev.after(card); else grid.prepend(card);
+        }
+        prev = card;
+      });
+
+      existing.forEach((card, id) => {
+        if (!seen.has(id)) { card.remove(); changed = true; }
+      });
+
+      if (emptyBox) emptyBox.hidden = grid.querySelector('.vacancy-card') !== null;
+      if (changed) applyFilter();
+    };
+
+    let polling = false;
+    const pollVacancies = () => {
+      if (polling || document.hidden) return;
+      polling = true;
+      fetch(VACANCY_ENDPOINT, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
+        .then((r) => (r.ok && (r.headers.get('content-type') || '').includes('json')) ? r.json() : null)
+        .then((data) => { if (data && Array.isArray(data.items)) syncVacancies(data.items); })
+        .catch(() => {})
+        .then(() => { polling = false; });
+    };
+    setInterval(pollVacancies, 20000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) pollVacancies(); });
   }
 })();
