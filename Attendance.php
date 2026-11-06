@@ -14,9 +14,7 @@ declare(strict_types=1);
 //    Ayaw tangtanga ang leading zeros. Active dapat ang employee ug linked user.
 // 4. I-set ang DB credentials sa highlighted PHP connection block sa ubos.
 //    PHP 8.1+ ug pdo_mysql ang kinahanglan; writable pud ang PHP session folder.
-// 5. Kung ready na ang DB, tangtanga ang /* ug */ sa PHP RFID block sa ubos.
-//    Sa assets/attendance-kiosk.js, i-uncomment pud ang DATABASE CLIENT ug
-//    DATABASE SCAN HOOK blocks. Ayaw tangtanga ang return sa hook.
+// 5. The RFID database API and browser client are enabled below.
 // 6. I-refresh ang Attendance.php (Ctrl+F5). Tap: TIME IN; human 5 segundos,
 //    tap balik: TIME OUT. Check ang attendance_logs. Usa ra ka pair kada adlaw.
 //    Unknown card = error. Repeat tap sulod sa 5 segundos = dili dugangan.
@@ -27,14 +25,19 @@ declare(strict_types=1);
 // ug HTTPS kung deployed na. Ang session token dili reader authentication.
 
 // ============================================================================
-// >>> PHP RFID FUNCTION - COMMENTED / DISABLED UNTIL THE DATABASE IS READY <<<
+// >>> PHP RFID FUNCTION                                                    <<<
 // >>> MAIN FUNCTION: handleRfidScannerRequest()                            <<<
 // ============================================================================
-/*
 function rfidReply(int $status, array $data): never
 {
+    $data['ok'] = $status >= 200 && $status < 300;
     http_response_code($status);
-    echo json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+    try {
+        echo json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+    } catch (JsonException $error) {
+        http_response_code(500);
+        echo '{"ok":false,"message":"The attendance service returned an invalid response."}';
+    }
     exit;
 }
 
@@ -61,17 +64,40 @@ function handleRfidScannerRequest(): void
             $_SESSION['rfid_token'] ??= bin2hex(random_bytes(32));
             rfidReply(200, ['ok' => true, 'token' => $_SESSION['rfid_token']]);
         }
-        if ($action !== 'scan') {
+        if (!in_array($action, ['scan', 'today'], true)) {
             rfidReply(404, ['ok' => false, 'message' => 'Unknown RFID action.']);
         }
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if ($action === 'scan' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Allow: POST');
             rfidReply(405, ['ok' => false, 'message' => 'POST a card scan.']);
+        }
+        if ($action === 'today' && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Allow: GET');
+            rfidReply(405, ['ok' => false, 'message' => 'GET today attendance records.']);
         }
         if (!isset($_SESSION['rfid_token']) || !hash_equals($_SESSION['rfid_token'], $_SERVER['HTTP_X_RFID_TOKEN'] ?? '')) {
             rfidReply(403, ['ok' => false, 'message' => 'Reload the page to restart the scanner session.']);
         }
         session_write_close();
+        $today = new DateTimeImmutable('now', new DateTimeZone('Asia/Manila'));
+        $date = $today->format('Y-m-d');
+        if ($action === 'today') {
+            $host = getenv('HRMS_DB_HOST') ?: '127.0.0.1';
+            $port = getenv('HRMS_DB_PORT') ?: '3306';
+            $name = getenv('HRMS_DB_NAME') ?: 'smart_hrms';
+            $db = new PDO("mysql:host=$host;port=$port;dbname=$name;charset=utf8mb4",
+                getenv('HRMS_DB_USER') ?: 'root', getenv('HRMS_DB_PASSWORD') ?: '',
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]);
+            $db->exec("SET time_zone = '+08:00'");
+            $query = $db->query("SELECT CONCAT_WS(' ', e.first_name, e.middle_name, e.last_name) AS employee_name,
+                    a.work_date, a.check_in_time, a.check_out_time,
+                    CASE WHEN a.check_out_time IS NULL THEN 'TIME IN' ELSE 'TIME OUT' END AS attendance_status
+                FROM attendance_logs a
+                JOIN employees e ON e.id = a.employee_id
+                WHERE a.work_date = CURRENT_DATE()
+                ORDER BY COALESCE(a.check_out_time, a.check_in_time) DESC, a.id DESC");
+            rfidReply(200, ['date' => $date, 'logs' => $query->fetchAll(PDO::FETCH_ASSOC)]);
+        }
         if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 1024) {
             rfidReply(413, ['ok' => false, 'message' => 'Card data is too long.']);
         }
@@ -97,7 +123,7 @@ function handleRfidScannerRequest(): void
         $db->beginTransaction();
         // Lock one employee so simultaneous readers cannot create conflicting punches.
         $query = $db->prepare('SELECT e.id, e.employee_number, e.first_name, e.middle_name,
-            e.last_name, e.current_status, e.position_title, u.is_active, u.branch_id,
+            e.last_name, e.current_status, e.position_title, u.is_active, d.branch_id,
             d.department_name FROM employees e JOIN users u ON u.id = e.user_id
             JOIN departments d ON d.id = e.department_id
             WHERE e.rfid_card_number = ? FOR UPDATE');
@@ -112,10 +138,13 @@ function handleRfidScannerRequest(): void
         $log = $query->fetch(PDO::FETCH_ASSOC);
         $event = 'TIME IN';
         $duplicate = false;
+        $duplicateWaitSeconds = 0;
         if ($log) {
             $last = new DateTimeImmutable($log['check_out_time'] ?? $log['check_in_time'], new DateTimeZone('Asia/Manila'));
-            if (abs($now->getTimestamp() - $last->getTimestamp()) < 5) {
+            $secondsSinceLastTap = abs($now->getTimestamp() - $last->getTimestamp());
+            if ($secondsSinceLastTap < 5) {
                 $duplicate = true;
+                $duplicateWaitSeconds = 5 - $secondsSinceLastTap;
                 $event = $log['check_out_time'] ? 'TIME OUT' : 'TIME IN';
             } elseif ($log['check_out_time']) {
                 throw new DomainException('Time in and time out are already complete for today.');
@@ -130,13 +159,14 @@ function handleRfidScannerRequest(): void
                 VALUES (?, ?, ?, ?, 'present', ?, ?)");
             $query->execute([$employee['id'], $employee['branch_id'], $date, $stamp, $stamp, $stamp]);
         }
-        $query = $db->prepare('SELECT work_date, check_in_time, check_out_time, status FROM attendance_logs
-            WHERE employee_id = ? ORDER BY work_date DESC LIMIT 10');
+        $query = $db->prepare("SELECT work_date, check_in_time, check_out_time,
+                CASE WHEN check_out_time IS NULL THEN 'TIME IN' ELSE 'TIME OUT' END AS attendance_status
+            FROM attendance_logs WHERE employee_id = ? ORDER BY work_date DESC LIMIT 10");
         $query->execute([$employee['id']]);
         $logs = $query->fetchAll(PDO::FETCH_ASSOC);
         $db->commit();
         rfidReply(200, [
-            'ok' => true, 'event' => $event, 'duplicate' => $duplicate,
+            'event' => $event, 'duplicate' => $duplicate, 'duplicate_wait_seconds' => $duplicateWaitSeconds,
             'recorded_at' => ($duplicate ? $last : $now)->format(DATE_ATOM),
             'employee' => [
                 'name' => implode(' ', array_filter([$employee['first_name'], $employee['middle_name'], $employee['last_name']], static fn($v) => $v !== null && $v !== '')),
@@ -153,8 +183,8 @@ function handleRfidScannerRequest(): void
         if ($error instanceof JsonException) {
             rfidReply(400, ['ok' => false, 'message' => 'Invalid scan request.']);
         }
-        error_log('RFID scan failed: ' . $error->getMessage());
-        rfidReply(503, ['ok' => false, 'message' => 'Attendance could not be saved. Contact HR and try again.']);
+        error_log('RFID attendance request failed: ' . $error->getMessage());
+        rfidReply(503, ['message' => 'Attendance could not be saved. Please try again.']);
     }
 }
 
@@ -162,8 +192,7 @@ function handleRfidScannerRequest(): void
 if (isset($_GET['action'])) {
     handleRfidScannerRequest();
 }
-*/
-// ====================== END COMMENTED PHP RFID CODE ==========================
+// ========================== END PHP RFID CODE ================================
 
 ?>
 <!doctype html>

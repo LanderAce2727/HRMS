@@ -656,14 +656,14 @@ $enrollmentStatus = $student['status'] ?? 'pending';
 
 </head>
 
-<body>
+<body class="sidebar-shell">
 
    
     <!-- =========================================
          HEADER
     ========================================== -->
 
-    <header class="hrms-header">
+    <header class="hrms-header has-sidebar-menu">
 
         <button
             type="button"
@@ -689,7 +689,7 @@ $enrollmentStatus = $student['status'] ?? 'pending';
 
         </button>
 
-        <a class="hrms-brand" href="../index.php">
+        <a class="hrms-brand" href="../index.html">
 
             <strong>DNSC SMART HRMS</strong>
 
@@ -699,7 +699,6 @@ $enrollmentStatus = $student['status'] ?? 'pending';
 
         <nav class="hrms-public-nav" aria-label="Main navigation">
 
-            <a href="../index.php">Home</a>
 
             <a href="../job-vacancies.php">Job Vacancies</a>
 
@@ -729,7 +728,7 @@ $enrollmentStatus = $student['status'] ?? 'pending';
          PAGE LAYOUT
     ========================================== -->
 
-    <div class="hrms-layout">
+    <div class="demo-layout hrms-layout">
 
         <!-- SIDEBAR -->
 

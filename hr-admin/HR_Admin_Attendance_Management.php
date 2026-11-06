@@ -60,6 +60,10 @@ unset($_SESSION['flash']);
 /* ---------------- correction form state ---------------- */
 $form = null;          // null = form hidden
 $correctInfo = '';     // "Employee name — number"
+$cardForm = [
+  'employee_id' => '',
+  'rfid_card_number' => '',
+];
 
 function load_log(PDO $pdo, int $id): ?array
 {
@@ -72,7 +76,76 @@ function load_log(PDO $pdo, int $id): ?array
 }
 
 /* ---------------- save correction ---------------- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'register_card') {
+  $cardForm = [
+    'employee_id' => trim((string)($_POST['employee_id'] ?? '')),
+    'rfid_card_number' => trim((string)($_POST['rfid_card_number'] ?? '')),
+  ];
+
+  try {
+    if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
+      throw new UserError('Your session expired. Please try again.');
+    }
+    if (!ctype_digit($cardForm['employee_id']) || (int)$cardForm['employee_id'] <= 0) {
+      throw new UserError('Please select an employee.');
+    }
+    if (!preg_match('/\A[A-Za-z0-9:_-]{1,50}\z/D', $cardForm['rfid_card_number'])) {
+      throw new UserError('Please enter a valid RFID card number (letters, numbers, :, _ or -; max 50 characters).');
+    }
+
+    $employeeId = (int)$cardForm['employee_id'];
+    $employeeQuery = $pdo->prepare('SELECT id, employee_number, first_name, last_name FROM employees WHERE id = ?');
+    $employeeQuery->execute([$employeeId]);
+    $employee = $employeeQuery->fetch();
+    if (!$employee) {
+      throw new UserError('Employee not found.');
+    }
+
+    $duplicateQuery = $pdo->prepare('SELECT employee_number FROM employees WHERE rfid_card_number = ? AND id <> ?');
+    $duplicateQuery->execute([$cardForm['rfid_card_number'], $employeeId]);
+    if ($duplicateQuery->fetchColumn() !== false) {
+      throw new UserError('That RFID card is already registered to another employee.');
+    }
+
+    $pdo->beginTransaction();
+    $pdo->prepare('UPDATE employees SET rfid_card_number = ? WHERE id = ?')
+      ->execute([$cardForm['rfid_card_number'], $employeeId]);
+    $pdo->prepare('INSERT INTO audit_logs (user_id, action_type, target_table, record_id, details) VALUES (?,?,?,?,?)')
+      ->execute([
+        $userId,
+        'register_rfid_card',
+        'employees',
+        $employeeId,
+        $employee['employee_number'] . ' ' . $employee['first_name'] . ' ' . $employee['last_name'],
+      ]);
+    $pdo->commit();
+
+    $_SESSION['flash'] = ['type' => 'success', 'msg' => 'RFID card registered to the employee.'];
+    header('Location: ' . basename(__FILE__));
+    exit;
+  } catch (UserError $ex) {
+    if ($pdo->inTransaction()) {
+      $pdo->rollBack();
+    }
+    $flash = ['type' => 'error', 'msg' => $ex->getMessage()];
+  } catch (PDOException $ex) {
+    if ($pdo->inTransaction()) {
+      $pdo->rollBack();
+    }
+    if ($ex->getCode() === '23000') {
+      $flash = ['type' => 'error', 'msg' => 'That RFID card is already registered to another employee.'];
+    } else {
+      error_log('Register RFID card failed: ' . $ex->getMessage());
+      $flash = ['type' => 'error', 'msg' => 'Could not register the RFID card. Please try again.'];
+    }
+  } catch (Throwable $ex) {
+    if ($pdo->inTransaction()) {
+      $pdo->rollBack();
+    }
+    error_log('Register RFID card failed: ' . $ex->getMessage());
+    $flash = ['type' => 'error', 'msg' => 'Could not register the RFID card. Please try again.'];
+  }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $logId = (int)($_POST['id'] ?? 0);
   $form = [
     'id'               => (string)$logId,
@@ -177,6 +250,13 @@ $logs = $pdo->query(
        JOIN employees e ON e.id = a.employee_id
       ORDER BY a.work_date DESC, a.check_in_time DESC, a.id DESC
       LIMIT 500'
+)->fetchAll();
+
+$employees = $pdo->query(
+  "SELECT id, employee_number, first_name, last_name, rfid_card_number
+     FROM employees
+    WHERE current_status = 'active'
+    ORDER BY first_name, last_name, employee_number"
 )->fetchAll();
 ?>
 
@@ -4296,6 +4376,28 @@ $logs = $pdo->query(
         <h1>Attendance Management</h1>
         <p>Attendance times are shown in Philippine Standard Time.</p>
       </header>
+      <section class="demo-panel">
+        <h2>Register employee card</h2>
+        <p>Register an RFID card to an active instructor or staff member for attendance scanning.</p>
+        <form class="demo-form" method="post" action="<?= e(basename(__FILE__)) ?>" aria-label="Register employee card">
+          <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+          <input type="hidden" name="action" value="register_card">
+          <label>Instructor or staff member
+            <select name="employee_id" required>
+              <option value="">Select an employee</option>
+              <?php foreach ($employees as $employee): ?>
+                <option value="<?= (int)$employee['id'] ?>" <?= (string)$employee['id'] === $cardForm['employee_id'] ? ' selected' : '' ?>>
+                  <?= e($employee['first_name'] . ' ' . $employee['last_name'] . ' — ' . $employee['employee_number'] . ($employee['rfid_card_number'] ? ' (card already registered)' : '')) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+          <label>RFID card number
+            <input name="rfid_card_number" type="text" value="<?= e($cardForm['rfid_card_number']) ?>" maxlength="50" pattern="[A-Za-z0-9:_-]{1,50}" required autocomplete="off">
+          </label>
+          <div><button class="demo-button primary" type="submit">Register Card</button></div>
+        </form>
+      </section>
       <section class="demo-panel">
         <h2>Attendance records</h2>
         <div class="demo-table-wrap">

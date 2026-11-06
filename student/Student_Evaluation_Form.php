@@ -508,9 +508,8 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
     <button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
-    <a class="hrms-brand" href="../index.php"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
+    <a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
     <nav class="hrms-public-nav" aria-label="Main navigation">
-        <a href="../index.php">Home</a>
         <a href="../job-vacancies.php">Job Vacancies</a>
         <a href="../login.php">Logout</a>
     </nav>
@@ -526,7 +525,7 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
         <p class="account-name">Student Pages</p>
         <nav aria-label="Section navigation">
             <a href="Student_Verification_Status.php">Enrollment Status</a>
-            <a href="Student_Faculty_Selection.php">Faculty Evaluation</a>
+            <a href="Student_Faculty_Selection.php" aria-current="page">Faculty Evaluation</a>
             <a href="Student_Submission_Confirmation.php">My Submissions</a>
         </nav>
     </aside>

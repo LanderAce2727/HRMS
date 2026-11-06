@@ -15,13 +15,11 @@
   }).format(value);
 
   // ========================================================================
-  // DATABASE CLIENT: FUTURE CODE ONLY (DISABLED)
-  // Tangtanga ang /* ug */ niini ug sa DATABASE SCAN HOOK kung ready na ang DB.
-  // Full PHP function + simple Bisaya steps: Attendance.php (project root).
+  // DATABASE CLIENT
   // ========================================================================
-  /*
   let databaseBusy = false;
   let databaseToken = '';
+  let noticeTimer;
   const databaseEndpoint = new URL(
     /\/dist\/Attendance\.(html|php)$/.test(location.pathname)
       ? '../Attendance.php' : 'Attendance.php', document.baseURI);
@@ -38,6 +36,52 @@
     return data;
   }
 
+  function renderAttendanceLogs(logs) {
+    const rows = document.getElementById('attendance-rows');
+    rows.replaceChildren();
+    for (const log of logs) {
+      const timestamp = value => value ? new Date(value.replace(' ', 'T') + '+08:00') : null;
+      const values = [
+        log.employee_name || '',
+        log.work_date,
+        formatTime(timestamp(log.check_in_time)),
+        formatTime(timestamp(log.check_out_time)),
+        log.attendance_status || log.status || ''
+      ];
+      const row = document.createElement('tr');
+      for (const value of values) {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.append(cell);
+      }
+      rows.append(row);
+    }
+  }
+
+  async function loadTodayAttendance() {
+    if (databaseBusy) return;
+    try {
+      if (!databaseToken) databaseToken = (await databaseRequest('session')).token;
+      const data = await databaseRequest('today', {
+        headers: { 'X-RFID-Token': databaseToken }
+      });
+      renderAttendanceLogs(data.logs);
+      document.getElementById('log-description').textContent = 'Today\'s attendance records. Updated just now.';
+    } catch (error) {
+      showError(error.message || 'Attendance records could not be loaded. Please try again.');
+    }
+  }
+
+  function showError(text) {
+    const notice = document.getElementById('notice');
+    if (!notice) return;
+    notice.className = 'system-notice error';
+    notice.textContent = text;
+    notice.hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => { notice.hidden = true; }, 5000);
+  }
+
   // >>> RFID SCANNER CONNECTION: sends the typed UID to Attendance.php. <<<
   async function recordRegisteredRfid(uid) {
     if (databaseBusy) {
@@ -46,7 +90,6 @@
     }
     databaseBusy = true;
     card.hidden = true;
-    document.getElementById('attendance-rows').replaceChildren();
     document.getElementById('log-description').textContent = 'Checking registered card...';
     document.getElementById('scanner-state').textContent = 'Saving...';
     feedback.className = 'scan-feedback';
@@ -66,36 +109,28 @@
       document.getElementById('tap-time').textContent = formatTime(recordedAt, false);
       document.getElementById('tap-date').textContent = formatDate(recordedAt);
       document.getElementById('tap-note').textContent = data.duplicate
-        ? 'Repeat tap ignored. Previous record kept.' : 'Attendance saved successfully.';
+        ? `Duplicate tap ignored. Please wait ${data.duplicate_wait_seconds || 1} second(s) before tapping again.`
+        : 'Attendance saved successfully.';
       card.hidden = false;
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => { card.hidden = true; }, 6000);
       document.getElementById('log-description').textContent = employee.name + ' / ' + employee.number;
-      const rows = document.getElementById('attendance-rows');
-      const timestamp = value => value ? new Date(value.replace(' ', 'T') + '+08:00') : null;
-      for (const log of data.logs) {
-        const row = document.createElement('tr');
-        for (const value of [log.work_date, formatTime(timestamp(log.check_in_time)),
-          formatTime(timestamp(log.check_out_time)), log.status]) {
-          const cell = document.createElement('td');
-          cell.textContent = value;
-          row.append(cell);
-        }
-        rows.append(row);
-      }
-      feedback.textContent = data.duplicate ? 'Repeat tap ignored.' : data.event + ' saved.';
+      await loadTodayAttendance();
+      feedback.className = data.duplicate ? 'scan-feedback error' : 'scan-feedback success';
+      feedback.textContent = data.duplicate
+        ? `Duplicate tap ignored. Wait ${data.duplicate_wait_seconds || 1} second(s) before tapping again.`
+        : data.event + ' saved.';
     } catch (error) {
       card.hidden = true;
       feedback.className = 'scan-feedback error';
       feedback.textContent = error.message;
-      document.getElementById('log-description').textContent = 'No attendance record displayed.';
+      showError(error.message || 'Attendance could not be saved. Please try again.');
     } finally {
       databaseBusy = false;
       document.getElementById('scanner-state').textContent = 'Ready to scan';
       input.focus({ preventScroll: true });
     }
   }
-  */
   // ======================== END DATABASE CLIENT ============================
 
   function scan(event) {
@@ -104,11 +139,8 @@
     const uid = input.value.trim();
     input.value = '';
     if (!uid) return;
-    // ================= DATABASE SCAN HOOK (DISABLED) =======================
-    /*
     recordRegisteredRfid(uid);
     return;
-    */
     // ===================== END DATABASE SCAN HOOK =========================
     const now = new Date();
     const logs = attendance.get(uid) || [];
@@ -168,5 +200,16 @@
   });
   document.getElementById('scanner-state').textContent = 'Ready to scan';
   feedback.textContent = 'Waiting for your RFID card or tag...';
+  const attendanceTable = document.querySelector('#attendance-rows').closest('table');
+  attendanceTable.querySelector('thead tr').replaceChildren(
+    ...['Employee', 'Date', 'Time in', 'Time out', 'Status'].map(label => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.textContent = label;
+      return th;
+    })
+  );
+  document.querySelectorAll('#attendance-rows').forEach(() => loadTodayAttendance());
+  window.setInterval(loadTodayAttendance, 5000);
   input.focus({ preventScroll: true });
 })();
