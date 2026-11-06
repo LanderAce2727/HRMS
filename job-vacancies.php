@@ -608,7 +608,11 @@ body.original-login .input-wrap input{padding-right:64px}
 .page-directory ul{padding-left:20px}.page-directory li{margin-bottom:10px}
 @media print{.static-form,.static-links,.system-notice{display:none!important}}
 
-</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"><a href="index.html">Home</a></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><div class="vacancy-google-account" id="vacancy-google-account"><button type="button" id="vacancy-profile-toggle" class="vacancy-profile-trigger" aria-label="View applicant profile" aria-expanded="false" aria-controls="vacancy-profile-menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span id="vacancy-google-name" title="<?= e($displayName) ?>"><?= e($displayName) ?></span></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"><section class="demo-panel" id="vacancy-empty"<?= $vacancies ? ' hidden' : '' ?>><h2>No open vacancies right now</h2><p>Please check back later.</p></section><?php foreach ($vacancies as $i => $job): ?><?= vacancy_card_html($job, $i, $appStatuses[(int) $job['id']] ?? null) ?><?php endforeach; ?></div></main></div><script>
+.vacancy-google-account > svg{
+    display:none !important;
+}
+
+</style><link rel="stylesheet" href="assets/ui-flow.css?v=20261029-vacancy-green"><script defer src="assets/applicant-flow.js"></script><link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="assets/applicant-errors.css"></head><body class="flow-page" data-flow="vacancies"><a class="skip-link" href="#main-content">Skip to content</a><header class="hrms-header"><a class="hrms-brand" href="index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a><nav class="hrms-public-nav" aria-label="Main navigation"></nav><button id="theme-mode" class="icon-button" type="button" aria-label="Switch to dark mode"></button><div class="vacancy-header-tools"><form class="vacancy-search" id="vacancy-search" role="search"><button class="vacancy-search-button" id="vacancy-search-toggle" type="button" aria-label="Search job vacancies" aria-expanded="false" aria-controls="vacancy-search-field"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><div class="vacancy-search-field" id="vacancy-search-field"><input id="vacancy-search-input" type="search" aria-label="Search by position, department, or keyword" placeholder="Search vacancies..." disabled></div></form><div class="vacancy-google-account" id="vacancy-google-account"><button type="button" id="vacancy-profile-toggle" class="vacancy-profile-trigger" aria-label="View applicant profile" aria-expanded="false" aria-controls="vacancy-profile-menu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Log Out</button><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span id="vacancy-google-name" title="<?= e($displayName) ?>"><?= e($displayName) ?></span></div></div></header><div class="public-layout"><main class="demo-main" id="main-content"><div class="flow-message" id="flow-message" role="status" tabindex="-1" hidden></div><header class="demo-heading"><h1>Job Vacancies</h1><p>Explore teaching opportunities across DNSC departments.</p></header><p id="vacancy-search-status" role="status" aria-live="polite" hidden></p><div class="vacancy-grid" id="vacancy-grid"><section class="demo-panel" id="vacancy-empty"<?= $vacancies ? ' hidden' : '' ?>><h2>No open vacancies right now</h2><p>Please check back later.</p></section><?php foreach ($vacancies as $i => $job): ?><?= vacancy_card_html($job, $i, $appStatuses[(int) $job['id']] ?? null) ?><?php endforeach; ?></div></main></div><script>
 /* Browser-only controls. No requests, authentication, uploads, or record storage. */
 (() => {
 'use strict';
@@ -700,14 +704,24 @@ const tick=()=>{const clock=document.getElementById('live-clock'),date=document.
   const name = document.getElementById('vacancy-google-name');
   if (!account || !oldProfile || !name) return;
   const displayName = name.textContent.trim();
-  oldProfile.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>' + displayName + '</span><span aria-hidden="true">⌄</span>';
+  
+  oldProfile.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+    '<circle cx="12" cy="8" r="4"/>' +
+    '<path d="M4 21v-2a8 8 0 0 1 16 0v2"/>' +
+    '</svg>' +
+    '<span class="vacancy-profile-name">' +
+    displayName +
+    '</span>';
+    
+
   oldProfile.id = 'vacancy-google-name';
   name.remove();
   const menu = document.createElement('div');
   menu.className = 'vacancy-profile-menu';
   menu.id = 'vacancy-profile-menu';
   menu.hidden = true;
-  menu.innerHTML = '<div class="vacancy-profile-heading"><strong>' + displayName + '</strong><small>Applicant profile</small></div><dl><div><dt>Email</dt><dd><?= e((string) $user['email']) ?></dd></div><div><dt>Contact number</dt><dd><?= e((string) ($profile['contact_number'] ?? 'Not provided')) ?></dd></div><div><dt>Address</dt><dd><?= e((string) ($profile['address'] ?? 'Not provided')) ?></dd></div></dl><button type="button" id="vacancy-logout" class="vacancy-logout">Log Out</button>';
+  menu.innerHTML = '<div class="vacancy-profile-heading"><strong>' + displayName + '</strong><small>Applicant profile</small></div><dl><div><dt>Email</dt><dd><?= e((string) $user['email']) ?></dd></div><div><dt>PRC License</dt><dd><?= e((string) ($profile['prc_license'] ?? 'Not provided')) ?></dd></div></dl><button type="button" id="vacancy-logout" class="vacancy-logout">Log Out</button>';
   account.append(menu);
   oldProfile.setAttribute('aria-controls', menu.id);
   const position = () => { const rect = oldProfile.getBoundingClientRect(); menu.style.left = Math.max(12, Math.min(rect.right - menu.offsetWidth, innerWidth - menu.offsetWidth - 12)) + 'px'; menu.style.top = rect.bottom + 10 + 'px'; };
@@ -761,6 +775,32 @@ const tick=()=>{const clock=document.getElementById('live-clock'),date=document.
 .vacancy-notification-detail{max-height:min(75dvh,560px);overflow:auto}
 .vacancy-notification-detail p{white-space:pre-line;overflow-wrap:anywhere;color:var(--ink)}
 .vacancy-notification-detail a{color:var(--link)}
+
+.vacancy-profile-trigger{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    white-space:nowrap;
+}
+
+.vacancy-profile-trigger svg{
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    display:block;
+}
+.vacancy-profile-name{
+    display:block;
+    white-space:nowrap;
+    font-weight:600;
+}
+
+
+
+
 </style>
 <script>
 (() => {
