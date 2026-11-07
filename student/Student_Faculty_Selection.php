@@ -369,9 +369,8 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
     <button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
-    <a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
+    <a class="hrms-brand"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
     <nav class="hrms-public-nav" aria-label="Main navigation">
-        <a href="../job-vacancies.php">Job Vacancies</a>
         <a href="../authentication/logout.php">Logout</a>
     </nav>
     <button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>

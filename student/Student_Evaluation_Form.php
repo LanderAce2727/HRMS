@@ -512,9 +512,8 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
     <button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
-    <a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
+    <a class="hrms-brand"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
     <nav class="hrms-public-nav" aria-label="Main navigation">
-        <a href="../job-vacancies.php">Job Vacancies</a>
         <a href="../authentication/logout.php">Logout</a>
     </nav>
     <button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
@@ -540,36 +539,7 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
             <p>Evaluate your instructors based on your learning experience.</p>
         </header>
 
-        <!-- STUDENT INFORMATION PANEL -->
-        <section class="demo-panel">
-            <h2>Student Information</h2>
-            <div class="student-info-grid">
-                <div class="student-info-item">
-                    <strong>Student Name</strong>
-                    <?= clean($studentName) ?>
-                </div>
-                <div class="student-info-item">
-                    <strong>Student Number</strong>
-                    <?= clean($student['student_number']) ?>
-                </div>
-                <div class="student-info-item">
-                    <strong>Program</strong>
-                    <?= clean($student['program']) ?>
-                </div>
-                <div class="student-info-item">
-                    <strong>Year Level</strong>
-                    <?= clean($student['year_level']) ?>
-                </div>
-                <div class="student-info-item">
-                    <strong>Section</strong>
-                    <?= clean($student['section_name'] ?? 'Not assigned') ?>
-                </div>
-                <div class="student-info-item">
-                    <strong>Academic Year</strong>
-                    <?= clean($student['academic_year'] ?? 'Not available') ?>
-                </div>
-            </div>
-        </section>
+        
 
         <!-- INSTRUCTIONS -->
         <section class="demo-panel">
@@ -655,7 +625,7 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
                             </label>
 
                             <div style="margin-top:10px;">
-                                <button type="submit" class="demo-button primary" onclick="return confirm('Are you sure you want to submit this evaluation?');">
+                                <button type="submit" class="demo-button primary">
                                     Submit Evaluation
                                 </button>
                             </div>

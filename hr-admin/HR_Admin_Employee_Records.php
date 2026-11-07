@@ -4372,7 +4372,7 @@ $isEdit = $form['id'] !== '';
         <p>Manage employee accounts, appointments, RFID cards, and pay rates.</p>
       </header>
       <section class="demo-panel">
-        <h2>Employee directory</h2>
+        <h2>Employee Directory</h2>
         <div class="demo-table-wrap">
           <table>
             <thead>

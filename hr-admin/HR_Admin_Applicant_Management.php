@@ -1,13 +1,13 @@
 <?php
-
+ 
 declare(strict_types=1);
-
+ 
 session_start();
 date_default_timezone_set('Asia/Manila');
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../api/mailer.php';
 require_once __DIR__ . '/../config/applicant_notifications.php';
-
+ 
 $pdo = db();
 $userId = (int)($_SESSION['user_id'] ?? 0);
 if ($userId <= 0) {
@@ -23,13 +23,10 @@ if (!$chk->fetch()) {
     http_response_code(403);
     exit('Access denied.');
 }
-
+ 
 /* ---------------- interview settings ---------------- */
-// Google Meet room used for online interviews (no tracking parameters).
 const MEET_LINK = 'https://meet.google.com/aph-kpud-mff';
-// Fixed face-to-face venue (HR can still type another one).
 const FTF_DEFAULT_LOCATION = 'HR Office, DNSC';
-// Fixed 1-hour interview slots (24h value => label). Monday to Friday only.
 const INTERVIEW_SLOTS = [
     '09:00' => '9:00 AM - 10:00 AM',
     '10:00' => '10:00 AM - 11:00 AM',
@@ -39,12 +36,11 @@ const INTERVIEW_SLOTS = [
     '15:00' => '3:00 PM - 4:00 PM',
     '16:00' => '4:00 PM - 5:00 PM',
 ];
-// Sender of applicant emails. Change to a real mailbox/domain of your school.
 const MAIL_FROM = 'no-reply@dnsc.edu.ph';
-
+ 
 /* ---------------- helpers ---------------- */
 class UserError extends RuntimeException {}
-
+ 
 function e($v): string
 {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
@@ -84,10 +80,6 @@ function slot_label(string $hhmm): string
 {
     return INTERVIEW_SLOTS[substr($hhmm, 0, 5)] ?? date('g:i A', strtotime($hhmm));
 }
-/**
- * Wrap an email's main content with the standard greeting and sign-off.
- * $lines: array of paragraphs (strings). Use "\n" inside a paragraph for line breaks.
- */
 function email_body(array $app, array $lines): string
 {
     $ref = 'APP-' . str_pad((string)$app['id'], 4, '0', STR_PAD_LEFT);
@@ -98,12 +90,6 @@ function email_body(array $app, array $lines): string
         . "\n\nThis is an automated message from the DNSC Smart HRMS."
         . "\n\n- DNSC HR Management";
 }
-/**
- * Email the applicant and record it in email_notification_logs.
- * notification_type in the DB must allow 'accepted' | 'rejected' | 'cancelled' (see the ALTER TABLE note).
- * Uses the applicant's Google login email (users.email) when they signed in with Google,
- * otherwise the email typed on the application.
- */
 function notify_applicant(PDO $pdo, array $app, string $type, string $subject, string $body): bool
 {
     $to = (string)$app['email'];
@@ -116,7 +102,7 @@ function notify_applicant(PDO $pdo, array $app, string $type, string $subject, s
         }
     } catch (Throwable $ex) {
     }
-
+ 
     $status = 'failed';
     $err    = null;
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
@@ -141,11 +127,8 @@ function notify_applicant(PDO $pdo, array $app, string $type, string $subject, s
             $status === 'sent' ? date('Y-m-d H:i:s') : null,
         ]);
     } catch (Throwable $ex) {
-        // The email result must not be hidden by a logging problem.
         error_log('Email log insert failed: ' . $ex->getMessage());
     }
-    // Web notification for the applicant's bell: same title and text as the email,
-    // created even when the email itself failed, so the applicant still sees it on the site.
     notif_create($pdo, (int)($app['applicant_user_id'] ?? 0), (int)$app['id'], $type, $subject, $body);
     return $status === 'sent';
 }
@@ -162,28 +145,27 @@ function gcal_link(string $date, string $hhmm, string $where): string
         'details'  => 'Interview for the DNSC faculty/instructor position.',
     ]);
 }
-
+ 
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 $csrf = $_SESSION['csrf'];
-
+ 
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
-
+ 
 /* ---------------- POST actions ---------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $appId = (int)($_POST['application_id'] ?? 0);
     $back  = self() . ($appId > 0 ? '?id=' . $appId . '#application-detail' : '');
-
+ 
     try {
         if (!hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
             throw new UserError('Your session expired. Please try again.');
         }
-
+ 
         $action = p('action');
-
-        // Load the application (needed by most actions)
+ 
         $app = null;
         if ($appId > 0) {
             $st = $pdo->prepare(
@@ -197,17 +179,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$app) {
             throw new UserError('Application not found.');
         }
-
+ 
         $isRegistered = (bool)$pdo->query(
             'SELECT COUNT(*) FROM employees WHERE user_id = ' . (int)$app['applicant_user_id']
         )->fetchColumn();
-
-        $notify = null; // [type, subject, body] sent after commit
+ 
+        $notify = null;
         $pdo->beginTransaction();
-
+ 
         switch ($action) {
-
-            /* ----- step 1: approve for interview / reject ----- */
+ 
             case 'set_status':
                 $new = p('status');
                 if (!in_array($new, ['reviewing', 'rejected'], true)) {
@@ -225,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare(
                     'UPDATE applications SET status = ?, reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ?'
                 )->execute([$new, $userId, $appId]);
-
+ 
                 if ($new === 'rejected') {
                     $pdo->prepare("UPDATE interview_schedules SET status = 'cancelled' WHERE application_id = ? AND status = 'scheduled'")
                         ->execute([$appId]);
@@ -248,8 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit($pdo, $userId, 'set_application_status', 'applications', $appId, $app['status'] . ' -> ' . $new);
                 $msg = $new === 'reviewing' ? 'Application approved. You can now schedule the interview.' : 'Application rejected.';
                 break;
-
-            /* ----- step 2: schedule interview (fixed time slots; face-to-face or Google Meet) ----- */
+ 
             case 'schedule_interview':
                 if ($app['status'] !== 'reviewing') {
                     throw new UserError('Approve the application first before scheduling an interview.');
@@ -259,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($open->fetchColumn()) {
                     throw new UserError('This applicant already has a scheduled interview. Cancel it first to set a new one.');
                 }
-
+ 
                 $date = p('interview_date');
                 $slot = p('interview_slot');
                 $mode = p('interview_mode');
@@ -293,8 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $modeLabel = 'Face-to-face';
                 }
                 $notes = p('notes');
-
-                // One interviewer / one Meet room: a slot can only hold one scheduled interview.
+ 
                 $cf = $pdo->prepare(
                     "SELECT COUNT(*) FROM interview_schedules
                       WHERE status = 'scheduled' AND interview_date = ? AND interview_time = ?
@@ -304,14 +283,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($cf->fetchColumn()) {
                     throw new UserError('That date and time slot is already booked. Please pick another slot.');
                 }
-
+ 
                 $pdo->prepare(
                     'INSERT INTO interview_schedules (application_id, interviewer_user_id, interview_date, interview_time, location_or_link, notes)
                      VALUES (?,?,?,?,?,?)'
                 )->execute([$appId, $userId, $date, $slot . ':00', $where, $notes !== '' ? $notes : null]);
                 $newId = (int)$pdo->lastInsertId();
                 audit($pdo, $userId, 'schedule_interview', 'interview_schedules', $newId, "$date $slot $modeLabel");
-
+ 
                 $when = date('l, F j, Y', strtotime($date)) . ', ' . slot_label($slot);
                 $details = "Position     : {$app['position_applied']}\n"
                     . "Date & time  : $when (Philippine Time)\n"
@@ -339,8 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $notify = ['accepted', 'DNSC interview schedule - ' . date('M j, Y', strtotime($date)), $body];
                 $msg = 'Interview scheduled.';
                 break;
-
-            /* ----- step 3: after the interview - approve (passed) / reject (failed) / cancel ----- */
+ 
             case 'update_interview':
                 $iid = (int)($_POST['interview_id'] ?? 0);
                 $new = p('status');
@@ -355,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $pdo->prepare('UPDATE interview_schedules SET status = ? WHERE id = ? AND application_id = ?')
                     ->execute([$new, $iid, $appId]);
-
+ 
                 if ($new === 'passed') {
                     $pdo->prepare("UPDATE applications SET status = 'interviewed', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ? AND status = 'reviewing'")
                         ->execute([$userId, $appId]);
@@ -385,8 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 audit($pdo, $userId, 'update_interview', 'interview_schedules', $iid, $new);
                 break;
-
-            /* ----- register accepted applicant as employee ----- */
+ 
             case 'register_faculty':
                 if ($app['status'] !== 'interviewed') {
                     throw new UserError('Only applicants who passed the interview can be registered as instructors.');
@@ -401,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $deptId = (int)($_POST['department_id'] ?? 0);
                 $hired  = p('date_hired');
                 $isFac  = isset($_POST['is_faculty']) ? 1 : 0;
-
+ 
                 if ($first === '' || $last === '' || mb_strlen($first) > 50 || mb_strlen($last) > 50 || mb_strlen($middle) > 50) {
                     throw new UserError('First and last name are required (max 50 characters each).');
                 }
@@ -416,7 +393,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$dchk->fetchColumn()) {
                     throw new UserError('Please select a valid department.');
                 }
-
+ 
                 $prefix = 'EMP-' . date('Y') . '-';
                 $mx = $pdo->prepare(
                     "SELECT MAX(CAST(SUBSTRING_INDEX(employee_number, '-', -1) AS UNSIGNED))
@@ -424,7 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 $mx->execute([$prefix . '%']);
                 $empNo = $prefix . str_pad((string)((int)$mx->fetchColumn() + 1), 3, '0', STR_PAD_LEFT);
-
+ 
                 $pdo->prepare(
                     "INSERT INTO employees (user_id, employee_number, first_name, middle_name, last_name,
                                             department_id, position_title, is_faculty, date_hired, current_status)
@@ -441,15 +418,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hired,
                 ]);
                 $empId = (int)$pdo->lastInsertId();
-
-                // Promote the account from applicant to instructor and force a fresh login.
+ 
                 $pdo->prepare(
                     "UPDATE users
                         SET role_id = (SELECT id FROM roles WHERE role_name = 'instructor'),
                             session_version = session_version + 1
                       WHERE id = ? AND role_id = (SELECT id FROM roles WHERE role_name = 'applicant')"
                 )->execute([(int)$app['applicant_user_id']]);
-
+ 
                 $pdo->prepare(
                     'INSERT INTO user_profiles (user_id, full_name, contact_number, address, prc_license_number, prc_not_applicable, specialization, highest_education)
                      VALUES (?,?,?,?,?,?,?,?)
@@ -470,15 +446,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $app['specialization'],
                     $app['highest_education'],
                 ]);
-
+ 
                 $pdo->prepare("UPDATE applications SET status = 'hired', reviewed_by_user_id = ?, reviewed_at = NOW() WHERE id = ?")
                     ->execute([$userId, $appId]);
-
+ 
                 $pdo->prepare(
                     "INSERT INTO employee_status_histories (employee_id, previous_status, new_status, change_reason, changed_by_user_id, effective_date)
                      VALUES (?, NULL, 'active', ?, ?, ?)"
                 )->execute([$empId, 'Registered from application #' . $appId, $userId, $hired]);
-
+ 
                 audit($pdo, $userId, 'register_employee', 'employees', $empId, $empNo . ' from application #' . $appId);
                 $notify = ['accepted', 'Welcome to DNSC! Your instructor account is ready', email_body($app, [
                     "Congratulations and welcome to Davao del Norte State College (DNSC)! We are delighted to inform you that your application for {$app['position_applied']} has been approved, and you have been registered as an Instructor.",
@@ -491,8 +467,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ])];
                 $msg = "Registered as instructor $empNo.";
                 break;
-
-            /* ----- assign teaching schedule ----- */
+ 
             case 'assign_teaching':
                 $emp = $pdo->prepare('SELECT id, is_faculty FROM employees WHERE user_id = ?');
                 $emp->execute([(int)$app['applicant_user_id']]);
@@ -509,7 +484,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $end     = p('end_time');
                 $sem     = (int)($_POST['semester'] ?? 0);
                 $ay      = p('academic_year');
-
+ 
                 if (!in_array($day, ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], true)) {
                     throw new UserError('Invalid day.');
                 }
@@ -529,8 +504,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         throw new UserError('Please choose a valid subject, section and classroom.');
                     }
                 }
-
-                // Conflict check: same day/semester/year, overlapping time, same instructor OR same room
+ 
                 $cf = $pdo->prepare(
                     "SELECT COUNT(*) FROM teaching_schedules
                       WHERE status = 'active' AND day = ? AND semester = ? AND academic_year = ?
@@ -541,7 +515,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($cf->fetchColumn()) {
                     throw new UserError('Schedule conflict: the instructor or classroom is already booked at that time.');
                 }
-
+ 
                 $pdo->prepare(
                     'INSERT INTO teaching_schedules (instructor_id, subject_id, section_id, classroom_id, day, start_time, end_time, semester, academic_year)
                      VALUES (?,?,?,?,?,?,?,?,?)'
@@ -549,8 +523,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit($pdo, $userId, 'assign_teaching', 'teaching_schedules', (int)$pdo->lastInsertId(), "$day $start-$end $ay S$sem");
                 $msg = 'Teaching assignment saved.';
                 break;
-
-            /* ----- cancel teaching schedule ----- */
+ 
             case 'cancel_teaching':
                 $sid = (int)($_POST['schedule_id'] ?? 0);
                 $st = $pdo->prepare(
@@ -562,11 +535,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit($pdo, $userId, 'cancel_teaching', 'teaching_schedules', $sid, 'cancelled');
                 $msg = 'Teaching assignment cancelled.';
                 break;
-
+ 
             default:
                 throw new UserError('Unknown action.');
         }
-
+ 
         $pdo->commit();
         if ($notify) {
             try {
@@ -590,12 +563,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log('Applicant action failed: ' . $ex->getMessage());
         $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Something went wrong. Please try again.'];
     }
-
+ 
     header('Location: ' . $back);
     exit;
 }
-
-/* ---------------- list (search + status filter run in the browser, like the HTML) ---------------- */
+ 
+/* ---------------- list ---------------- */
 $sql = 'SELECT a.id, a.full_name, a.email, a.position_applied, a.status, a.created_at,
                d.department_name, r.role_name, e.id AS employee_id
           FROM applications a
@@ -606,13 +579,13 @@ $sql = 'SELECT a.id, a.full_name, a.email, a.position_applied, a.status, a.creat
           LEFT JOIN employees e    ON e.user_id = a.applicant_user_id'
     . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 500';
 $applicants = $pdo->query($sql)->fetchAll();
-
+ 
 /* ---------------- detail panel ---------------- */
 $detail = null;
 $interviews = $emails = $schedules = $documents = [];
 $takenSlots = [];
 $subjects = $sections = $classrooms = $departments = [];
-
+ 
 $viewId = (int)($_GET['id'] ?? 0);
 if ($viewId > 0) {
     $st = $pdo->prepare(
@@ -635,7 +608,7 @@ if ($viewId > 0) {
     );
     $st->execute([$viewId]);
     $detail = $st->fetch() ?: null;
-
+ 
     if ($detail) {
         $s = $pdo->prepare(
             'SELECT i.*, COALESCE(up.full_name, u.username) AS interviewer
@@ -646,27 +619,27 @@ if ($viewId > 0) {
         );
         $s->execute([$viewId]);
         $interviews = $s->fetchAll();
-
+ 
         try {
-            $s = $pdo->prepare('SELECT document_type, original_name, file_path FROM application_documents WHERE application_id = ? ORDER BY id');
+            // id is needed for the document viewer link
+            $s = $pdo->prepare('SELECT id, document_type, original_name, file_path FROM application_documents WHERE application_id = ? ORDER BY id');
             $s->execute([$viewId]);
             $documents = $s->fetchAll();
         } catch (Throwable $ex) {
-            $documents = []; // table not created yet (run hrms_form_fields_migration.sql)
+            $documents = [];
         }
-
+ 
         $s = $pdo->prepare('SELECT * FROM email_notification_logs WHERE application_id = ? ORDER BY id DESC');
         $s->execute([$viewId]);
         $emails = $s->fetchAll();
-
+ 
         $departments = $pdo->query('SELECT id, department_name FROM departments ORDER BY department_name')->fetchAll();
-
-        // Slots already booked (all applicants) so the form can disable them.
+ 
         $takenSlots = [];
         foreach ($pdo->query("SELECT interview_date, interview_time FROM interview_schedules WHERE status = 'scheduled' AND interview_date >= CURDATE()")->fetchAll() as $t) {
             $takenSlots[$t['interview_date']][] = substr($t['interview_time'], 0, 5);
         }
-
+ 
         if ($detail['employee_id'] && $detail['is_faculty']) {
             $s = $pdo->prepare(
                 'SELECT ts.*, sb.subject_code, sb.subject_name, sc.section_code, c.room_code
@@ -679,14 +652,14 @@ if ($viewId > 0) {
             );
             $s->execute([(int)$detail['employee_id']]);
             $schedules = $s->fetchAll();
-
+ 
             $subjects   = $pdo->query("SELECT id, subject_code, subject_name FROM subjects WHERE status = 'active' ORDER BY subject_code")->fetchAll();
             $sections   = $pdo->query('SELECT id, section_code, section_name, semester, academic_year FROM sections ORDER BY academic_year DESC, section_code')->fetchAll();
             $classrooms = $pdo->query("SELECT id, room_code, room_name FROM classrooms WHERE status = 'available' ORDER BY room_code")->fetchAll();
         }
     }
 }
-
+ 
 $total = count($applicants);
 ?>
 
@@ -4816,7 +4789,7 @@ $total = count($applicants);
                 <h1>Applicant Management</h1>
                 <p>Flow: view details &rarr; approve or reject &rarr; schedule interview (face-to-face or Google Meet) &rarr; approve after interview &rarr; register as instructor.</p>
             </header>
-
+ 
             <section class="demo-panel">
                 <div class="panel-title">
                     <h2>Applications</h2>
@@ -4875,7 +4848,7 @@ $total = count($applicants);
                     </table>
                 </div>
             </section>
-
+ 
             <?php if ($viewId > 0 && !$detail): ?>
                 <section class="demo-panel" id="application-detail">
                     <p>Application not found.</p>
@@ -4895,7 +4868,7 @@ $total = count($applicants);
                         <h2><?= e($detail['full_name']) ?> — <?= e(status_label($detail['status'], (bool)$registered)) ?></h2>
                         <a class="demo-button" href="<?= e(self()) ?>">Close</a>
                     </div>
-
+ 
                     <h3>Application details</h3>
                     <p><strong>Position applied:</strong> <?= e($detail['position_applied']) ?>
                         <?php if ($detail['job_title']): ?>(<?= e($detail['job_title']) ?>, <?= e($detail['department_name']) ?> — <?= e($detail['branch_name']) ?>, <?= e($detail['category']) ?>)<?php endif; ?></p>
@@ -4903,8 +4876,8 @@ $total = count($applicants);
                     <p><strong>Highest education:</strong> <?= e($detail['highest_education'] ?? '—') ?> &nbsp; <strong>Experience:</strong> <?= e($detail['years_experience'] ?? '—') ?> year(s)</p>
                     <p><strong>Experience details:</strong> <?= nl2br(e($detail['experience_details'] ?? '—')) ?></p>
                     <p><strong>Cover letter:</strong><br><?= nl2br(e($detail['cover_letter'] ?? '—')) ?></p>
-                    <?php if ($detail['resume_file_path']): ?>
-                        <p><strong>Resume:</strong> <a href="<?= e($detail['resume_file_path']) ?>" target="_blank" rel="noopener"><?= e(basename($detail['resume_file_path'])) ?></a></p>
+                    <?php if (!$documents && $detail['resume_file_path']): ?>
+                        <p><strong>Resume:</strong> <a href="HR_Admin_View_Document.php?resume=<?= (int)$detail['id'] ?>" target="_blank" rel="noopener"><?= e(basename($detail['resume_file_path'])) ?></a></p>
                     <?php endif; ?>
                     <p><strong>Specialization:</strong> <?= e($detail['specialization'] ?? '—') ?></p>
                     <p><strong>PRC license no.:</strong> <?= !empty($detail['prc_not_applicable']) ? 'Not applicable (no PRC license)' : e($detail['prc_license_number'] ?? '—') ?></p>
@@ -4914,14 +4887,14 @@ $total = count($applicants);
                         <ul>
                             <?php foreach ($documents as $doc): ?>
                                 <li><?= e(['resume' => 'Resume / CV', 'application_letter' => 'Application letter', 'transcript' => 'Transcript of records', 'credential' => 'Supporting credential'][$doc['document_type']] ?? $doc['document_type']) ?>:
-                                    <a href="<?= e($doc['file_path']) ?>" target="_blank" rel="noopener"><?= e($doc['original_name']) ?></a>
+                                    <a href="HR_Admin_View_Document.php?id=<?= (int)$doc['id'] ?>" target="_blank" rel="noopener"><?= e($doc['original_name']) ?></a>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
                     <p><strong>Account role:</strong> <?= e($detail['role_name'] ?? '—') ?>
                         <?php if ($detail['reviewed_at']): ?> &nbsp; <strong>Last reviewed:</strong> <?= e(date('M j, Y g:i A', strtotime($detail['reviewed_at']))) ?> by <?= e($detail['reviewer_name'] ?? '—') ?><?php endif; ?></p>
-
+ 
                     <?php if (!$registered && $detail['status'] !== 'hired'): ?>
                         <h3>Step 1 - Review decision</h3>
                         <form method="post" action="<?= e(self()) ?>" class="flow-toolbar">
@@ -4936,7 +4909,7 @@ $total = count($applicants);
                             <?php endif; ?>
                         </form>
                     <?php endif; ?>
-
+ 
                     <h3>Step 2 - Interview</h3>
                     <?php
                     $hasScheduled = false;
@@ -4993,7 +4966,7 @@ $total = count($applicants);
                             </table>
                         </div>
                     <?php endif; ?>
-
+ 
                     <?php if ($detail['status'] === 'submitted'): ?>
                         <p>Approve the application in Step 1 to unlock interview scheduling.</p>
                     <?php elseif ($detail['status'] === 'reviewing' && !$hasScheduled): ?>
@@ -5051,7 +5024,7 @@ $total = count($applicants);
                     <?php elseif ($detail['status'] === 'reviewing' && $hasScheduled): ?>
                         <p>Interview scheduled. After the interview, use <strong>Approve (Passed)</strong> or <strong>Reject (Failed)</strong> above.</p>
                     <?php endif; ?>
-
+ 
                     <h3>Email notifications</h3>
                     <?php if (!$emails): ?><p>No notifications yet.</p><?php else: ?>
                         <div class="demo-table-wrap">
@@ -5079,7 +5052,7 @@ $total = count($applicants);
                             </table>
                         </div>
                     <?php endif; ?>
-
+ 
                     <?php if ($detail['status'] === 'interviewed' && !$detail['employee_id']): ?>
                         <h3>Step 4 - Final approval: register as instructor</h3>
                         <form method="post" action="<?= e(self()) ?>" class="demo-form" aria-label="Register as employee">
@@ -5096,16 +5069,16 @@ $total = count($applicants);
                                 </select></label>
                             <label>Position title<input type="text" name="position_title" value="<?= e($detail['job_title'] ?? $detail['position_applied']) ?>" required maxlength="100"></label>
                             <label>Date hired<input type="date" name="date_hired" value="<?= e(date('Y-m-d')) ?>" required></label>
-                            <label><input type="checkbox" name="is_faculty" value="1"  checked> Faculty (can receive teaching assignments)</label>
+                            <label><input type="checkbox" name="is_faculty" value="1" checked> Faculty (can receive teaching assignments)</label>
                             <div><button type="submit" class="demo-button primary">Approve &amp; Register as Instructor</button></div>
                         </form>
                     <?php endif; ?>
-
+ 
                     <?php if ($registered): ?>
                         <h3>Employee record</h3>
                         <p><strong>Employee number:</strong> <?= e($detail['employee_number']) ?> &nbsp; <strong>Type:</strong> <?= $detail['is_faculty'] ? 'Faculty' : 'Non-teaching staff' ?></p>
                     <?php endif; ?>
-
+ 
                     <?php if ($registered && $detail['is_faculty']): ?>
                         <h3>Teaching assignments</h3>
                         <?php if (!$schedules): ?><p>No active teaching assignments.</p><?php else: ?>
@@ -5146,7 +5119,7 @@ $total = count($applicants);
                                 </table>
                             </div>
                         <?php endif; ?>
-
+ 
                         <form method="post" action="<?= e(self()) ?>" class="demo-form" aria-label="Assign teaching schedule">
                             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
                             <input type="hidden" name="action" value="assign_teaching">
@@ -5179,48 +5152,34 @@ $total = count($applicants);
         </main>
     </div>
     <script>
-        /* Browser-only controls. No requests, authentication, uploads, or record storage. */
         (() => {
             'use strict';
             const sun = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>';
             const moon = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13.1A9 9 0 0 1 10.9 3 9 9 0 1 0 21 13.1Z"/></svg>';
-            const message = document.getElementById('notice');
-            const show = () => {
-                if (message) {
-                    message.hidden = false;
-                    message.textContent = 'This action is currently unavailable.';
-                    message.focus();
-                }
+ 
+            const themeBtn = document.getElementById('theme-mode');
+            const setTheme = v => {
+                document.documentElement.dataset.theme = v;
+                themeBtn.innerHTML = v === 'dark' ? sun : moon;
+                themeBtn.title = v === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                themeBtn.setAttribute('aria-label', themeBtn.title);
+                try { localStorage.setItem('dnsc-theme', v); } catch (e) {}
             };
-
-            function theme(value) {
-                document.documentElement.dataset.theme = value;
-                document.querySelectorAll('#theme-mode').forEach(b => {
-                    b.innerHTML = value === 'dark' ? sun : moon;
-                    b.title = value === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-                    b.setAttribute('aria-label', b.title);
-                    b.setAttribute('aria-pressed', String(value === 'dark'));
-                });
-                try {
-                    localStorage.setItem('dnsc-theme', value);
-                } catch (e) {}
-            }
             let saved = 'light';
-            try {
-                saved = localStorage.getItem('dnsc-theme') === 'dark' ? 'dark' : 'light';
-            } catch (e) {}
-            theme(saved);
-            document.querySelectorAll('#theme-mode').forEach(b => b.onclick = () => theme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+            try { saved = localStorage.getItem('dnsc-theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+            setTheme(saved);
+            themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+ 
             const menu = document.getElementById('menu-toggle'),
                 side = document.getElementById('portal-sidebar'),
                 layout = document.querySelector('.hrms-layout');
             if (menu && side && layout) {
                 const media = matchMedia('(max-width:760px)');
-                const stateKey = () => media.matches ? 'dnsc-sidebar-mobile' : 'dnsc-sidebar-desktop';
+                const key = () => media.matches ? 'dnsc-sidebar-mobile' : 'dnsc-sidebar-desktop';
                 const remembered = () => {
                     try {
-                        const saved = sessionStorage.getItem(stateKey());
-                        if (saved !== null) return saved === 'open';
+                        const s = sessionStorage.getItem(key());
+                        if (s !== null) return s === 'open';
                     } catch (e) {}
                     return !media.matches;
                 };
@@ -5229,247 +5188,44 @@ $total = count($applicants);
                     layout.classList.toggle('hrms-collapsed', !open);
                     side.inert = !open;
                     menu.setAttribute('aria-expanded', String(open));
-                    menu.setAttribute('aria-label', open ? 'Collapse navigation' : 'Expand navigation');
                     menu.title = open ? 'Collapse navigation' : 'Expand navigation';
-                    try {
-                        sessionStorage.setItem(stateKey(), open ? 'open' : 'closed');
-                    } catch (e) {}
+                    menu.setAttribute('aria-label', menu.title);
+                    try { sessionStorage.setItem(key(), open ? 'open' : 'closed'); } catch (e) {}
                 };
-                menu.onclick = () => {
-                    open = !open;
-                    update();
-                };
-                media.addEventListener('change', () => {
-                    open = remembered();
-                    update();
-                });
-                document.addEventListener('keydown', e => {
-                    if (e.key === 'Escape' && open) {
-                        open = false;
-                        update();
-                        menu.focus();
-                    }
-                });
+                menu.onclick = () => { open = !open; update(); };
+                media.addEventListener('change', () => { open = remembered(); update(); });
                 update();
             }
-            // Sidebar sections behave as content panels; page links retain their separate HTML files.
-            if (side && layout) {
-                const content = document.getElementById('main-content');
-                if (content) {
-                    const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    const top = () => {
-                        content.scrollTop = 0;
-                        content.scrollLeft = 0;
-                    };
-                    let animation = null,
-                        navigating = false;
-                    const reveal = () => {
-                        if (animation) animation.cancel();
-                        if (!reduced() && content.animate) animation = content.animate([{
-                            opacity: 0
-                        }, {
-                            opacity: 1
-                        }], {
-                            duration: 220,
-                            easing: 'cubic-bezier(.2,.8,.2,1)'
-                        });
-                    };
-                    const focusContent = () => {
-                        content.setAttribute('tabindex', '-1');
-                        content.focus({
-                            preventScroll: true
-                        });
-                    };
-                    try {
-                        history.scrollRestoration = 'manual';
-                    } catch (e) {}
-                    const links = [...side.querySelectorAll('nav a[href]')];
-                    const panels = links.map(link => {
-                        const href = link.getAttribute('href');
-                        if (!href || !href.startsWith('#')) return null;
-                        let panel;
-                        try {
-                            panel = document.getElementById(decodeURIComponent(href.slice(1)));
-                        } catch (e) {
-                            return null;
-                        }
-                        return panel && panel.parentElement === content ? {
-                            link,
-                            panel
-                        } : null;
-                    }).filter(Boolean);
-                    const selectPanel = (selected, updateAddress = true) => {
-                        for (const entry of panels) {
-                            entry.panel.hidden = entry !== selected;
-                            entry.panel.classList.toggle('sidebar-panel-active', entry === selected);
-                            if (entry === selected) entry.link.setAttribute('aria-current', 'location');
-                            else entry.link.removeAttribute('aria-current');
-                        }
-                        content.classList.add('sidebar-panel-view');
-                        if (updateAddress) {
-                            try {
-                                history.replaceState(null, '', selected.link.getAttribute('href'));
-                            } catch (e) {}
-                        }
-                        top();
-                        reveal();
-                    };
-                    if (panels.length) {
-                        const initial = panels.find(entry => entry.link.getAttribute('href') === location.hash) || panels[0];
-                        selectPanel(initial, false);
-                        for (const entry of panels) entry.link.addEventListener('click', event => {
-                            if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                            event.preventDefault();
-                            selectPanel(entry);
-                            focusContent();
-                        });
-                        window.addEventListener('hashchange', () => {
-                            const target = panels.find(entry => entry.link.getAttribute('href') === location.hash);
-                            if (target) selectPanel(target, false);
-                        });
-                    } else {
-                        top();
-                        reveal();
-                    }
-                    for (const link of links) {
-                        if (link.getAttribute('href').startsWith('#')) continue;
-                        link.addEventListener('click', event => {
-                            if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === '_blank' || link.hasAttribute('download')) return;
-                            const target = new URL(link.href, location.href);
-                            if (target.protocol !== location.protocol || target.origin !== location.origin || !target.pathname.toLowerCase().endsWith('.html')) return;
-                            event.preventDefault();
-                            if (navigating) return;
-                            const samePage = target.pathname === location.pathname && target.search === location.search;
-                            if (samePage) {
-                                top();
-                                reveal();
-                                focusContent();
-                                return;
-                            }
-                            navigating = true;
-                            if (reduced() || !content.animate) {
-                                location.href = target.href;
-                                return;
-                            }
-                            if (animation) animation.cancel();
-                            animation = content.animate([{
-                                opacity: 1
-                            }, {
-                                opacity: 0
-                            }], {
-                                duration: 130,
-                                easing: 'ease-out',
-                                fill: 'forwards'
-                            });
-                            let completed = false;
-                            const navigate = () => {
-                                if (completed) return;
-                                completed = true;
-                                location.href = target.href;
-                            };
-                            animation.onfinish = navigate;
-                            setTimeout(navigate, 190);
-                        });
-                    }
-                    window.addEventListener('pageshow', event => {
-                        top();
-                        if (event.persisted) {
-                            navigating = false;
-                            if (animation) animation.cancel();
-                            reveal();
-                        }
-                    });
-                }
-            }
-
-            document.querySelectorAll('[data-static-submit]').forEach(b => b.addEventListener('click', show));
-            document.querySelectorAll('[data-reveal]').forEach(b => b.onclick = () => {
-                const input = document.getElementById(b.dataset.reveal);
-                if (input) {
-                    input.type = input.type === 'password' ? 'text' : 'password';
-                    b.textContent = input.type === 'password' ? 'Show' : 'Hide';
-                    b.setAttribute('aria-pressed', String(input.type === 'text'));
-                }
-            });
-            const roles = [...document.querySelectorAll('[data-login-role]')];
-            const pick = b => roles.forEach(r => {
-                r.setAttribute('aria-checked', String(r === b));
-                r.tabIndex = r === b ? 0 : -1;
-            });
-            roles.forEach((b, i) => {
-                b.onclick = () => pick(b);
-                b.onkeydown = e => {
-                    if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
-                    e.preventDefault();
-                    const next = roles[(i + (['ArrowRight', 'ArrowDown'].includes(e.key) ? 1 : roles.length - 1)) % roles.length];
-                    pick(next);
-                    next.focus();
-                };
-            });
-            document.querySelectorAll('.static-form input').forEach(input => input.addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    show();
-                }
-            }));
-            document.querySelectorAll('.demo-table-wrap').forEach(w => {
-                if (!w.querySelector('table') || w.hasAttribute('data-no-search')) return;
-                const search = document.createElement('input');
-                search.type = 'search';
-                search.className = 'demo-search table-search';
-                search.placeholder = 'Search this table';
-                search.setAttribute('aria-label', 'Search this table');
-                search.oninput = () => w.querySelectorAll('tbody tr').forEach(r => r.hidden = !r.textContent.toLowerCase().includes(search.value.toLowerCase()));
-                w.before(search);
-            });
-            document.querySelectorAll('[data-print]').forEach(b => b.onclick = () => window.print());
-            const tick = () => {
-                const clock = document.getElementById('live-clock'),
-                    date = document.getElementById('live-date');
-                if (clock) clock.textContent = new Intl.DateTimeFormat('en-PH', {
-                    timeZone: 'Asia/Manila',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                }).format(new Date());
-                if (date) date.textContent = new Intl.DateTimeFormat('en-PH', {
-                    timeZone: 'Asia/Manila',
-                    dateStyle: 'full'
-                }).format(new Date());
-            };
-            tick();
-            if (document.getElementById('live-clock')) setInterval(tick, 1000);
-        })();
-    </script>
-    <script>
-        (() => {
+ 
+            /* Applicant list: search + status filter */
             const input = document.getElementById('applicant-search');
             const filter = document.getElementById('applicant-filter');
             const count = document.getElementById('applicant-count');
             const reset = document.getElementById('reset-applicants');
             const rows = [...document.querySelectorAll('#applicant-rows tr[data-search]')];
-            if (!input || !filter) return;
-            const apply = () => {
-                const q = input.value.trim().toLowerCase(),
-                    s = filter.value;
-                let n = 0;
-                rows.forEach(r => {
-                    const show = (!q || r.dataset.search.includes(q)) && (!s || r.dataset.status === s);
-                    r.hidden = !show;
-                    if (show) n++;
+            if (input && filter) {
+                const apply = () => {
+                    const q = input.value.trim().toLowerCase(),
+                        s = filter.value;
+                    let n = 0;
+                    rows.forEach(r => {
+                        const show = (!q || r.dataset.search.includes(q)) && (!s || r.dataset.status === s);
+                        r.hidden = !show;
+                        if (show) n++;
+                    });
+                    count.textContent = n + ' applicant(s)';
+                };
+                input.addEventListener('input', apply);
+                filter.addEventListener('change', apply);
+                if (reset) reset.addEventListener('click', () => {
+                    input.value = '';
+                    filter.value = '';
+                    apply();
+                    input.focus();
                 });
-                count.textContent = n + ' applicant(s)';
-            };
-            input.addEventListener('input', apply);
-            filter.addEventListener('change', apply);
-            if (reset) reset.addEventListener('click', () => {
-                input.value = '';
-                filter.value = '';
-                apply();
-                input.focus();
-            });
+            }
         })();
     </script>
 </body>
-
+ 
 </html>

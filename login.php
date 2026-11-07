@@ -4171,7 +4171,7 @@
             </div>
           </fieldset>
         </form>
-        <div class="divider">or</div>
+        <div class="divider">For Application</div>
         <button class="google-button" type="button" id="google-continue"
           onclick="location.href='authentication/google-login.php'">
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">

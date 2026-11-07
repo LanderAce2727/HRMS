@@ -699,7 +699,7 @@ $enrollmentStatus = $student['status'] ?? 'pending';
 
         </button>
 
-        <a class="hrms-brand" href="../index.html">
+        <a class="hrms-brand">
 
             <strong>DNSC SMART HRMS</strong>
 
@@ -708,8 +708,6 @@ $enrollmentStatus = $student['status'] ?? 'pending';
         </a>
 
         <nav class="hrms-public-nav" aria-label="Main navigation">
-
-            <a href="../job-vacancies.php">Job Vacancies</a>
             <a href="../authentication/logout.php">Logout</a>
 
         </nav>

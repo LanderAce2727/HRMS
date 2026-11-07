@@ -42,7 +42,8 @@ function valid_date(string $d): bool
 }
 function status_text(?string $s): string
 {
-  return $s === null || $s === '' ? '—' : ucfirst(str_replace('_', ' ', $s));
+  if ($s === null || $s === '') return '—';
+  return STATUSES[$s] ?? ucfirst(str_replace('_', ' ', $s));
 }
 function date_range(string $a, string $b): string
 {
@@ -51,7 +52,12 @@ function date_range(string $a, string $b): string
   return $a === $b ? $x : $x . ' – ' . $y;
 }
 
-const STATUSES = ['Active', 'On Leave', 'Resigned', 'Terminated'];
+const STATUSES = [
+  'active'     => 'Active',
+  'on_leave'   => 'On Leave',
+  'resigned'   => 'Resigned',
+  'terminated' => 'Terminated',
+];
 
 if (empty($_SESSION['csrf'])) {
   $_SESSION['csrf'] = bin2hex(random_bytes(32));
@@ -84,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $empId = (int)$form['employee_id'];
 
-      if (!in_array($form['status'], STATUSES, true)) {
+      if (!array_key_exists($form['status'], STATUSES)) {
         throw new UserError('Invalid employment status.');
       }
       if (!valid_date($form['effective_date'])) {
@@ -4347,22 +4353,22 @@ $leaves = $pdo->query(
         </div>
       </section>
       <section class="demo-panel">
-        <h2>Update employment status</h2>
+        <h2>Update Employment Status</h2>
         <form class="demo-form" method="post" action="<?= e(basename(__FILE__)) ?>" aria-label="Form details"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="employee_status"><label>Employee<select name="employee_id" required>
               <option value="" <?= $form['employee_id'] === '' ? ' selected' : '' ?>>Select an employee</option>
               <?php foreach ($employees as $emp): ?>
                 <option value="<?= (int)$emp['id'] ?>" <?= (string)$emp['id'] === $form['employee_id'] ? ' selected' : '' ?>><?= e($emp['first_name'] . ' ' . $emp['last_name'] . ' — ' . $emp['employee_number']) ?></option>
               <?php endforeach; ?>
             </select></label><label>New status<select name="status" required>
-              <?php foreach (STATUSES as $s): ?>
-                <option value="<?= e($s) ?>" <?= $form['status'] === $s ? ' selected' : '' ?>><?= e($s) ?></option>
+              <?php foreach (STATUSES as $val => $label): ?>
+                <option value="<?= e($val) ?>" <?= $form['status'] === $val ? ' selected' : '' ?>><?= e($label) ?></option>
               <?php endforeach; ?>
             </select></label><label>Effective date<input name="effective_date" type="date" value="<?= e($form['effective_date']) ?>" required></label><label>Reason<textarea name="reason" required maxlength="30000"><?= e($form['reason']) ?></textarea></label>
           <div><button class="demo-button primary" type="submit">Save Status</button></div>
         </form>
       </section>
       <section class="demo-panel">
-        <h2>Status history</h2>
+        <h2>Status History</h2>
         <div class="demo-table-wrap">
           <table>
             <thead>
@@ -4394,7 +4400,7 @@ $leaves = $pdo->query(
         </div>
       </section>
       <section class="demo-panel">
-        <h2>Leave requests</h2>
+        <h2>Leave Requests</h2>
         <div class="demo-table-wrap">
           <table>
             <thead>
@@ -4404,7 +4410,6 @@ $leaves = $pdo->query(
                 <th scope="col">Dates</th>
                 <th scope="col">Reason</th>
                 <th scope="col">Status</th>
-                <th scope="col">Review notes</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -4423,11 +4428,10 @@ $leaves = $pdo->query(
                   <td><?= e($l['leave_type']) ?></td>
                   <td><?= e(date_range($l['start_date'], $l['end_date'])) ?></td>
                   <td><?= e($l['reason']) ?></td>
-                  <td><span class="demo-badge"><?= e(ucfirst((string)$l['status'])) ?></span></td>
-                  <td><?= e($l['review_notes'] ?? '') ?></td>
+                  <td><span class="demo-badge"><?= e(ucfirst((string)$l['status'])) ?></span></td>  
                   <td>
                     <?php if ($l['status'] === 'pending'): ?>
-                      <form method="post" action="<?= e(basename(__FILE__)) ?>"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="review_leave"><input type="hidden" name="leave_id" value="<?= (int)$l['id'] ?>"><input type="text" name="review_notes" maxlength="255" placeholder="Review notes" aria-label="Review notes"> <button class="demo-button primary" type="submit" name="decision" value="approved">Approve</button> <button class="demo-button" type="submit" name="decision" value="rejected">Reject</button></form>
+                      <form method="post" action="<?= e(basename(__FILE__)) ?>"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="review_leave"><input type="hidden" name="leave_id" value="<?= (int)$l['id'] ?>"><button class="demo-button primary" type="submit" name="decision" value="approved">Approve</button> <button class="demo-button" type="submit" name="decision" value="rejected">Reject</button></form>
                     <?php else: ?>
                       —
                     <?php endif; ?>
