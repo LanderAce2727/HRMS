@@ -960,7 +960,7 @@ if ($latestPayslip) {
         >
           <path d="M4 6h16M4 12h16M4 18h16" />
         </svg></button
-      ><a class="hrms-brand" href="index.html"
+      ><a class="hrms-brand"
         ><strong>DNSC SMART HRMS</strong
         ><span>Human Resource Management System</span></a
       >

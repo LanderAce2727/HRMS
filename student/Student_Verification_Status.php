@@ -1,7 +1,18 @@
 <?php
 session_start();
 
+/* =========================================
+   NO CACHE (blocks Back button after logout)
+========================================= */
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Sat, 01 Jan 2000 00:00:00 GMT');
+
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/auth.php';
+require_login([4]);
 
 /* =========================================
    STUDENT SESSION VALIDATION
@@ -513,7 +524,6 @@ $enrollmentStatus = $student['status'] ?? 'pending';
         }
 
         .demo-button.primary {
-            background: var(--accent);
             color: white;
             border-color: var(--accent);
         }
@@ -699,10 +709,8 @@ $enrollmentStatus = $student['status'] ?? 'pending';
 
         <nav class="hrms-public-nav" aria-label="Main navigation">
 
-
             <a href="../job-vacancies.php">Job Vacancies</a>
-
-            <a href="../login.php">Logout</a>
+            <a href="../authentication/logout.php">Logout</a>
 
         </nav>
 

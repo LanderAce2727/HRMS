@@ -4224,7 +4224,7 @@ $students = $pdo->query(
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="hrms-header has-sidebar-menu"><button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16" />
-      </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
+      </svg></button><a class="hrms-brand"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
     <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
   </header>
   <div id="notice" class="system-notice" role="status" tabindex="-1" <?= $flash ? '' : ' hidden' ?>><?= $flash ? e($flash['msg']) : '' ?></div>
@@ -4249,8 +4249,6 @@ $students = $pdo->query(
                 <th scope="col">Program</th>
                 <th scope="col">Year</th>
                 <th scope="col">Status</th>
-                <th scope="col">Review notes</th>
-                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -4268,14 +4266,7 @@ $students = $pdo->query(
                   <td><?= e($s['program']) ?></td>
                   <td><?= e(year_label((int)$s['year_level'])) ?></td>
                   <td><span class="demo-badge"><?= e(ucfirst((string)$s['verification_status'])) ?></span></td>
-                  <td><?= e($s['review_notes'] ?? '') ?></td>
-                  <td>
-                    <?php if ($s['verification_status'] === 'pending'): ?>
-                      <form method="post" action="<?= e(basename(__FILE__)) ?>" style="display:grid;gap:8px;min-width:220px"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="review_student"><input type="hidden" name="student_id" value="<?= (int)$s['id'] ?>"><input type="text" name="review_notes" maxlength="255" placeholder="Review notes" aria-label="Review notes" style="width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;border-radius:10px;font-size:15px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="demo-button primary" type="submit" name="decision" value="verified" style="text-align:center">Verify</button><button class="demo-button" type="submit" name="decision" value="rejected" style="text-align:center">Reject</button></div></form>
-                    <?php else: ?>
-                      —
-                    <?php endif; ?>
-                  </td>
+                  
                 </tr>
               <?php endforeach; ?>
             </tbody>

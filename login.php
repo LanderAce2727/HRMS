@@ -1629,6 +1629,11 @@
       text-decoration: underline;
     }
 
+    /* Remove hover underline from the brand/header */
+    body.original-login .brand:hover {
+        text-decoration: none;
+    }
+
     body.original-login .msg {
       margin: 0;
       min-height: 18px;
@@ -4099,7 +4104,7 @@
   <main class="shell" id="main-content">
     <section class="left" aria-label="Account access">
       <div class="top">
-        <a class="brand" href="index.html">
+        <a class="brand">
           <div class="logo-slot" aria-hidden="true">DNSC</div>
           <div>
             <div class="brand-name">DNSC SMART HRMS</div>
@@ -4551,7 +4556,7 @@
     <p>Enable JavaScript to use this page.</p>
   </noscript><a
     class="signin-attendance"
-    href="Attendance.html"
+    href="Attendance.php"
     aria-label="Open attendance page"><svg
       viewBox="0 0 24 24"
       width="24"

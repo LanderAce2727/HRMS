@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 05, 2026 at 08:08 AM
+-- Generation Time: Nov 07, 2026 at 11:51 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -27,7 +27,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `applicant_notifications`
 --
 
-DROP TABLE IF EXISTS `applicant_notifications`;
 CREATE TABLE `applicant_notifications` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -39,13 +38,20 @@ CREATE TABLE `applicant_notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `applicant_notifications`
+--
+
+INSERT INTO `applicant_notifications` (`id`, `user_id`, `application_id`, `category`, `title`, `body`, `is_read`, `created_at`) VALUES
+(1, 15, 1, 'accepted', 'Congratulations! Your DNSC application was approved', 'Dear Aira Rocel Nazareno,\n\nCongratulations! We are pleased to inform you that your application for the position of Admin I at Davao del Norte State College (DNSC) has been reviewed and approved for an interview.\n\nWhat happens next:\n1. HR will send you a separate email with your interview date, time, and venue or Google Meet link.\n2. Please check your email regularly, including your spam or junk folder.\n3. Prepare your valid ID and copies of your credentials and documents, in case they are requested during the interview.\n\nThank you for your interest in joining DNSC. We look forward to meeting you.\n\nApplication reference: APP-0001\n\nFor questions about your application, please visit the DNSC Human Resources Office. This mailbox is not monitored, so replies to this email will not be read.\n\nThis is an automated message from the DNSC Smart HRMS.\n\n- DNSC HR Management', 0, '2026-11-06 06:46:16'),
+(2, 15, 1, 'accepted', 'DNSC interview schedule - Nov 16, 2026', 'Dear Aira Rocel Nazareno,\n\nYour interview for the position of Admin I at Davao del Norte State College (DNSC) has been scheduled. Please find the details below.\n\nINTERVIEW DETAILS\nPosition     : Admin I\nDate & time  : Monday, November 16, 2026, 9:00 AM - 10:00 AM (Philippine Time)\nMode         : Face-to-face\nVenue        : HR Office, DNSC\nNotes        : gegtqh h rtw\n\nReminders for your face-to-face interview:\n- Arrive at least 10 minutes before your scheduled time.\n- Bring a valid ID and copies of your resume and credentials.\n- Dress appropriately for a professional interview.\n\nAdd this interview to your Google Calendar:\nhttps://calendar.google.com/calendar/render?action=TEMPLATE&text=DNSC+Job+Interview&dates=20261116T090000%2F20261116T100000&ctz=Asia%2FManila&location=Face-to-face%3A+HR+Office%2C+DNSC&details=Interview+for+the+DNSC+faculty%2Finstructor+position.\n\nIf you cannot attend at the scheduled time, please inform HR as early as possible so we can arrange a new schedule.\n\nApplication reference: APP-0001\n\nFor questions about your application, please visit the DNSC Human Resources Office. This mailbox is not monitored, so replies to this email will not be read.\n\nThis is an automated message from the DNSC Smart HRMS.\n\n- DNSC HR Management', 0, '2026-11-06 06:58:16');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `applications`
 --
 
-DROP TABLE IF EXISTS `applications`;
 CREATE TABLE `applications` (
   `id` bigint(20) NOT NULL,
   `vacancy_id` bigint(20) DEFAULT NULL,
@@ -71,13 +77,19 @@ CREATE TABLE `applications` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `applications`
+--
+
+INSERT INTO `applications` (`id`, `vacancy_id`, `applicant_user_id`, `full_name`, `email`, `contact_number`, `age`, `position_applied`, `highest_education`, `years_experience`, `experience_details`, `cover_letter`, `resume_file_path`, `status`, `reviewed_by_user_id`, `reviewed_at`, `address`, `specialization`, `prc_license_number`, `prc_not_applicable`, `created_at`, `updated_at`) VALUES
+(1, 5, 15, 'Aira Rocel Nazareno', 'airabacalsonazareno@gmail.com', '765356376537', 21, 'Admin I', 'Master’s Degree', 12, NULL, NULL, 'storage/applications/1/7ed9f8695ad8c3a94a5732afac20c5e5.docx', 'reviewing', 1, '2026-11-06 06:46:16', 'fdfab fabagab', 'Information Technology', NULL, 1, '2026-11-06 06:45:43', '2026-11-06 06:46:16');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `application_documents`
 --
 
-DROP TABLE IF EXISTS `application_documents`;
 CREATE TABLE `application_documents` (
   `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
@@ -89,13 +101,21 @@ CREATE TABLE `application_documents` (
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `application_documents`
+--
+
+INSERT INTO `application_documents` (`id`, `application_id`, `document_type`, `original_name`, `file_path`, `mime_type`, `file_size`, `uploaded_at`) VALUES
+(1, 1, 'resume', 'Statistical-Analysis-The-Relationship-Between-AI-Coding-Assistant-Tools-and-Programming-Problem-solving-Skills.docx', 'storage/applications/1/7ed9f8695ad8c3a94a5732afac20c5e5.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 77043, '2026-11-06 06:45:43'),
+(2, 1, 'application_letter', 'Statistical-Analysis-The-Relationship-Between-AI-Coding-Assistant-Tools-and-Programming-Problem-solving-Skills.docx', 'storage/applications/1/41210356a5bca2671fb92915f463386e.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 77043, '2026-11-06 06:45:43'),
+(3, 1, 'transcript', 'Statistical-Analysis-The-Relationship-Between-AI-Coding-Assistant-Tools-and-Programming-Problem-solving-Skills.docx', 'storage/applications/1/bdd0badb82ba9212326dcf32c868ec41.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 77043, '2026-11-06 06:45:43');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `attendance_logs`
 --
 
-DROP TABLE IF EXISTS `attendance_logs`;
 CREATE TABLE `attendance_logs` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -117,7 +137,6 @@ CREATE TABLE `attendance_logs` (
 -- Table structure for table `audit_logs`
 --
 
-DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE `audit_logs` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -128,13 +147,22 @@ CREATE TABLE `audit_logs` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `audit_logs`
+--
+
+INSERT INTO `audit_logs` (`id`, `user_id`, `action_type`, `target_table`, `record_id`, `details`, `created_at`) VALUES
+(3, 1, 'create_vacancy', 'vacancies', 5, 'Admin I [open, non-teaching, closes 2026-11-30]', '2026-11-06 06:42:01'),
+(4, 15, 'application_submitted', 'applications', 1, 'Vacancy #5 — Admin I', '2026-11-06 06:45:43'),
+(5, 1, 'set_application_status', 'applications', 1, 'submitted -> reviewing', '2026-11-06 06:46:16'),
+(6, 1, 'schedule_interview', 'interview_schedules', 3, '2026-11-16 09:00 Face-to-face', '2026-11-06 06:58:16');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `branches`
 --
 
-DROP TABLE IF EXISTS `branches`;
 CREATE TABLE `branches` (
   `id` bigint(20) NOT NULL,
   `branch_code` varchar(20) NOT NULL,
@@ -158,7 +186,6 @@ INSERT INTO `branches` (`id`, `branch_code`, `branch_name`, `address`, `created_
 -- Table structure for table `cache`
 --
 
-DROP TABLE IF EXISTS `cache`;
 CREATE TABLE `cache` (
   `key` varchar(255) NOT NULL,
   `value` mediumtext NOT NULL,
@@ -171,7 +198,6 @@ CREATE TABLE `cache` (
 -- Table structure for table `cache_locks`
 --
 
-DROP TABLE IF EXISTS `cache_locks`;
 CREATE TABLE `cache_locks` (
   `key` varchar(255) NOT NULL,
   `owner` varchar(255) NOT NULL,
@@ -184,7 +210,6 @@ CREATE TABLE `cache_locks` (
 -- Table structure for table `classrooms`
 --
 
-DROP TABLE IF EXISTS `classrooms`;
 CREATE TABLE `classrooms` (
   `id` bigint(20) NOT NULL,
   `room_code` varchar(20) NOT NULL,
@@ -212,7 +237,6 @@ INSERT INTO `classrooms` (`id`, `room_code`, `room_name`, `building`, `capacity`
 -- Table structure for table `departments`
 --
 
-DROP TABLE IF EXISTS `departments`;
 CREATE TABLE `departments` (
   `id` bigint(20) NOT NULL,
   `branch_id` bigint(20) NOT NULL,
@@ -238,7 +262,6 @@ INSERT INTO `departments` (`id`, `branch_id`, `department_name`, `created_at`, `
 -- Table structure for table `email_notification_logs`
 --
 
-DROP TABLE IF EXISTS `email_notification_logs`;
 CREATE TABLE `email_notification_logs` (
   `id` bigint(20) NOT NULL,
   `application_id` bigint(20) DEFAULT NULL,
@@ -249,13 +272,20 @@ CREATE TABLE `email_notification_logs` (
   `sent_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `email_notification_logs`
+--
+
+INSERT INTO `email_notification_logs` (`id`, `application_id`, `recipient_email`, `notification_type`, `delivery_status`, `error_message`, `sent_at`) VALUES
+(3, 1, 'airabacalsonazareno@gmail.com', 'accepted', 'failed', 'SMTP send failed. Check the PHP error log for details.', NULL),
+(4, 1, 'airabacalsonazareno@gmail.com', 'accepted', 'failed', 'SMTP send failed. Check the PHP error log for details.', NULL);
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `employees`
 --
 
-DROP TABLE IF EXISTS `employees`;
 CREATE TABLE `employees` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -289,7 +319,6 @@ INSERT INTO `employees` (`id`, `user_id`, `employee_number`, `rfid_card_number`,
 -- Table structure for table `employee_status_histories`
 --
 
-DROP TABLE IF EXISTS `employee_status_histories`;
 CREATE TABLE `employee_status_histories` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -307,7 +336,6 @@ CREATE TABLE `employee_status_histories` (
 -- Table structure for table `evaluations`
 --
 
-DROP TABLE IF EXISTS `evaluations`;
 CREATE TABLE `evaluations` (
   `id` bigint(20) NOT NULL,
   `student_id` bigint(20) NOT NULL,
@@ -328,7 +356,6 @@ CREATE TABLE `evaluations` (
 -- Table structure for table `failed_jobs`
 --
 
-DROP TABLE IF EXISTS `failed_jobs`;
 CREATE TABLE `failed_jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `uuid` varchar(255) NOT NULL,
@@ -345,7 +372,6 @@ CREATE TABLE `failed_jobs` (
 -- Table structure for table `interview_schedules`
 --
 
-DROP TABLE IF EXISTS `interview_schedules`;
 CREATE TABLE `interview_schedules` (
   `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
@@ -359,13 +385,19 @@ CREATE TABLE `interview_schedules` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `interview_schedules`
+--
+
+INSERT INTO `interview_schedules` (`id`, `application_id`, `interviewer_user_id`, `interview_date`, `interview_time`, `location_or_link`, `status`, `notes`, `created_at`, `updated_at`) VALUES
+(3, 1, 1, '2026-11-16', '09:00:00', 'Face-to-face: HR Office, DNSC', 'scheduled', 'gegtqh h rtw', '2026-11-06 06:58:16', '2026-11-06 06:58:16');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `jobs`
 --
 
-DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `queue` varchar(255) NOT NULL,
@@ -382,7 +414,6 @@ CREATE TABLE `jobs` (
 -- Table structure for table `job_batches`
 --
 
-DROP TABLE IF EXISTS `job_batches`;
 CREATE TABLE `job_batches` (
   `id` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -402,7 +433,6 @@ CREATE TABLE `job_batches` (
 -- Table structure for table `leave_requests`
 --
 
-DROP TABLE IF EXISTS `leave_requests`;
 CREATE TABLE `leave_requests` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -423,7 +453,6 @@ CREATE TABLE `leave_requests` (
 -- Table structure for table `login_attempts`
 --
 
-DROP TABLE IF EXISTS `login_attempts`;
 CREATE TABLE `login_attempts` (
   `id` bigint(20) NOT NULL,
   `attempt_key` varchar(64) NOT NULL,
@@ -443,7 +472,6 @@ INSERT INTO `login_attempts` (`id`, `attempt_key`, `created_at`) VALUES
 -- Table structure for table `migrations`
 --
 
-DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE `migrations` (
   `id` int(10) UNSIGNED NOT NULL,
   `migration` varchar(255) NOT NULL,
@@ -466,7 +494,6 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 -- Table structure for table `password_reset_tokens`
 --
 
-DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE `password_reset_tokens` (
   `email` varchar(255) NOT NULL,
   `token` varchar(255) NOT NULL,
@@ -479,7 +506,6 @@ CREATE TABLE `password_reset_tokens` (
 -- Table structure for table `payslips`
 --
 
-DROP TABLE IF EXISTS `payslips`;
 CREATE TABLE `payslips` (
   `id` bigint(20) NOT NULL,
   `payslip_number` varchar(30) NOT NULL,
@@ -501,7 +527,6 @@ CREATE TABLE `payslips` (
 -- Table structure for table `payslip_items`
 --
 
-DROP TABLE IF EXISTS `payslip_items`;
 CREATE TABLE `payslip_items` (
   `id` bigint(20) NOT NULL,
   `payslip_id` bigint(20) NOT NULL,
@@ -517,7 +542,6 @@ CREATE TABLE `payslip_items` (
 -- Table structure for table `pay_rates`
 --
 
-DROP TABLE IF EXISTS `pay_rates`;
 CREATE TABLE `pay_rates` (
   `id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
@@ -534,7 +558,6 @@ CREATE TABLE `pay_rates` (
 -- Table structure for table `roles`
 --
 
-DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
   `id` int(11) NOT NULL,
   `role_name` varchar(30) NOT NULL,
@@ -557,7 +580,6 @@ INSERT INTO `roles` (`id`, `role_name`, `description`) VALUES
 -- Table structure for table `sections`
 --
 
-DROP TABLE IF EXISTS `sections`;
 CREATE TABLE `sections` (
   `id` bigint(20) NOT NULL,
   `section_code` varchar(20) NOT NULL,
@@ -585,7 +607,6 @@ INSERT INTO `sections` (`id`, `section_code`, `section_name`, `program`, `year_l
 -- Table structure for table `sessions`
 --
 
-DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
   `id` varchar(255) NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -608,7 +629,6 @@ INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, 
 -- Table structure for table `students`
 --
 
-DROP TABLE IF EXISTS `students`;
 CREATE TABLE `students` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) DEFAULT NULL,
@@ -651,7 +671,6 @@ INSERT INTO `students` (`id`, `user_id`, `student_number`, `first_name`, `middle
 -- Table structure for table `subjects`
 --
 
-DROP TABLE IF EXISTS `subjects`;
 CREATE TABLE `subjects` (
   `id` bigint(20) NOT NULL,
   `subject_code` varchar(20) NOT NULL,
@@ -680,7 +699,6 @@ INSERT INTO `subjects` (`id`, `subject_code`, `subject_name`, `units`, `departme
 -- Table structure for table `system_settings`
 --
 
-DROP TABLE IF EXISTS `system_settings`;
 CREATE TABLE `system_settings` (
   `setting_key` varchar(50) NOT NULL,
   `setting_value` varchar(255) NOT NULL
@@ -702,7 +720,6 @@ INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 -- Table structure for table `teaching_schedules`
 --
 
-DROP TABLE IF EXISTS `teaching_schedules`;
 CREATE TABLE `teaching_schedules` (
   `id` bigint(20) NOT NULL,
   `instructor_id` bigint(20) NOT NULL,
@@ -725,7 +742,6 @@ CREATE TABLE `teaching_schedules` (
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) NOT NULL,
   `branch_id` bigint(20) DEFAULT NULL,
@@ -761,7 +777,8 @@ INSERT INTO `users` (`id`, `branch_id`, `role_id`, `username`, `name`, `email`, 
 (11, NULL, 4, 'stud_ddantes', NULL, 'dingdong.dantes@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
 (12, NULL, 4, 'stud_mrivera', NULL, 'marian.rivera@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 01:47:10', 1),
 (13, NULL, 4, 'stud_vsotto', NULL, 'vic.sotto@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
-(14, NULL, 4, 'stud_jdeleon', NULL, 'joey.deleon@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1);
+(14, NULL, 4, 'stud_jdeleon', NULL, 'joey.deleon@dnsc.edu.ph', NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 1, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32', 1),
+(15, NULL, 3, 'airabacalsonazareno@gmail.com', NULL, 'airabacalsonazareno@gmail.com', '2026-11-06 06:32:04', '$2y$10$EFOqqWs7S9j6zdiWzcTqYOJrk8w/vop/6Xas8jd8OB5WGH/nEQnZK', NULL, 1, '114198139276023109885', '2026-11-06 06:09:20', '2026-11-06 06:32:04', 1);
 
 -- --------------------------------------------------------
 
@@ -769,10 +786,10 @@ INSERT INTO `users` (`id`, `branch_id`, `role_id`, `username`, `name`, `email`, 
 -- Table structure for table `user_profiles`
 --
 
-DROP TABLE IF EXISTS `user_profiles`;
 CREATE TABLE `user_profiles` (
   `user_id` bigint(20) NOT NULL,
   `full_name` varchar(150) NOT NULL,
+  `age` tinyint(3) UNSIGNED DEFAULT NULL,
   `photo_path` varchar(255) DEFAULT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
@@ -789,21 +806,22 @@ CREATE TABLE `user_profiles` (
 -- Dumping data for table `user_profiles`
 --
 
-INSERT INTO `user_profiles` (`user_id`, `full_name`, `photo_path`, `contact_number`, `address`, `prc_license_number`, `prc_not_applicable`, `specialization`, `highest_education`, `profile_completed_at`, `created_at`, `updated_at`) VALUES
-(1, 'Maria Santos', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(2, 'Carlos Reyes', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(3, 'Juan Cruz', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(4, 'Ana Garcia', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(5, 'Mark Penduko', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(6, 'Bea Alonzo', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(7, 'Jose Rizal', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(8, 'Luz Macaraeg', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(9, 'Kathryn Bernardo', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(10, 'Coco Martin', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(11, 'Dingdong Dantes', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(12, 'Marian Rivera', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(13, 'Vic Sotto', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(14, 'Joey De Leon', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32');
+INSERT INTO `user_profiles` (`user_id`, `full_name`, `age`, `photo_path`, `contact_number`, `address`, `prc_license_number`, `prc_not_applicable`, `specialization`, `highest_education`, `profile_completed_at`, `created_at`, `updated_at`) VALUES
+(1, 'Maria Santos', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 'Carlos Reyes', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 'Juan Cruz', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 'Ana Garcia', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(5, 'Mark Penduko', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(6, 'Bea Alonzo', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(7, 'Jose Rizal', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(8, 'Luz Macaraeg', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(9, 'Kathryn Bernardo', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(10, 'Coco Martin', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(11, 'Dingdong Dantes', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(12, 'Marian Rivera', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(13, 'Vic Sotto', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(14, 'Joey De Leon', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(15, 'Aira Rocel Nazareno', 21, NULL, '765356376537', 'fdfab fabagab', NULL, 1, 'Information Technology', 'Master’s Degree', '2026-11-06 06:32:04', '2026-11-06 06:32:04', '2026-11-06 06:45:43');
 
 -- --------------------------------------------------------
 
@@ -811,12 +829,12 @@ INSERT INTO `user_profiles` (`user_id`, `full_name`, `photo_path`, `contact_numb
 -- Table structure for table `vacancies`
 --
 
-DROP TABLE IF EXISTS `vacancies`;
 CREATE TABLE `vacancies` (
   `id` bigint(20) NOT NULL,
   `department_id` bigint(20) NOT NULL,
   `title` varchar(100) NOT NULL,
   `employment_type` enum('Full-time','Part-time','Contract') DEFAULT 'Full-time',
+  `is_teaching` tinyint(1) NOT NULL DEFAULT 1,
   `description` text NOT NULL,
   `closing_date` date NOT NULL,
   `status` enum('open','closed') DEFAULT 'open',
@@ -828,11 +846,12 @@ CREATE TABLE `vacancies` (
 -- Dumping data for table `vacancies`
 --
 
-INSERT INTO `vacancies` (`id`, `department_id`, `title`, `employment_type`, `description`, `closing_date`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Instructor I', 'Full-time', 'Prepare and deliver computing courses, assess learning, and mentor students.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(2, 2, 'Instructor I', 'Full-time', 'Teach mathematics courses, develop learning resources, and support student learning.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(3, 3, 'Instructor I', 'Full-time', 'Facilitate language and communication courses and assess student performance.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
-(4, 4, 'Instructor I', 'Part-time', 'Teach business courses and connect classroom concepts with professional practice.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32');
+INSERT INTO `vacancies` (`id`, `department_id`, `title`, `employment_type`, `is_teaching`, `description`, `closing_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Instructor I', 'Full-time', 1, 'Prepare and deliver computing courses, assess learning, and mentor students.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(2, 2, 'Instructor I', 'Full-time', 1, 'Teach mathematics courses, develop learning resources, and support student learning.', '2026-12-15', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(3, 3, 'Instructor I', 'Full-time', 1, 'Facilitate language and communication courses and assess student performance.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(4, 4, 'Instructor I', 'Part-time', 1, 'Teach business courses and connect classroom concepts with professional practice.', '2026-12-18', 'open', '2026-11-02 00:34:32', '2026-11-02 00:34:32'),
+(5, 5, 'Admin I', 'Full-time', 0, 'hnemhgm', '2026-11-30', 'open', '2026-11-06 06:42:01', '2026-11-06 06:42:01');
 
 --
 -- Indexes for dumped tables
@@ -1126,19 +1145,19 @@ ALTER TABLE `vacancies`
 -- AUTO_INCREMENT for table `applicant_notifications`
 --
 ALTER TABLE `applicant_notifications`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `application_documents`
 --
 ALTER TABLE `application_documents`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `attendance_logs`
@@ -1150,7 +1169,7 @@ ALTER TABLE `attendance_logs`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `branches`
@@ -1174,7 +1193,7 @@ ALTER TABLE `departments`
 -- AUTO_INCREMENT for table `email_notification_logs`
 --
 ALTER TABLE `email_notification_logs`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `employees`
@@ -1204,7 +1223,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `interview_schedules`
 --
 ALTER TABLE `interview_schedules`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `jobs`
@@ -1282,13 +1301,13 @@ ALTER TABLE `teaching_schedules`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `vacancies`
 --
 ALTER TABLE `vacancies`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

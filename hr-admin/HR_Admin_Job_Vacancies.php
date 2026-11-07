@@ -4318,9 +4318,9 @@ $today  = date('Y-m-d');
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="hrms-header has-sidebar-menu"><button type="button" class="hrms-menu icon-button" id="menu-toggle" aria-controls="portal-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg></button><a class="hrms-brand" href="../index.html"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
+            </svg></button><a class="hrms-brand"ml"><strong>DNSC SMART HRMS</strong><span>Human Resource Management System</span></a>
 
-        <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../job-vacancies.php">Job Vacancies</a><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
+        <nav class="hrms-public-nav" aria-label="Main navigation"><a href="../authentication/logout.php" aria-label="Log out and return to sign in">Log Out</a></nav><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode"></button>
     </header>
     <div id="notice" class="system-notice" role="status" tabindex="-1" <?= $flash ? '' : ' hidden' ?>><?= $flash ? e($flash['msg']) : '' ?></div>
     <div class="demo-layout hrms-layout">
@@ -4350,7 +4350,7 @@ $today  = date('Y-m-d');
                                     <th scope="col">Status</th>
                                     <th scope="col">Closes</th>
                                     <th scope="col">Applicants</th>
-                                    <th scope="col">Posted</th>
+                                    <!-- <th scope="col">Posted</th> -->
                                     <th scope="col">Action</th>
                                 </tr>
                             </thead>
@@ -4382,7 +4382,7 @@ $today  = date('Y-m-d');
                                             <?php endif; ?>
                                         </td>
                                         <td><?= (int)($v['applicants'] ?? 0) ?></td>
-                                        <td><?= e(date('F j, Y', strtotime($v['created_at'] ?? 'now'))) ?></td>
+                                        <!-- <td><?= e(date('F j, Y', strtotime($v['created_at'] ?? 'now'))) ?></td> -->
                                         <td><a class="demo-button" href="?edit=<?= (int)$v['id'] ?>#vacancy-form">Edit</a></td>
                                     </tr>
                                 <?php endforeach; ?>
