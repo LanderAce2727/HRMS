@@ -4305,13 +4305,51 @@ if (isset($_GET['action'])) {
     <link rel="stylesheet" href="assets/navigation.css">
     <link rel="stylesheet" href="assets/light-theme.css?v=20261028-unified-employee">
     <link rel="stylesheet" href="assets/attendance-kiosk.css?v=20261103-rfid-id-card">
+    <style id="attendance-header-extras">
+        /* Sticky header + light/dark toggle (matches the other pages) */
+        .attendance-kiosk-header {
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--panel);
+            color: var(--ink);
+            border-bottom: 1px solid var(--line);
+        }
+        .attendance-kiosk-header strong { color: var(--ink); }
+        .attendance-kiosk-header .attendance-kiosk-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+        .attendance-kiosk-header #theme-mode {
+            flex: none;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--panel);
+            color: var(--accent);
+            cursor: pointer;
+        }
+        .attendance-kiosk-header #theme-mode:hover { border-color: var(--accent); }
+        .attendance-kiosk-header #theme-mode svg { pointer-events: none; }
+        html { scroll-padding-top: 76px; }
+    </style>
 </head>
 
 <body class="original-attendance attendance-kiosk">
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <header class="attendance-kiosk-header"><strong>DNSC Attendance</strong><a class="attendance-back" href="login.php"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <header class="attendance-kiosk-header"><strong>DNSC Attendance</strong><div class="attendance-kiosk-actions"><a class="attendance-back" href="login.php"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="m12 5-7 7 7 7M5 12h14" />
-            </svg>Back to Sign In</a></header>
+            </svg>Back to Sign In</a><button type="button" class="icon-button" id="theme-mode" aria-label="Switch to dark mode" title="Switch to dark mode"></button></div></header>
     <div id="notice" class="system-notice" role="status" tabindex="-1" hidden></div>
     <main class="demo-main content" id="main-content">
         <div class="heading">
@@ -4631,6 +4669,32 @@ if (isset($_GET['action'])) {
         })();
     </script>
     <script src="assets/attendance-kiosk.js?v=20261103-rfid-id-card"></script>
+    <script>
+        /* UID input: submit ONLY when Enter is pressed (RFID readers send Enter after the UID;
+           a person typing their ID presses Enter themselves). Nothing fires while typing. */
+        (function () {
+            var input = document.getElementById('rfid-input');
+            var form = document.getElementById('rfid-form');
+            if (!input || !form) return;
+
+            // Stop any "auto scan after a few characters / short pause" logic from seeing typing events.
+            ['input', 'keyup', 'keypress', 'change', 'paste'].forEach(function (type) {
+                window.addEventListener(type, function (e) {
+                    if (e.target === input) e.stopImmediatePropagation();
+                }, true);
+            });
+
+            // Enter = submit the whole UID that was typed or scanned.
+            window.addEventListener('keydown', function (e) {
+                if (e.target !== input || e.key !== 'Enter') return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (input.value.trim() === '') return;
+                if (form.requestSubmit) form.requestSubmit();
+                else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }, true);
+        })();
+    </script>
 </body>
 
 </html>
