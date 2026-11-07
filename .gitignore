@@ -5,3 +5,10 @@
 /static-site.zip
 /backups/before-ui-flow-20261027/
 # config/db.phpauthentication/google-config.local.php
+.env
+.env.*
+!.env.example
+
+authentication/google-config.local.php
+
+/vendor/
