@@ -187,8 +187,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ---------------- data for the page ---------------- */
 $employees = $pdo->query(
-  'SELECT id, employee_number, first_name, last_name, position_title, current_status
-       FROM employees ORDER BY last_name, first_name'
+    "SELECT e.id, e.employee_number, e.first_name, e.last_name, e.position_title,
+            CASE WHEN e.current_status = 'active' AND EXISTS (
+                   SELECT 1 FROM leave_requests l
+                    WHERE l.employee_id = e.id AND l.status = 'approved'
+                      AND CURDATE() BETWEEN l.start_date AND l.end_date
+                 ) THEN 'on_leave' ELSE e.current_status END AS current_status
+       FROM employees e ORDER BY e.last_name, e.first_name"
 )->fetchAll();
 
 $histories = $pdo->query(

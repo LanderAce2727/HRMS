@@ -246,11 +246,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $departments = $pdo->query('SELECT id, department_name FROM departments ORDER BY department_name')->fetchAll();
 
 $employees = $pdo->query(
-    'SELECT e.id, e.first_name, e.last_name, e.employee_number, e.current_status, u.email, d.department_name
+    "SELECT e.id, e.first_name, e.last_name, e.employee_number,
+            CASE WHEN e.current_status = 'active' AND EXISTS (
+                   SELECT 1 FROM leave_requests l
+                    WHERE l.employee_id = e.id AND l.status = 'approved'
+                      AND CURDATE() BETWEEN l.start_date AND l.end_date
+                 ) THEN 'on_leave' ELSE e.current_status END AS current_status,
+            u.email, d.department_name
        FROM employees e
        JOIN users u ON u.id = e.user_id
        JOIN departments d ON d.id = e.department_id
-      ORDER BY e.last_name, e.first_name'
+      ORDER BY e.last_name, e.first_name"
 )->fetchAll();
 
 $isEdit = $form['id'] !== '';
