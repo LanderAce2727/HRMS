@@ -220,7 +220,7 @@ header.hrms-header.has-sidebar-menu #menu-toggle svg{display:block;pointer-event
     font-size: 11px;
 }
 </style>
-<link rel="stylesheet" href="../assets/navigation.css"><link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee"></head>
+<link rel="stylesheet" href="../assets/navigation.css"><link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee"><link rel="stylesheet" href="../assets/logout-confirmation.css"><script defer src="../assets/logout-confirmation.js"></script></head>
 <body class="sidebar-shell">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="hrms-header has-sidebar-menu">

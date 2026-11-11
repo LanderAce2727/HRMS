@@ -4357,6 +4357,8 @@ $isEdit = $form['id'] !== '';
   </style>
   <link rel="stylesheet" href="../assets/navigation.css">
   <link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee">
+  <link rel="stylesheet" href="../assets/logout-confirmation.css">
+  <script defer src="../assets/logout-confirmation.js"></script>
 </head>
 
 <body class="sidebar-shell">

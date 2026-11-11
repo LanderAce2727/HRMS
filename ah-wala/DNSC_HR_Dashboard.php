@@ -687,5 +687,7 @@ const tick=()=>{const clock=document.getElementById('live-clock'),date=document.
 })();
 
 </script>
+<link rel="stylesheet" href="../assets/logout-confirmation.css">
+<script defer src="../assets/logout-confirmation.js"></script>
 </body>
 </html>

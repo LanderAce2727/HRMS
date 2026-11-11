@@ -935,6 +935,8 @@ if ($latestPayslip) {
       rel="stylesheet"
       href="assets/light-theme.css?v=20261028-unified-employee"
     />
+    <link rel="stylesheet" href="assets/logout-confirmation.css" />
+    <script defer src="assets/logout-confirmation.js"></script>
   </head>
   <body class="sidebar-shell flow-page" data-flow="faculty">
     <a class="skip-link" href="#main-content">Skip to content</a>

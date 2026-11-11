@@ -4262,6 +4262,8 @@ $statusLabel = [
   <link rel="stylesheet" href="../assets/navigation.css">
   <link rel="stylesheet" href="../assets/light-theme.css?v=20261028-unified-employee">
   <link rel="stylesheet" href="../assets/hr-dashboard.css?v=20261028-hr-dashboard">
+  <link rel="stylesheet" href="../assets/logout-confirmation.css">
+  <script defer src="../assets/logout-confirmation.js"></script>
 </head>
 
 <body class="sidebar-shell original-dashboard flow-page hrms-dashboard">
@@ -4372,6 +4374,42 @@ $statusLabel = [
               </table>
             </div>
           </section>
+
+          <details class="panel system-settings">
+            <summary>System Settings</summary>
+            <form class="demo-form" method="post" action="HR_Admin_Dashboard.php" aria-label="System settings">
+              <input type="hidden" name="action" value="save_settings">
+              <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
+              <label>Evaluation opens (calendar)
+                <input name="evaluation_start" id="evaluation_start" type="date" value="<?= e($evalStart) ?>">
+              </label>
+              <label>Evaluation closes (calendar)
+                <input name="evaluation_end" id="evaluation_end" type="date" value="<?= e($evalEnd) ?>" min="<?= e($evalStart) ?>">
+              </label>
+              <p class="demo-muted">Current open period: <strong><?= e($academicPeriod !== '' ? $academicPeriod : 'Closed') ?></strong>. Clear both dates to close evaluations.
+                <button type="button" class="demo-button" id="clear-eval-dates">Clear dates</button>
+              </p>
+              <script>
+                (function() {
+                  const s = document.getElementById('evaluation_start'),
+                    e = document.getElementById('evaluation_end');
+                  s.addEventListener('change', () => {
+                    e.min = s.value;
+                    if (e.value && e.value < s.value) e.value = s.value;
+                  });
+                  document.getElementById('clear-eval-dates').addEventListener('click', () => {
+                    s.value = '';
+                    e.value = '';
+                    e.min = '';
+                  });
+                })();
+              </script>
+              <label>Work start time (PHT)
+                <input name="late_after" type="time" value="<?= e($lateAfter) ?>" required>
+              </label>
+              <div><button class="demo-button primary" type="submit">Save Settings</button></div>
+            </form>
+          </details>
         </div>
 
         <div>
@@ -4402,41 +4440,6 @@ $statusLabel = [
         </div>
       </div>
 
-      <details class="panel">
-        <summary>System Settings</summary>
-        <form class="demo-form" method="post" action="HR_Admin_Dashboard.php" aria-label="System settings">
-          <input type="hidden" name="action" value="save_settings">
-          <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
-          <label>Evaluation opens (calendar)
-            <input name="evaluation_start" id="evaluation_start" type="date" value="<?= e($evalStart) ?>">
-          </label>
-          <label>Evaluation closes (calendar)
-            <input name="evaluation_end" id="evaluation_end" type="date" value="<?= e($evalEnd) ?>" min="<?= e($evalStart) ?>">
-          </label>
-          <p class="demo-muted">Current open period: <strong><?= e($academicPeriod !== '' ? $academicPeriod : 'Closed') ?></strong>. Clear both dates to close evaluations.
-            <button type="button" class="demo-button" id="clear-eval-dates">Clear dates</button>
-          </p>
-          <script>
-            (function() {
-              const s = document.getElementById('evaluation_start'),
-                e = document.getElementById('evaluation_end');
-              s.addEventListener('change', () => {
-                e.min = s.value;
-                if (e.value && e.value < s.value) e.value = s.value;
-              });
-              document.getElementById('clear-eval-dates').addEventListener('click', () => {
-                s.value = '';
-                e.value = '';
-                e.min = '';
-              });
-            })();
-          </script>
-          <label>Work start time (PHT)
-            <input name="late_after" type="time" value="<?= e($lateAfter) ?>" required>
-          </label>
-          <div><button class="demo-button primary" type="submit">Save Settings</button></div>
-        </form>
-      </details>
     </main>
   </div>
   <script>

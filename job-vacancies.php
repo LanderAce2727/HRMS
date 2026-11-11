@@ -721,13 +721,12 @@ const tick=()=>{const clock=document.getElementById('live-clock'),date=document.
   menu.className = 'vacancy-profile-menu';
   menu.id = 'vacancy-profile-menu';
   menu.hidden = true;
-  menu.innerHTML = '<div class="vacancy-profile-heading"><strong>' + displayName + '</strong><small>Applicant profile</small></div><dl><div><dt>Email</dt><dd><?= e((string) $user['email']) ?></dd></div><div><dt>PRC License</dt><dd><?= e((string) ($profile['prc_license'] ?? 'Not provided')) ?></dd></div></dl><button type="button" id="vacancy-logout" class="vacancy-logout">Log Out</button>';
+  menu.innerHTML = '<div class="vacancy-profile-heading"><strong>' + displayName + '</strong><small>Applicant profile</small></div><dl><div><dt>Email</dt><dd><?= e((string) $user['email']) ?></dd></div><div><dt>PRC License</dt><dd><?= e((string) ($profile['prc_license'] ?? 'Not provided')) ?></dd></div></dl><button type="button" id="vacancy-logout" class="vacancy-logout" data-logout-href="authentication/logout.php">Log Out</button>';
   account.append(menu);
   oldProfile.setAttribute('aria-controls', menu.id);
   const position = () => { const rect = oldProfile.getBoundingClientRect(); menu.style.left = Math.max(12, Math.min(rect.right - menu.offsetWidth, innerWidth - menu.offsetWidth - 12)) + 'px'; menu.style.top = rect.bottom + 10 + 'px'; };
   const close = () => { menu.hidden = true; oldProfile.setAttribute('aria-expanded', 'false'); };
   oldProfile.addEventListener('click', event => { event.stopPropagation(); const opening = menu.hidden; close(); if (opening) { menu.hidden = false; oldProfile.setAttribute('aria-expanded', 'true'); position(); } });
-  menu.querySelector('#vacancy-logout').addEventListener('click', () => { location.href = 'authentication/logout.php'; });
   document.addEventListener('click', event => { if (!account.contains(event.target)) close(); });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !menu.hidden) { close(); oldProfile.focus(); } });
   addEventListener('resize', () => { if (!menu.hidden) position(); });
@@ -920,4 +919,6 @@ const tick=()=>{const clock=document.getElementById('live-clock'),date=document.
   render();
 })();
 </script>
+<link rel="stylesheet" href="assets/logout-confirmation.css">
+<script defer src="assets/logout-confirmation.js"></script>
 <noscript><p>Enable JavaScript to use this page.</p></noscript></body></html>
